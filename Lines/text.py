@@ -7,6 +7,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import svgwrite
+from Lines.Surface import Surface
 import Lines.hersheydata as hersheydata
 
 # FONT_DEFAULT = 'EMSOsmotron'
@@ -31,6 +32,9 @@ def text_char(parent, char, face, offset, vertoffset):
     return midpoint + float(split_string[1])
 
 def text(parent, text, center=(0.0, 0.0), scale=1.0, rotate=0, font_name=FONT_DEFAULT):
+    if isinstance(parent, Surface):
+        parent = parent.body
+
     font = getattr(hersheydata, font_name)
     g = parent.add( svgwrite.container.Group(id="text"))
     w = 0  # Initial spacing offset

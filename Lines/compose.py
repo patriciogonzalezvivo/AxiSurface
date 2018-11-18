@@ -8,7 +8,12 @@ from __future__ import unicode_literals
 
 import svgwrite
 
+from Lines.Surface import Surface
+
 STROKE_WIDTH = 0.2
 
 def child(parent, name):
+    if isinstance(parent, Surface):
+        parent = parent.body
+    
     return parent.add( svgwrite.container.Group(id=name, fill='none', stroke='black', stroke_width=STROKE_WIDTH))
