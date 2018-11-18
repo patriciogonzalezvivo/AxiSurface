@@ -7,7 +7,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import math
 import svgwrite
 import hersheydata  # data file w/ Hershey font data
 
@@ -16,7 +15,7 @@ import hersheydata  # data file w/ Hershey font data
 FONT_DEFAULT = 'futural'
 # FONT_DEFAULT = 'futuram'
 
-def text_char(char, face, offset, vertoffset, parent):
+def text_char(parent, char, face, offset, vertoffset):
     path_string = face[char]
 
     split_string = path_string.split()
@@ -32,7 +31,7 @@ def text_char(char, face, offset, vertoffset, parent):
 
     return midpoint + float(split_string[1])
 
-def text(parent, text, view_center=[0.0,0.0], scale=1.0, rotate=0, font_name=FONT_DEFAULT):
+def text(parent, text, view_center=(0.0, 0.0), scale=1.0, rotate=0, font_name=FONT_DEFAULT):
     font = getattr(hersheydata, font_name)
     g = parent.add( svgwrite.container.Group(id="text"))
     w = 0  # Initial spacing offset
@@ -45,7 +44,7 @@ def text(parent, text, view_center=[0.0,0.0], scale=1.0, rotate=0, font_name=FON
         if q <= 0 or q > 95:
             w += 2 * spacing
         else:
-            w = text_char(q, font, w, 0, g)
+            w = text_char(g, q, font, w, 0)
 
     g.translate(   view_center[0] - scale * w * 0.5, 
                 ty=view_center[1] - scale * v * 0.5 )
