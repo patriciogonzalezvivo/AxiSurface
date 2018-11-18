@@ -10,17 +10,17 @@ import math
 
 import svgwrite
 
-from math_func import polar2xy, perpendicular
+from Lines.math_func import polar2xy, perpendicular
 
 STROKE_WIDTH = 0.2
 
-def lineProp(pointA, pointB):
+def lineProp( pointA, pointB ):
     lengthX = pointB[0] - pointA[0]
     lengthY = pointB[1] - pointA[1]
     return math.sqrt( math.pow(lengthX, 2) + math.pow(lengthY, 2)), math.atan2(lengthY, lengthX)
 
 
-def controlPoint(current, _previous, _next, reverse):
+def controlPoint( current, _previous, _next, reverse ):
     p = _previous
     n = _next
 
@@ -43,7 +43,7 @@ def controlPoint(current, _previous, _next, reverse):
     return [x, y]
 
 
-def bezierCommand(point, i, a):
+def bezierCommand( point, i, a ):
 
     #  start control point
     cpsX, cpsY = controlPoint(a[i - 1], a[i - 2], point, False) 
@@ -59,77 +59,77 @@ def bezierCommand(point, i, a):
 
 # --------------------------------------------------- draw functions 
 
-def dot(_parent, _center, _radius):
-    rad = _radius
+def dot( parent, center, radius ):
+    rad = radius
     while rad >= 0:
-        _parent.add( svgwrite.shapes.Circle(center=_center, r=rad) )
+        parent.add( svgwrite.shapes.Circle(center=center, r=rad) )
         rad -= STROKE_WIDTH
 
-def line(_parent, _posA, _posB, width=1):
+def line( parent, posA, posB, width=1 ):
     if width > 1:
         perp = perpendicular(A, B)
-        _posA += perp * STROKE_WIDTH * 0.5
-        _posB += perp * STROKE_WIDTH * 0.5
-        _parent.add( svgwrite.shapes.Line(_posA, _posB) )
-        _posA -= perp * STROKE_WIDTH 
-        _posB -= perp * STROKE_WIDTH 
-        _parent.add( svgwrite.shapes.Line(_posA, _posB) )
+        posA += perp * STROKE_WIDTH * 0.5
+        posB += perp * STROKE_WIDTH * 0.5
+        parent.add( svgwrite.shapes.Line(posA, posB) )
+        posA -= perp * STROKE_WIDTH 
+        posB -= perp * STROKE_WIDTH 
+        parent.add( svgwrite.shapes.Line(posA, posB) )
     else:
-        _parent.add( svgwrite.shapes.Line(_posA, _posB) )
+        parent.add( svgwrite.shapes.Line(posA, posB) )
 
 
-def arc(_parent, _posA, _posB, _rad):
-    """ Adds an arc that bulges to the right as it moves from _posA to _posB """
+def arc( parent, posA, posB, radius ):
+    """ Adds an arc that bulges to the right as it moves from posA to posB """
     args = {
-        'x0':_posA[0], 
-        'y0':_posA[1], 
-        'xradius':_radius, 
-        'yradius':_radius, 
+        'x0':posA[0], 
+        'y0':posA[1], 
+        'xradius':radius, 
+        'yradius':radius, 
         'ellipseRotation':0, #has no effect for circles
-        'x1':(_posB[0]-_posA[0]), 
-        'y1':(_posB[1]-_posA[1])}
+        'x1':(posB[0]-posA[0]), 
+        'y1':(posB[1]-posA[1])}
 
     path_string = "M %(x0)f,%(y0)f a %(xradius)f,%(yradius)f %(ellipseRotation)f 0,0 %(x1)f,%(y1)f"%args
-    _parent.add( svgwrite.path.Path(d=path_string, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
+    parent.add( svgwrite.path.Path(d=path_string, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
 
 
-def circle(_parent, _center, _radius, _open_angle=None, _offset_angle = 0):
-    if _open_angle != None:
-        _posA = polar2xy(_center[0], _center[1], _offset_angle + _open_angle, _radius)
-        _posB = polar2xy(_center[0], _center[1], _offset_angle + 360 - _open_angle, _radius)
+def circle(parent, center, radius, open_angle=None, offset_angle=0):
+    if open_angle != None:
+        posA = polar2xy(center[0], center[1], offset_angle + open_angle, radius)
+        posB = polar2xy(center[0], center[1], offset_angle + 360 - open_angle, radius)
         args = {
-                'x0':_posA[0], 
-                'y0':_posA[1], 
-                'xradius':_radius, 
-                'yradius':_radius, 
+                'x0':posA[0], 
+                'y0':posA[1], 
+                'xradius':radius, 
+                'yradius':radius, 
                 'ellipseRotation':0,
-                'x1':_posB[0], 
-                'y1':_posB[1]
+                'x1':posB[0], 
+                'y1':posB[1]
             }
 
         path_string = "M %(x0)f,%(y0)f A %(xradius)f,%(yradius)f%(ellipseRotation)f 1,1 %(x1)f,%(y1)f"%args
-        _parent.add( svgwrite.path.Path(d=path_string, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
+        parent.add( svgwrite.path.Path(d=path_string, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
     else:
-        _parent.add( svgwrite.shapes.Circle(center=center, r=radius, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
+        parent.add( svgwrite.shapes.Circle(center=center, r=radius, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
 
-def rect(_parent, _center, size=(1,1)):
-    _parent.add( svgwrite.shapes.Rect(insert=_center, size=size) )
+def rect(parent, center, size=(1,1)):
+    parent.add( svgwrite.shapes.Rect(insert=center, size=size) )
 
-def polyline(_parent, _points):
-    _parent.add( svgwrite.path.Polyline(points=_points, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
+def polyline(parent, points):
+    parent.add( svgwrite.path.Polyline(points=points, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
 
-def path(_parent, _points):
-    path_string = "M " + str(_points[0][0]) + " " + str(_points[0][1])
+def path(parent, points):
+    path_string = "M " + str(points[0][0]) + " " + str(points[0][1])
 
-    for point in _points[1:]:
+    for point in points[1:]:
         path_string += " L " + str(point[0]) + " " + str(point[1])
     
-    _parent.add( svgwrite.path.Path(d=path_string, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
+    parent.add( svgwrite.path.Path(d=path_string, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
 
-def smoothPath(_parent, _points):
-    path_string = "M " + str(_points[0][0]) + " " + str(_points[0][1])
+def smoothPath(parent, points):
+    path_string = "M " + str(points[0][0]) + " " + str(points[0][1])
 
-    for i in range(1, len(_points)):
-        path_string += bezierCommand(_points[i], i, _points)
+    for i in range(1, len(points)):
+        path_string += bezierCommand(points[i], i, points)
     
-    _parent.add( svgwrite.path.Path(d=path_string, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
+    parent.add( svgwrite.path.Path(d=path_string, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )

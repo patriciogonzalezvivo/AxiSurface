@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
 import svgwrite
-import hersheydata  # data file w/ Hershey font data
+import Lines.hersheydata as hersheydata
 
 # FONT_DEFAULT = 'EMSOsmotron'
 # FONT_DEFAULT = 'EMSHerculean'
@@ -31,7 +30,7 @@ def text_char(parent, char, face, offset, vertoffset):
 
     return midpoint + float(split_string[1])
 
-def text(parent, text, view_center=(0.0, 0.0), scale=1.0, rotate=0, font_name=FONT_DEFAULT):
+def text(parent, text, center=(0.0, 0.0), scale=1.0, rotate=0, font_name=FONT_DEFAULT):
     font = getattr(hersheydata, font_name)
     g = parent.add( svgwrite.container.Group(id="text"))
     w = 0  # Initial spacing offset
@@ -46,8 +45,8 @@ def text(parent, text, view_center=(0.0, 0.0), scale=1.0, rotate=0, font_name=FO
         else:
             w = text_char(g, q, font, w, 0)
 
-    g.translate(   view_center[0] - scale * w * 0.5, 
-                ty=view_center[1] - scale * v * 0.5 )
+    g.translate(   center[0] - scale * w * 0.5, 
+                ty=center[1] - scale * v * 0.5 )
 
     if scale != 1:
         g.scale( scale ) 
