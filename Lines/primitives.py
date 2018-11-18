@@ -10,7 +10,7 @@ import math
 
 import svgwrite
 
-from Lines.math_func import polar2xy, perpendicular
+from Lines.tools import polar2xy, perpendicular
 
 STROKE_WIDTH = 0.2
 
@@ -119,12 +119,15 @@ def polyline(parent, points):
     parent.add( svgwrite.path.Polyline(points=points, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
 
 def path(parent, points):
-    path_string = "M " + str(points[0][0]) + " " + str(points[0][1])
+    if isinstance(points, str):
+        parent.add( svgwrite.path.Path(d=points, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
+    else:
+        path_string = "M " + str(points[0][0]) + " " + str(points[0][1])
 
-    for point in points[1:]:
-        path_string += " L " + str(point[0]) + " " + str(point[1])
-    
-    parent.add( svgwrite.path.Path(d=path_string, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
+        for point in points[1:]:
+            path_string += " L " + str(point[0]) + " " + str(point[1])
+        
+        parent.add( svgwrite.path.Path(d=path_string, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
 
 def smoothPath(parent, points):
     path_string = "M " + str(points[0][0]) + " " + str(points[0][1])
