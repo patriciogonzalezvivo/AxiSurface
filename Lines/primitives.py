@@ -31,7 +31,7 @@ def line( parent, posA, posB, width=1 ):
         parent = parent.body
 
     if width > 1.0:
-        perp = perpendicular(A, B)
+        perp = perpendicular(posA, posB)
         posA += perp * STROKE_WIDTH * 0.5
         posB += perp * STROKE_WIDTH * 0.5
         parent.add( svgwrite.shapes.Line(posA, posB) )
@@ -93,7 +93,7 @@ def polyline(parent, points):
     if isinstance(parent, Surface):
         parent = parent.body
 
-    parent.add( svgwrite.path.Polyline(points=points, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
+    parent.add( svgwrite.shapes.Polyline(points=points, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
 
 def path(parent, points):
     if isinstance(parent, Surface):
