@@ -9,6 +9,8 @@ from __future__ import unicode_literals
 import svgwrite
 from svgwrite import cm, mm
 from .parser import parseSVG
+from .tracer import traceImg
+from .shading import shadeImg
 
 STROKE_WIDTH = 0.2
 
@@ -68,9 +70,16 @@ class Surface(object):
         reg.add( svgwrite.shapes.Line(start=(0.0, (self.height * 0.5 - 5.0)), end=(0.0, (self.height * 0.5 + 5.0)), stroke_width=STROKE_WIDTH*2.0) )
         reg.add( svgwrite.shapes.Line(start=(self.width, (self.height * 0.5 - 5.0)), end=(self.width, (self.height * 0.5 + 5.0)), stroke_width=STROKE_WIDTH*2.0) )
 
-    def toSVG( self, filename ):
-        self.dwg.saveas(filename)
+    def fromSVG( self, filename ):
+        parseSVG( self, filename )
 
-    def load( self, filename):
-        parseSVG( self, filename)
+    def fromThreshold( self, filename, threshold=0.5 ):
+        traceImg( self, filename, threshold )
+
+    def fromHeightmap( self, filename, texture_angle=0, camera_angle=0.1, presicion=0.5, threshold=None, mask=None, texture=None ):
+        shadeImg( self, filename, texture_angle=texture_angle, camera_angle=camera_angle, presicion=presicion, threshold=threshold, mask=mask, texture=texture )
+
+    def toSVG( self, filename ):
+        self.dwg.saveas( filename )
+
         
