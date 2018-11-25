@@ -218,7 +218,7 @@ def shadeImg( svg_surface, filename, texture_angle=0, camera_angle=1.0, texture_
     if isinstance(mask, basestring) or isinstance(mask, str):
         mask_img = img2array(mask)
         img = remove_image(img, mask_img > 0.5 )
-    elif mask != None:
+    elif isinstance(mask, (np.ndarray, np.generic) ):
         img = remove_image(img, mask)
 
     height, width = img.shape[:2]
@@ -240,5 +240,4 @@ def shadeImg( svg_surface, filename, texture_angle=0, camera_angle=1.0, texture_
 
     root = svg_surface.body.add( svgwrite.container.Group(id=filename, fill='none', stroke='black', stroke_width=STROKE_WIDTH ) )
     for layer in flipped_plot:
-        path_string = layer_to_path(layer)
-        root.add( svgwrite.path.Path(d=path_string) )
+        root.add( svgwrite.path.Path(d=layer_to_path(layer)) )
