@@ -166,14 +166,17 @@ def remove_hidden_parts(surface, angle):
     # return surface
 
 
-def do_normalise(im):
-    return -np.log(1/((1 + im)/257) - 1)
+def do_normalise(array):
+    array = np.float32(array)
+    return array/255
 
+    # info = np.iinfo(array.dtype)
+    # return im.astype(np.float64) / info.max
+    # return -np.log(1/((1 + array)/257) - 1)
 
 def img2array(filename):
     img = Image.open( filename ).convert('L')
     array = np.array(img, np.uint8)
-    array = np.float32(array)
     return do_normalise(array)
 
 # SVG convertion
@@ -205,23 +208,29 @@ def layer_to_path(layer):
     """
     return ' '.join(layer_to_path_gen(layer))
 
-def shadeImg( svg_surface, filename, texture_angle=0, camera_angle=0.1, presicion=0.5, threshold=None, mask=None, texture=None):
+def shadeImg( svg_surface, filename, texture_angle=0, camera_angle=1.0, texture_resolution=None, presicion=1.0, threshold=None, mask=None, texture=None):
 
     img = img2array( filename )
     img = remove_hidden_parts(img, camera_angle)
     if threshold != None:
         img = remove_threshold(img, threshold)
 
-    if mask != None:
+    if isinstance(mask, basestring) or isinstance(mask, str):
+        mask_img = img2array(mask)
+        img = remove_image(img, mask_img > 0.5 )
+    elif mask != None:
         img = remove_image(img, mask)
 
     height, width = img.shape[:2]
 
+    if texture_resolution == None:
+        texture_resolution = min(width, height) * 0.5
+
     if texture == None:
-        texture = make_joy_texture(min(svg_surface.width, svg_surface.height) * 0.5, min(width, height) * presicion)
+        texture = make_joy_texture(texture_resolution, min(width, height) * presicion)
         # texture = make_grid_texture(100, 100, 200)
 
-    if texture_angle == 0:
+    if texture_angle != 0:
         texture = rotate_texture(texture, texture_angle)
 
     # texture = fit_texture(texture)

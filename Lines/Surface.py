@@ -39,8 +39,8 @@ class Surface(object):
 
         self.scale = scale
         
-        self.dwg = svgwrite.Drawing(size=(self.width * mm, self.height * mm))
-        self.dwg.viewbox(width=self.width * self.scale, height=self.height * self.scale)
+        self.dwg = svgwrite.Drawing(debug=False, size=(self.width * mm, self.height * mm))
+        self.dwg.viewbox(width=self.width / self.scale, height=self.height / self.scale)
         self.body = self.dwg.add( svgwrite.container.Group(id='body', fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
 
     def child( self, name ):
@@ -76,8 +76,8 @@ class Surface(object):
     def fromThreshold( self, filename, threshold=0.5 ):
         traceImg( self, filename, threshold )
 
-    def fromHeightmap( self, filename, texture_angle=0, camera_angle=0.1, presicion=0.5, threshold=None, mask=None, texture=None ):
-        shadeImg( self, filename, texture_angle=texture_angle, camera_angle=camera_angle, presicion=presicion, threshold=threshold, mask=mask, texture=texture )
+    def fromHeightmap( self, filename, texture_angle=0, camera_angle=1.0, presicion=1.0, texture_resolution=None, threshold=None, mask=None, texture=None ):
+        shadeImg( self, filename, texture_angle=texture_angle, texture_resolution=texture_resolution, camera_angle=camera_angle, presicion=presicion, threshold=threshold, mask=mask, texture=texture )
 
     def toSVG( self, filename ):
         self.dwg.saveas( filename )
