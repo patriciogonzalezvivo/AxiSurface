@@ -30,9 +30,24 @@ Or use the Makefile by:
 make install
 ```
 
+# Example 
+
+```python
+from AxiSurface import AxiSurface, text, circle, rect
+
+paper = AxiSurface()
+t = paper.child('test')
+
+circle(t, center=(paper.width*0.5, paper.height*0.5), radius=paper.width*0.5 )
+rect(t, center=(0,0), size=(paper.width, paper.height) )
+text(t, text='hello world', center=(paper.width*0.5, paper.height*0.5) )
+
+paper.toSVG('test.svg')
+```
+
 # Acknowledgement
 
-Thanks to:
+Special thanks to:
 
  * [Evil Mad Scientist](https://www.evilmadscientist.com/) for the great Axidrawer and the Paths of the Hershey Fonts in (`hersheydata.py`)
 
