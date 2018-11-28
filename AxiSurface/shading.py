@@ -14,9 +14,11 @@ from PIL import Image
 
 STROKE_WIDTH = 0.2
 
+# This code is adapted from Paul Butler great Surface Projection tutorial
+# https://bitaesthetics.com/posts/surface-projection.html and PenKit https://github.com/paulgb/penkit/
+
 #  Textures
 #  --------------------------------------------------------
-
 
 def make_joy_texture(num_lines=10, resolution=50):
     # np.meshgrid is a handy way to generate a grid of points. It

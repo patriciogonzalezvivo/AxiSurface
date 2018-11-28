@@ -1,6 +1,6 @@
-# Meshes
+# AxiSurface
 
-Simple Python 2/3 module to make pure line SVG images for plotting
+Simple Python 2/3 module to make line SVG images for plotting
 
 ## Install
 
@@ -29,3 +29,11 @@ Or use the Makefile by:
 ```bash
 make install
 ```
+
+# Acknowledgement
+
+Thanks to:
+
+ * [Evil Mad Scientist](https://www.evilmadscientist.com/) for the great Axidrawer and the Paths of the Hershey Fonts in (`hersheydata.py`)
+
+ * [Paul Butler great](https://paulbutler.org/) for [Surface Projection tutorial](https://bitaesthetics.com/posts/surface-projection.html) and [PenKit]() https://github.com/paulgb/penkit/) both of witch I took some code in (`shading.py`).

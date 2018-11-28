@@ -1,7 +1,9 @@
 # outer __init__.py
 
+from svgwrite import cm, mm
+
 # Surface Class
-from Surface import Surface
+from AxiSurface import AxiSurface
 
 # drawing primitives
 from text import text

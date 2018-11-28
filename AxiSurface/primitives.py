@@ -10,14 +10,14 @@ import math
 
 import svgwrite
 
-from Lines.Surface import Surface
-from Lines.tools import polar2xy, perpendicular, bezierCommand
+from AxiSurface.AxiSurface import AxiSurface
+from AxiSurface.tools import polar2xy, perpendicular, bezierCommand
 
 STROKE_WIDTH = 0.2
 
 
 def dot( parent, center, radius ):
-    if isinstance(parent, Surface):
+    if isinstance(parent, AxiSurface):
         parent = parent.body
 
     rad = radius
@@ -27,7 +27,7 @@ def dot( parent, center, radius ):
 
 
 def line( parent, posA, posB, width=1 ):
-    if isinstance(parent, Surface):
+    if isinstance(parent, AxiSurface):
         parent = parent.body
 
     if width > 1.0:
@@ -45,7 +45,7 @@ def line( parent, posA, posB, width=1 ):
 def arc( parent, posA, posB, radius ):
     """ Adds an arc that bulges to the right as it moves from posA to posB """
 
-    if isinstance(parent, Surface):
+    if isinstance(parent, AxiSurface):
         parent = parent.body
 
     args = {
@@ -62,7 +62,7 @@ def arc( parent, posA, posB, radius ):
 
 
 def circle(parent, center, radius, open_angle=None, offset_angle=0):
-    if isinstance(parent, Surface):
+    if isinstance(parent, AxiSurface):
         parent = parent.body
 
     if open_angle != None:
@@ -84,19 +84,19 @@ def circle(parent, center, radius, open_angle=None, offset_angle=0):
         parent.add( svgwrite.shapes.Circle(center=center, r=radius, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
 
 def rect(parent, center, size=(1,1)):
-    if isinstance(parent, Surface):
+    if isinstance(parent, AxiSurface):
         parent = parent.body
 
     parent.add( svgwrite.shapes.Rect(insert=center, size=size) )
 
 def polyline(parent, points):
-    if isinstance(parent, Surface):
+    if isinstance(parent, AxiSurface):
         parent = parent.body
 
     parent.add( svgwrite.shapes.Polyline(points=points, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
 
 def path(parent, points):
-    if isinstance(parent, Surface):
+    if isinstance(parent, AxiSurface):
         parent = parent.body
 
     parent.add( svgwrite.path.Path(d=points, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
@@ -107,7 +107,7 @@ def path(parent, points):
     # parent.add( svgwrite.path.Path(d=path_string, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
 
 def smoothPath(parent, points):
-    if isinstance(parent, Surface):
+    if isinstance(parent, AxiSurface):
         parent = parent.body
 
     path_string = "M " + str(points[0][0]) + " " + str(points[0][1])

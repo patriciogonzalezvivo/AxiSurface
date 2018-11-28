@@ -14,8 +14,8 @@ from .shading import shadeImg
 
 STROKE_WIDTH = 0.2
 
-class Surface(object):
-    def __init__(self, size='A3', scale=1.0):
+class AxiSurface(object):
+    def __init__(self, size='A3', scale=1.0, unit=mm):
 
         if size == 'A4':
             self.width = 210.0
@@ -39,7 +39,7 @@ class Surface(object):
 
         self.scale = scale
         
-        self.dwg = svgwrite.Drawing(debug=False, size=(self.width * mm, self.height * mm))
+        self.dwg = svgwrite.Drawing(debug=False, size=(self.width * unit, self.height * unit))
         self.dwg.viewbox(width=self.width / self.scale, height=self.height / self.scale)
         self.body = self.dwg.add( svgwrite.container.Group(id='body', fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
 
