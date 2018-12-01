@@ -10,7 +10,10 @@ from __future__ import unicode_literals
 import svgwrite
 
 import numpy as np
-from PIL import Image
+from .image import load_heightmap, load_normalmap, remove_mask, remove_threshold
+
+# import matplotlib.pyplot as plt
+# from penkit.write import write_plot
 
 STROKE_WIDTH = 0.2
 
@@ -121,18 +124,6 @@ def texture_plot(texture, surface, angle=45, **kwargs):
 
 # Image operations
 # 
-def remove_image(surface, image):
-    surface = np.copy(surface)
-    surface[np.invert(image)] = np.nan
-    return surface
-
-
-def remove_threshold(surface, threshold):
-    mask = np.copy(surface)
-    # mask[..., 0] = np.minimum(mask[..., 0], threshold)
-    # mask = np.clip(mask, threshold, 1.0)
-    return remove_image(surface, mask > threshold)
-
 
 def make_visible_mask(surface, angle):
     s = surface.shape[0]
@@ -162,24 +153,7 @@ def make_visible_mask(surface, angle):
 
 
 def remove_hidden_parts(surface, angle):
-    return remove_image(surface, make_visible_mask(surface, angle))
-    # surface = np.copy(surface)
-    # surface[~make_visible_mask(surface, angle)] = np.nan
-    # return surface
-
-
-def do_normalise(array):
-    array = np.float32(array)
-    return array/255
-
-    # info = np.iinfo(array.dtype)
-    # return im.astype(np.float64) / info.max
-    # return -np.log(1/((1 + array)/257) - 1)
-
-def img2array(filename):
-    img = Image.open( filename ).convert('L')
-    array = np.array(img, np.uint8)
-    return do_normalise(array)
+    return remove_mask(surface, make_visible_mask(surface, angle))
 
 # SVG convertion
 # 
@@ -210,26 +184,26 @@ def layer_to_path(layer):
     """
     return ' '.join(layer_to_path_gen(layer))
 
-def shadeImg( svg_surface, filename, texture_angle=0, camera_angle=1.0, texture_resolution=None, presicion=1.0, threshold=None, mask=None, texture=None):
+def shadeHeightmap( svg_surface, filename, texture_angle=0, camera_angle=1.0, texture_presicion=1.0, threshold=None, mask=None, texture=None, texture_resolution=None):
 
-    img = img2array( filename )
-    img = remove_hidden_parts(img, camera_angle)
+    heightmap = load_heightmap( filename )
+    heightmap = remove_hidden_parts(heightmap, camera_angle)
     if threshold != None:
-        img = remove_threshold(img, threshold)
+        heightmap = remove_threshold(heightmap, threshold)
 
     if isinstance(mask, basestring) or isinstance(mask, str):
-        mask_img = img2array(mask)
-        img = remove_image(img, mask_img > 0.5 )
+        mask_heightmap = load_heightmap(mask)
+        heightmap = remove_mask(heightmap, mask_heightmap > 0.5 )
     elif isinstance(mask, (np.ndarray, np.generic) ):
-        img = remove_image(img, mask)
+        heightmap = remove_mask(heightmap, mask)
 
-    height, width = img.shape[:2]
+    height, width = heightmap.shape[:2]
 
     if texture_resolution == None:
         texture_resolution = min(width, height) * 0.5
 
     if texture == None:
-        texture = make_joy_texture(texture_resolution, min(width, height) * presicion)
+        texture = make_joy_texture(texture_resolution, min(width, height) * texture_presicion)
         # texture = make_grid_texture(100, 100, 200)
 
     if texture_angle != 0:
@@ -237,9 +211,71 @@ def shadeImg( svg_surface, filename, texture_angle=0, camera_angle=1.0, texture_
 
     # texture = fit_texture(texture)
 
-    plot = texture_plot(texture, img, camera_angle)
+    plot = texture_plot(texture, heightmap, camera_angle)
     flipped_plot = [(x * svg_surface.width, -y * svg_surface.height) for x, y in [plot]]
 
     root = svg_surface.body.add( svgwrite.container.Group(id=filename, fill='none', stroke='black', stroke_width=STROKE_WIDTH ) )
     for layer in flipped_plot:
+        root.add( svgwrite.path.Path(d=layer_to_path(layer)) )
+
+def normal2angle(image):
+    return np.arctan2(image[..., 1], image[..., 0]) 
+
+def decimate(array, dec):
+    return (np.floor(array * dec)) / dec
+
+
+def shadeNormalmap( svg_surface, filename, total_shades=10, texture_presicion=1.0, mask=None, texture=None, texture_resolution=None ):
+    normalmap = load_normalmap( filename )
+
+    # Mask 
+    use_mask = False
+    if isinstance(mask, basestring) or isinstance(mask, str):
+        mask = load_heightmap(mask) > 0.5
+        use_mask = True
+    elif isinstance(mask, (np.ndarray, np.generic) ):
+        use_mask = True
+
+    # Texture resolution
+    height, width = normalmap.shape[:2]
+    if texture_resolution == None:
+        texture_resolution = min(width, height) * 0.5
+
+    if texture == None:
+        texture = make_joy_texture(texture_resolution, min(width, height) * texture_presicion)
+
+    # Get normal vector angle
+    anglemap = normal2angle( normalmap )
+
+    # Normalize angle between 0.0 and 1.0
+    anglemap = (anglemap / np.pi) * 0.5 + 0.5
+
+    step = 1/total_shades
+    step_angle = 360/total_shades
+    anglemap = decimate(anglemap, float(total_shades))
+
+    layers = []
+    for cut in range(total_shades):
+        texture_sub = rotate_texture(texture, cut*-step_angle + 90)
+
+        surface = anglemap.copy()
+        surface.fill(1.0)
+
+        if use_mask:
+            surface = remove_mask(surface, mask)   
+
+        mask_sub = np.isclose(anglemap, cut * step)
+        surface = remove_mask(surface, mask_sub)
+
+        # plt.imshow( mask_sub )
+        # plt.show()
+
+        lines = texture_plot(texture_sub, surface, 0)
+        layers.append(lines)
+
+    # write_plot(layers, filename+'.svg')
+
+    flipped_layers = [(x * svg_surface.width, -y * svg_surface.height) for x, y in layers]
+    root = svg_surface.body.add( svgwrite.container.Group(id=filename, fill='none', stroke='black', stroke_width=STROKE_WIDTH ) )
+    for layer in flipped_layers:
         root.add( svgwrite.path.Path(d=layer_to_path(layer)) )
