@@ -89,7 +89,7 @@ def layer_to_path(layer):
 
 
 def addLayers(svg_surface, layers, name="shading"):
-    flipped_plot = [(x * svg_surface.width, -y * svg_surface.height) for x, y in [plot]]
+    flipped_plot = [(x * svg_surface.width, -y * svg_surface.height) for x, y in layers]
     root = svg_surface.body.add( svgwrite.container.Group(id=name, fill='none', stroke='black', stroke_width=STROKE_WIDTH ) )
     for layer in flipped_plot:
         root.add( svgwrite.path.Path(d=layer_to_path(layer)) )
@@ -97,7 +97,7 @@ def addLayers(svg_surface, layers, name="shading"):
 #  High Level Operations
 #  --------------------------------------------------------
 
-def gradient_texture(layers, gradientmap, angle, mask=None, total_shades=6, num_lines=100, resolution=500):
+def gradient_texture(layers, gradientmap, angle, camera_angle=0, mask=None, total_shades=10, num_lines=100, resolution=500):
     use_mask = False
     if isinstance(mask, (np.ndarray, np.generic) ):
         use_mask = True
@@ -115,11 +115,11 @@ def gradient_texture(layers, gradientmap, angle, mask=None, total_shades=6, num_
         texture_sub = make_joy_texture( num_lines, resolution, shade/total_shades )
         texture_sub = rotate_texture(texture_sub, angle)
 
-        lines = texture_plot(texture_sub, grad, 0)
+        lines = texture_plot(texture_sub, grad, camera_angle)
         layers.append(lines)
 
 
-def shadeGrayscale( svg_surface, filename, texture_angle=0, texture_presicion=1.0, total_shades=6, mask=None, texture=None, texture_resolution=None):
+def shadeGrayscale( svg_surface, filename, texture_angle=0, texture_presicion=1.0, total_shades=6, mask=None, texture_resolution=None):
     gradientmap = load_heightmap( filename )
 
     # Texture
@@ -173,16 +173,8 @@ def shadeHeightmap( svg_surface, filename, texture_angle=0, camera_angle=1.0, te
     
     addLayers(svg_surface, [layer], filename)
 
-def shadeNormalmap( svg_surface, filename, total_faces=10, texture_presicion=1.0, mask=None, texture=None, texture_resolution=None ):
+def shadeNormalmap( svg_surface, filename, total_faces=18, texture_presicion=1.0, mask=None, texture=None, texture_resolution=None, grayscale=None ):
     normalmap = load_normalmap( filename )
-
-    # Mask 
-    use_mask = False
-    if isinstance(mask, basestring) or isinstance(mask, str):
-        mask = load_heightmap(mask) > 0.5
-        use_mask = True
-    elif isinstance(mask, (np.ndarray, np.generic) ):
-        use_mask = True
 
     # Texture 
     height, width = normalmap.shape[:2]
@@ -192,20 +184,31 @@ def shadeNormalmap( svg_surface, filename, total_faces=10, texture_presicion=1.0
     if texture == None:
         texture = make_joy_texture(texture_resolution, min(width, height) * texture_presicion)
 
-    # Get normal vector angle
+    #  ANGLE MAP
     anglemap = normal2angle( normalmap )
-
-    # Normalize angle between 0.0 and 1.0
     anglemap = (anglemap / np.pi) * 0.5 + 0.5
-
-    step = 1/total_faces
-    step_angle = 360/total_faces
+    step = 1.0/total_faces
+    step_angle = 360.0/total_faces
     anglemap = decimate(anglemap, float(total_faces))
+
+    # Mask 
+    use_mask = False
+    if isinstance(mask, basestring) or isinstance(mask, str):
+        mask = load_heightmap(mask) > 0.5
+        use_mask = True
+    elif isinstance(mask, (np.ndarray, np.generic) ):
+        use_mask = True
+
+    # Grayscale
+    use_grayscale = False
+    if isinstance(grayscale, basestring) or isinstance(grayscale, str):
+        grayscale = load_heightmap(mask)
+        use_grayscale = True
+    elif isinstance(grayscale, (np.ndarray, np.generic) ):
+        use_grayscale = True
 
     layers = []
     for cut in range(total_faces):
-        texture_sub = rotate_texture(texture, cut*-step_angle + 90)
-
         surface = anglemap.copy()
         surface.fill(1.0)
 
@@ -215,7 +218,13 @@ def shadeNormalmap( svg_surface, filename, total_faces=10, texture_presicion=1.0
         mask_sub = np.isclose(anglemap, cut * step)
         surface = remove_mask(surface, mask_sub)
 
-        lines = texture_plot(texture_sub, surface, 0)
-        layers.append(lines)
+        angle_sub = cut*-step_angle + 90
+
+        if use_grayscale:
+            gradient_texture(layers, grayscale, angle_sub, mask=surface > 0.5, num_lines=200, total_shades=10, resolution=min(width, height) * texture_presicion)
+        else:
+            texture_sub = rotate_texture(texture, angle_sub)
+            lines = texture_plot(texture_sub, surface, 0)
+            layers.append(lines)
 
     addLayers(svg_surface, layers, filename)

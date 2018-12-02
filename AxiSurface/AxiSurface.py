@@ -75,17 +75,26 @@ class AxiSurface(object):
         reg.add( svgwrite.shapes.Line(start=(0.0, (self.height * 0.5 - 5.0)), end=(0.0, (self.height * 0.5 + 5.0)), stroke_width=STROKE_WIDTH*2.0) )
         reg.add( svgwrite.shapes.Line(start=(self.width, (self.height * 0.5 - 5.0)), end=(self.width, (self.height * 0.5 + 5.0)), stroke_width=STROKE_WIDTH*2.0) )
 
+
     def fromSVG( self, filename ):
         parseSVG( self, filename )
+
 
     def fromThreshold( self, filename, threshold=0.5 ):
         traceImg( self, filename, threshold )
 
+
+    def fromImage( self, filename, texture_angle=0, texture_presicion=1.0, total_shades=18, mask=None, texture_resolution=None):
+        hadeGrayscale( svg_surface, filename, texture_angle=texture_angle, texture_presicion=texture_presicion, total_shades=total_shades, mask=mask, texture_resolution=texture_resolution )
+
+
     def fromHeightmap( self, filename, texture_angle=0, camera_angle=1.0, texture_presicion=1.0, texture_resolution=None, threshold=None, mask=None, texture=None ):
         shadeHeightmap( self, filename, texture_angle=texture_angle, texture_resolution=texture_resolution, camera_angle=camera_angle, texture_presicion=texture_presicion, threshold=threshold, mask=mask, texture=texture  )
 
-    def fromNormalmap( self, filename, total_faces=18, texture_presicion=1.0, mask=None, texture=None, texture_resolution=None):
-        shadeNormalmap( self, filename, total_faces=total_faces, mask=mask, texture=texture, texture_resolution=texture_resolution, texture_presicion=texture_presicion )
+
+    def fromNormalmap( self, filename, total_faces=18, texture_presicion=1.0, mask=None, texture=None, texture_resolution=None, grayscale=None):
+        shadeNormalmap( self, filename, total_faces=total_faces, mask=mask, texture=texture, texture_resolution=texture_resolution, texture_presicion=texture_presicion, grayscale=grayscale )
+
 
     def toSVG( self, filename=None ):
         if filename:
