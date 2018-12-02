@@ -80,7 +80,7 @@ def load_image_rgb(filename):
     return array
 
 
-def load_heightmap(filename):
+def load_grayscale(filename):
     """Load a Image in a GRAYSCALE 64bit floating point matrix
     """
     img = Image.open( filename ).convert('L')

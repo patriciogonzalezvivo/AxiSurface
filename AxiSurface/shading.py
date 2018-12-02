@@ -10,8 +10,8 @@ from __future__ import unicode_literals
 import svgwrite
 
 import numpy as np
-from .image import load_heightmap, load_normalmap, remove_mask, remove_threshold
-from .texture import make_joy_texture, rotate_texture, texture_map, texture_plot
+from .image import load_grayscale, load_normalmap, remove_mask, remove_threshold
+from .texture import make_joy_texture, rotate_texture, texture_map, texture_plot, fit_texture
 
 # from penkit.write import write_plot
 
@@ -120,7 +120,7 @@ def gradient_texture(layers, gradientmap, angle, camera_angle=0, mask=None, tota
 
 
 def shadeGrayscale( svg_surface, filename, texture_angle=0, texture_presicion=1.0, total_shades=6, mask=None, texture_resolution=None):
-    gradientmap = load_heightmap( filename )
+    gradientmap = load_grayscale( filename )
 
     # Texture
     height, width = heightmap.shape[:2]
@@ -130,7 +130,7 @@ def shadeGrayscale( svg_surface, filename, texture_angle=0, texture_presicion=1.
 
     # Mask 
     if isinstance(mask, basestring) or isinstance(mask, str):
-        mask = load_heightmap(mask) > 0.5
+        mask = load_grayscale(mask) > 0.5
 
     gradient_texture(layers, gradientmap, angle, mask=mask, total_shades=total_shades, num_lines=100, resolution=min(width, height) * texture_presicion)
 
@@ -139,7 +139,7 @@ def shadeGrayscale( svg_surface, filename, texture_angle=0, texture_presicion=1.
 
 def shadeHeightmap( svg_surface, filename, texture_angle=0, camera_angle=1.0, texture_presicion=1.0, threshold=None, mask=None, texture=None, texture_resolution=None):
 
-    heightmap = load_heightmap( filename )
+    heightmap = load_grayscale( filename )
 
     # Remove not visible
     heightmap = remove_mask(heightmap, make_visible_mask(heightmap, camera_angle))
@@ -149,7 +149,7 @@ def shadeHeightmap( svg_surface, filename, texture_angle=0, camera_angle=1.0, te
 
     # Mask
     if isinstance(mask, basestring) or isinstance(mask, str):
-        mask_heightmap = load_heightmap(mask)
+        mask_heightmap = load_grayscale(mask)
         heightmap = remove_mask(heightmap, mask_heightmap > 0.5 )
     elif isinstance(mask, (np.ndarray, np.generic) ):
         heightmap = remove_mask(heightmap, mask)
@@ -194,7 +194,7 @@ def shadeNormalmap( svg_surface, filename, total_faces=18, texture_presicion=1.0
     # Mask 
     use_mask = False
     if isinstance(mask, basestring) or isinstance(mask, str):
-        mask = load_heightmap(mask) > 0.5
+        mask = load_grayscale(mask) > 0.5
         use_mask = True
     elif isinstance(mask, (np.ndarray, np.generic) ):
         use_mask = True
@@ -202,7 +202,7 @@ def shadeNormalmap( svg_surface, filename, total_faces=18, texture_presicion=1.0
     # Grayscale
     use_grayscale = False
     if isinstance(grayscale, basestring) or isinstance(grayscale, str):
-        grayscale = load_heightmap(mask)
+        grayscale = load_grayscale(mask)
         use_grayscale = True
     elif isinstance(grayscale, (np.ndarray, np.generic) ):
         use_grayscale = True
