@@ -73,7 +73,7 @@ def reshape(image):
 def load_image_rgb(filename):
     """Load a Image in a RGB 64bit floating point matrix
     """
-    img = Image.open( filename )
+    img = Image.open( filename ).convert('RGB')
     array = np.array(img, np.uint8)
     array = extract_rgb(array)
     array = normalise(array)

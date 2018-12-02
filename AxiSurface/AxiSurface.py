@@ -84,8 +84,8 @@ class AxiSurface(object):
     def fromHeightmap( self, filename, texture_angle=0, camera_angle=1.0, texture_presicion=1.0, texture_resolution=None, threshold=None, mask=None, texture=None ):
         shadeHeightmap( self, filename, texture_angle=texture_angle, texture_resolution=texture_resolution, camera_angle=camera_angle, texture_presicion=texture_presicion, threshold=threshold, mask=mask, texture=texture  )
 
-    def fromNormalmap( self, filename, total_shades=10, texture_presicion=1.0, mask=None, texture=None, texture_resolution=None):
-        shadeNormalmap( self, filename, total_shades=total_shades, mask=mask, texture=texture, texture_resolution=texture_resolution, texture_presicion=texture_presicion )
+    def fromNormalmap( self, filename, total_faces=18, texture_presicion=1.0, mask=None, texture=None, texture_resolution=None):
+        shadeNormalmap( self, filename, total_faces=total_faces, mask=mask, texture=texture, texture_resolution=texture_resolution, texture_presicion=texture_presicion )
 
     def toSVG( self, filename=None ):
         if filename:
