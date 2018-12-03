@@ -17,7 +17,7 @@ import numpy as np
 # TEXTURES CONSTRUCTORS
 # ------------------------------------------------------------------
 
-def make_joy_texture(num_lines=10, resolution=50, offset=0):
+def make_stripes_texture(num_lines=10, resolution=50, offset=0):
     x_min = 0.0
     x_max = 1.0
     y_min = 0.0
@@ -50,8 +50,8 @@ def make_joy_texture(num_lines=10, resolution=50, offset=0):
 
     
 def make_grid_texture(num_h_lines=10, num_v_lines=10, resolution=50):
-    x_h, y_h = make_joy_texture(num_h_lines, resolution)
-    y_v, x_v = make_joy_texture(num_v_lines, resolution)
+    x_h, y_h = make_stripes_texture(num_h_lines, resolution)
+    y_v, x_v = make_stripes_texture(num_v_lines, resolution)
     return np.concatenate([x_h, x_v]), np.concatenate([y_h, y_v])
 
 

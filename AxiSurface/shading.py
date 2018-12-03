@@ -11,8 +11,9 @@ import svgwrite
 
 import numpy as np
 from .image import load_grayscale, load_normalmap, remove_mask, remove_threshold
-from .texture import make_joy_texture, rotate_texture, texture_map, texture_plot, fit_texture
+from .texture import make_stripes_texture, rotate_texture, texture_map, texture_plot, fit_texture
 
+# import matplotlib.pyplot as plt
 # from penkit.write import write_plot
 
 STROKE_WIDTH = 0.2
@@ -97,7 +98,9 @@ def addLayers(svg_surface, layers, name="shading"):
 #  High Level Operations
 #  --------------------------------------------------------
 
-def gradient_texture(layers, gradientmap, angle, camera_angle=0, mask=None, total_shades=10, num_lines=100, resolution=500):
+def gradient_texture(layers, gradientmap, angle, camera_angle=0, invert=False, mask=None, total_shades=10, num_lines=100, resolution=500):
+
+    # Mask
     use_mask = False
     if isinstance(mask, (np.ndarray, np.generic) ):
         use_mask = True
@@ -107,13 +110,28 @@ def gradient_texture(layers, gradientmap, angle, camera_angle=0, mask=None, tota
         tone = shade * tonestep
 
         grad = gradientmap.copy()
-        grad = remove_mask(grad, 1.0-tone > grad)
+        
+        if invert:
+            grad = remove_mask(grad, tone < grad)
+        else:
+            grad = remove_mask(grad, 1.0-tone > grad)
         
         if use_mask:
             grad = remove_mask(grad, mask)
-            
-        texture_sub = make_joy_texture( num_lines, resolution, shade/total_shades )
-        texture_sub = rotate_texture(texture_sub, angle)
+
+        # plt.imshow(grad, cmap='gray');
+        # plt.show()
+        
+        offset = shade/total_shades 
+        texture_sub = make_stripes_texture( num_lines, resolution, offset )
+
+        resolution_unit = 1.0 / resolution
+        resolution_offset = offset * resolution_unit
+
+        lines_unit = 1.0 / num_lines
+        lines_offset = offset * lines_unit
+
+        texture_sub = rotate_texture(texture_sub, angle) #, x_offset=resolution_unit*0.5, y_offset=lines_offset*0.5)
 
         lines = texture_plot(texture_sub, grad, camera_angle)
         layers.append(lines)
@@ -161,7 +179,7 @@ def shadeHeightmap( svg_surface, filename, texture_angle=0, camera_angle=1.0, te
         texture_resolution = min(width, height) * 0.5
 
     if texture == None:
-        texture = make_joy_texture(texture_resolution, min(width, height) * texture_presicion)
+        texture = make_stripes_texture(texture_resolution, min(width, height) * texture_presicion)
         # texture = make_grid_texture(100, 100, 200)
 
     if texture_angle != 0:
@@ -182,7 +200,7 @@ def shadeNormalmap( svg_surface, filename, total_faces=18, texture_presicion=1.0
         texture_resolution = min(width, height) * 0.5
 
     if texture == None:
-        texture = make_joy_texture(texture_resolution, min(width, height) * texture_presicion)
+        texture = make_stripes_texture(texture_resolution, min(width, height) * texture_presicion)
 
     #  ANGLE MAP
     anglemap = normal2angle( normalmap )
