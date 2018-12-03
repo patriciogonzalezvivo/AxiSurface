@@ -99,7 +99,7 @@ def path(parent, points):
     if isinstance(parent, AxiSurface):
         parent = parent.body
 
-    parent.add( svgwrite.path.Path(d=points, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
+    parent.add( svgwrite.path.Path(d=points, fill="none", stroke='black', stroke_width=STROKE_WIDTH, debug=False) )
 
     # path_string = "M " + str(points[0][0]) + " " + str(points[0][1])
     # for point in points[1:]:

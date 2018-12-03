@@ -41,9 +41,9 @@ class AxiSurface(object):
         self.filename = filename
 
         if filename:
-            self.dwg = svgwrite.Drawing( filename=filename, debug=False, profile='tiny', size=(self.width * unit, self.height * unit) )
+            self.dwg = svgwrite.Drawing( filename=filename, profile='tiny', size=(self.width * unit, self.height * unit) )
         else:
-            self.dwg = svgwrite.Drawing( debug=False, profile='tiny', size=(self.width * unit, self.height * unit) )
+            self.dwg = svgwrite.Drawing( profile='tiny', size=(self.width * unit, self.height * unit) )
 
         self.dwg.viewbox(width=self.width / self.scale, height=self.height / self.scale)
         self.body = self.dwg.add( svgwrite.container.Group(id='body', fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
