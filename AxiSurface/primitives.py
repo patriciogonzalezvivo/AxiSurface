@@ -42,7 +42,7 @@ def line( parent, posA, posB, width=1 ):
         parent.add( svgwrite.shapes.Line(posA, posB) )
 
 
-def arc( parent, posA, posB, radius ):
+def arc( parent, posA, posB, radius_x, rsdius_y=None ):
     """ Adds an arc that bulges to the right as it moves from posA to posB """
 
     if isinstance(parent, AxiSurface):
