@@ -78,3 +78,47 @@ def bezierCommand( point, i, a ):
         cpeX, cpeY = controlPoint(point, a[i - 1], a[i + 1], True)
 
     return ' C ' + str(cpsX) + ',' + str(cpsY) + " " + str(cpeX) + "," + str(cpeY) + " " + str(point[0]) + "," + str(point[1])
+
+# Collisions
+
+#  https://github.com/openframeworks/openFrameworks/blob/patch-release/libs/openFrameworks/graphics/ofPolyline.inl#L622
+def pointInside( pos, points ):
+    counter = 0
+
+    # double xinters;
+    p1 = [0.0, 0.0]
+    p2 = [0.0, 0.0]
+
+    N = len(points)
+
+    p1 = points[0]
+
+    for i in range(1, N + 1):
+        p2 = points[i % N]
+
+        if pos[1] > min(p1[1], p2[1]):
+            if pos[1] <= max(p1[1], p2[1]):
+                if pos[0] <= max(p1[0], p2[0]):
+                    if p1[1] != p2[1]:
+                        xinters = (p[1] - p1[1]) * (p2[0] - p1[0]) / (p2[1] - p1[1]) + p1[0]
+                        if p1[0] == p2[0] or x <= xinters:
+                            counter += 1
+        p1 = p2
+        
+    return counter % 2 != 0
+
+# https://github.com/openframeworks/openFrameworks/blob/master/libs/openFrameworks/math/ofMath.h#L435
+def linesIntersection(line1Start, line1End, line2Start, line2End):
+    diffLA = np.array(line1End) - np.array(line1Start)
+    compareA = diffLA[0] * line1Start[1] - diffLA[1] * line1Start[0]
+    if ( ( diffLA[0]*line2Start[1] - diffLA[1]*line2Start[0] ) < compareA ) ^ ( ( diffLA[0]*line2End[1] - diffLA[1]*line2End[0] ) < compareA ):
+
+        diffLB = np.array(line2End) - np.array(line2Start)
+        compareB = diffLB[0] * line2Start[1] - diffLB[1] * line2Start[0]
+        if ( ( diffLB[0]*line1Start[1] - diffLB[1]*line1Start[0] ) < compareB ) ^ ( ( diffLB[0]*line1End[1] - diffLB[1]*line1End[0]) < compareB ):
+            lDetDivInv = 1 / ((diffLA[0] * diffLB[1]) - (diffLA[1] * diffLB[0]))
+            intersection[0] =  -((diffLA[0] * compareB) - (compareA * diffLB[0])) * lDetDivInv
+            intersection[1] =  -((diffLA[1] * compareB) - (compareA * diffLB[1])) * lDetDivInv
+            return intersection
+
+    return None

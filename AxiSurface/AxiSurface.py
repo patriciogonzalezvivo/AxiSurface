@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 
 import svgwrite
 from svgwrite import cm, mm
+
 from .parser import parseSVG
 from .tracer import traceImg
 from .shading import shadeHeightmap, shadeNormalmap, shadeGrayscale
@@ -48,13 +49,16 @@ class AxiSurface(object):
         self.dwg.viewbox(width=self.width / self.scale, height=self.height / self.scale)
         self.body = self.dwg.add( svgwrite.container.Group(id='body', fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
 
+
     def child( self, name ):
         name = name.replace(" ", "_")
         return self.body.add( svgwrite.container.Group(id=name, fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
         
+
     def childOf( self, parent, name ):
         name = name.replace(" ", "_")
         return parent.add( svgwrite.container.Group(id=name, fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
+
 
     def addRegisters( self ):
         reg = self.child("registration_marks")
@@ -81,18 +85,22 @@ class AxiSurface(object):
 
 
     def fromThreshold( self, filename, threshold=0.5 ):
-        traceImg( self, filename, threshold )
+        polylines = traceImg( self, filename, threshold )
+        group = self.child(filename)
+        for polyline in polylines:
+            group.add( svgwrite.shapes.Polyline(points=polyline.points) )
+
 
     def fromImage( self, filename, threshold=0.5, invert=False, texture=None, texture_angle=0, texture_resolution=None, texture_presicion=1.0, texture_offset=0, mask=None):
         shadeGrayscale( self, filename, threshold=threshold, invert=invert, texture=texture, texture_resolution=texture_resolution, texture_presicion=texture_presicion, texture_angle=texture_angle,  texture_offset=texture_offset, mask=mask )
 
 
-    def fromHeightmap( self, filename, camera_angle=1.0, grayscale=None, threshold=0.5, invert=False, texture=None, texture_resolution=None, texture_presicion=1.0, texture_angle=0, texture_offset=0, mask=None):
+    def fromHeightmap( self, filename, camera_angle=10.0, grayscale=None, threshold=0.5, invert=False, texture=None, texture_resolution=None, texture_presicion=1.0, texture_angle=0, texture_offset=0, mask=None):
         shadeHeightmap( self, filename, camera_angle=camera_angle, grayscale=grayscale, threshold=threshold, invert=invert, texture=texture, texture_resolution=texture_resolution, texture_presicion=texture_presicion, texture_angle=texture_angle, texture_offset=texture_offset, mask=mask )
 
 
-    def fromNormalmap( self, filename, total_faces=18, grayscale=None, threshold=0.5, invert=False, texture=None, texture_resolution=None, texture_presicion=1.0, texture_angle=0, texture_offset=0, mask=None):
-        shadeNormalmap( self, filename, total_faces=total_faces, grayscale=grayscale, threshold=threshold, invert=invert, texture=texture, texture_resolution=texture_resolution, texture_presicion=texture_presicion, texture_angle=texture_angle, texture_offset=texture_offset, mask=mask )
+    def fromNormalmap( self, filename, total_faces=18, heightmap=None, camera_angle=0, grayscale=None, threshold=0.5, invert=False, texture=None, texture_resolution=None, texture_presicion=1.0, texture_angle=0, texture_offset=0, mask=None):
+        shadeNormalmap( self, filename, total_faces=total_faces, threshold=threshold, camera_angle=camera_angle, grayscale=grayscale, invert=invert, heightmap=heightmap, texture=texture, texture_resolution=texture_resolution, texture_presicion=texture_presicion, texture_angle=texture_angle, texture_offset=texture_offset, mask=mask )
 
 
     def toSVG( self, filename=None ):
