@@ -157,9 +157,10 @@ def shadeNormalmap( svg_surface, filename, total_faces=18, heightmap=None, camer
 
     # Angle map
     anglemap = normal2angle( normalmap )
-    anglemap = (anglemap / np.pi) * 0.5 + 0.5
     step = 1.0/total_faces
     step_angle = 360.0/total_faces
+    anglemap = (anglemap / np.pi) * 0.5 + 0.5
+    # anglemap = anglemap + step * 0.5
     anglemap = decimate(anglemap, float(total_faces))
 
     surface = anglemap.copy()
@@ -206,7 +207,8 @@ def shadeNormalmap( svg_surface, filename, total_faces=18, heightmap=None, camer
         mask_sub = np.isclose(anglemap, cut * step)
         sub_surface = remove_mask(sub_surface, mask_sub)
 
-        angle_sub = cut*-step_angle + 90 + texture_angle
+        angle_sub = cut * step_angle + 90 + texture_angle
+        angle_sub = angle_sub + step_angle * 0.5
 
         texture_sub = Texture( texture )
         texture_sub.rotate(angle_sub)
