@@ -69,10 +69,10 @@ def shadeGrayscale( svg_surface, filename, threshold=0.5, invert=False, texture=
     else:
         gradientmap = filename
 
-    shade = dither(gradientmap, threshold) < 0.5
-
     if invert:
-        shade = not shade
+        shade = dither(gradientmap, threshold) > 0.5
+    else:
+        shade = dither(gradientmap, threshold) < 0.5
 
     surface = gradientmap.copy()
     surface.fill(1.0)
