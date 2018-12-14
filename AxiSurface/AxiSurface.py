@@ -86,6 +86,7 @@ class AxiSurface(object):
 
     def fromThreshold( self, filename, threshold=0.5 ):
         polylines = traceImg( self, filename, threshold )
+        
         group = self.child(filename)
         for polyline in polylines:
             group.add( svgwrite.shapes.Polyline(points=polyline.points) )

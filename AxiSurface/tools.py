@@ -20,11 +20,30 @@ def normalize(v, tolerance=0.00001):
     return np.array(v)
 
 
+def distance(A, B):
+    ab = np.array(B) - np.array(A)
+    return np.sqrt( ab[0] * ab[0] + ab[1] * ab[1] )
+
+
 def perpendicular(A, B):
     ab = np.array(B) - np.array(A)
     dir_ab = normalize(ab)
     return np.array([-dir_ab[1], dir_ab[0]])
 
+
+def remap(value, in_min, in_max, out_min, out_max):
+    in_span = in_max - in_min
+    out_span = out_max - out_min
+
+    value = float(value - in_min)
+    if value != 0:
+        value /= float(in_span)
+    return out_min + (value * out_span)
+
+def lerp(A, B, t):
+    A = np.array(A)
+    B = np.array(B)
+    return A * (1.0 - t) + B * t
 
 # Convertions
 # -----------------------------------------------------------------

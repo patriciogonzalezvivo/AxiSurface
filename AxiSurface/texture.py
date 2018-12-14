@@ -9,6 +9,8 @@ from __future__ import unicode_literals
 import svgwrite
 
 import numpy as np
+from .tools import distance, remap
+
 
 # This code is adapted from Paul Butler great Surface Projection tutorial
 # https://bitaesthetics.com/posts/surface-projection.html and PenKit https://github.com/paulgb/penkit/
@@ -139,13 +141,13 @@ def layer_to_path_gen(layer):
 
 
 class Texture(object):
-    def __init__( self, texture ):
+    def __init__( self, parent ):
         
-        if isinstance(texture, Texture):
-            x, y = texture.data
+        if isinstance(parent, Texture):
+            x, y = parent.data
             self.data = (x.copy(), y.copy())
         else:
-            x, y = texture
+            x, y = parent
             self.data = (x.copy(), y.copy())
 
 
@@ -201,6 +203,7 @@ class Texture(object):
         
         return surface_z
 
+
     def plot(self, surface, angle=0, **kwargs):
 
         # TODO:
@@ -225,10 +228,9 @@ class Texture(object):
         else:
             self.data = (x, y + z * 0.0)
 
+
     def mask(self, element, width, height):
         x, y = self.data
-        print(x.shape[0], y.shape[0])
-
         N = x.shape[0]
 
         z = np.zeros(N)

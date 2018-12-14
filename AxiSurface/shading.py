@@ -94,6 +94,8 @@ def shadeGrayscale( svg_surface, filename, threshold=0.5, invert=False, texture=
 
     if texture == None:
         texture = Texture( stripes_texture(texture_resolution, min(width, height) * texture_presicion, texture_offset) )
+    elif not isinstance(texture, Texture):
+        texture = Texture(texture)
 
     if texture_angle > 0:
         texture.rotate(texture_angle)
