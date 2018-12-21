@@ -11,7 +11,8 @@ from svgwrite import cm, mm
 
 from .parser import parseSVG
 from .tracer import traceImg
-from .shading import shadeHeightmap, shadeNormalmap, shadeGrayscale
+from .Image import *
+from .Texture import *
 
 STROKE_WIDTH = 0.2
 
@@ -80,9 +81,17 @@ class AxiSurface(object):
         reg.add( svgwrite.shapes.Line(start=(self.width, (self.height * 0.5 - 5.0)), end=(self.width, (self.height * 0.5 + 5.0)), stroke_width=STROKE_WIDTH*2.0) )
 
 
+    def toSVG( self, filename=None ):
+        self.debug = False
+        if filename:
+            self.dwg.saveas( filename )
+        elif self.filename:
+            self.dwg.save()
+
+
     def fromSVG( self, filename ):
         parseSVG( self, filename )
-
+        
 
     def fromThreshold( self, filename, threshold=0.5 ):
         polylines = traceImg( self, filename, threshold )
@@ -93,22 +102,124 @@ class AxiSurface(object):
 
 
     def fromImage( self, filename, threshold=0.5, invert=False, texture=None, texture_angle=0, texture_resolution=None, texture_presicion=1.0, texture_offset=0, mask=None):
-        shadeGrayscale( self, filename, threshold=threshold, invert=invert, texture=texture, texture_resolution=texture_resolution, texture_presicion=texture_presicion, texture_angle=texture_angle,  texture_offset=texture_offset, mask=mask )
+        gradientmap = Image( filename )
+
+        # Make surface to carve from (copy from gradient to get same dinesions)
+        surface = gradientmap.copy()
+        surface.fill(1.0)
+
+        # Make gradient into dither mask
+        gradientmap.dither(threshold=threshold, invert=invert)
+        surface = surface - gradientmap
+
+        # Load and remove Mask
+        if isinstance(mask, basestring) or isinstance(mask, str):
+            mask = Image(mask)
+            mask = mask.threshold()
+        surface = surface - mask
+
+
+        # Create texture
+        if texture_resolution == None:
+            texture_resolution = min(gradientmap.width, gradientmap.height) * 0.5
+        if texture == None:
+            texture = Texture( stripes_texture(texture_resolution, min(gradientmap.width, gradientmap.height) * texture_presicion, texture_offset) )
+        elif not isinstance(texture, Texture):
+            texture = Texture( texture )
+        if texture_angle > 0:
+            texture.rotate(texture_angle)
+
+        # Project texture on surface 
+        texture.project(surface)
+
+        root = self.body.add( svgwrite.container.Group(id=filename, fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
+        root.add( svgwrite.path.Path(d=texture.toPaths(self.width, self.height), debug=False) )
 
 
     def fromHeightmap( self, filename, camera_angle=10.0, grayscale=None, threshold=0.5, invert=False, texture=None, texture_resolution=None, texture_presicion=1.0, texture_angle=0, texture_offset=0, mask=None):
-        shadeHeightmap( self, filename, camera_angle=camera_angle, grayscale=grayscale, threshold=threshold, invert=invert, texture=texture, texture_resolution=texture_resolution, texture_presicion=texture_presicion, texture_angle=texture_angle, texture_offset=texture_offset, mask=mask )
+        # Load heightmap
+        heightmap = Image(filename)
+        heightmap.occlude(camera_angle)
+
+        # load and remove mask
+        if isinstance(mask, basestring) or isinstance(mask, str):
+            mask = Image(mask)
+            mask = mask.threshold()
+        heightmap = heightmap - mask
+
+        # Load gradient into dither mask
+        if grayscale != None:
+            gradientmap = Image( grayscale )
+            heightmap = heightmap - gradientmap.dither(threshold=threshold, invert=invert)
+
+        # Create texture
+        if texture_resolution == None:
+            texture_resolution = min(heightmap.width, heightmap.height) * 0.5
+        if texture == None:
+            texture = Texture( stripes_texture(texture_resolution, min(heightmap.width, heightmap.height) * texture_presicion, texture_offset) )
+        elif not isinstance(texture, Texture):
+            texture = Texture( texture )
+        if texture_angle > 0:
+            texture.rotate(texture_angle)
+
+        texture.project(heightmap, camera_angle)
+        
+        root = self.body.add( svgwrite.container.Group(id=filename, fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
+        root.add( svgwrite.path.Path(d=texture.toPaths(self.width, self.height), debug=False) )
 
 
     def fromNormalmap( self, filename, total_faces=18, heightmap=None, camera_angle=0, grayscale=None, threshold=0.5, invert=False, texture=None, texture_resolution=None, texture_presicion=1.0, texture_angle=0, texture_offset=0, mask=None):
-        shadeNormalmap( self, filename, total_faces=total_faces, threshold=threshold, camera_angle=camera_angle, grayscale=grayscale, invert=invert, heightmap=heightmap, texture=texture, texture_resolution=texture_resolution, texture_presicion=texture_presicion, texture_angle=texture_angle, texture_offset=texture_offset, mask=mask )
+        normalmap = Image(filename, type='2D_angle')
 
+        # create a surface to carve from
+        if heightmap == None:
+            surface = normalmap.copy()
+            surface.fill(0.0)
+        else:
+            surface = heightmap.copy()
 
-    def toSVG( self, filename=None ):
-        self.debug = False
-        if filename:
-            self.dwg.saveas( filename )
-        elif self.filename:
-            self.dwg.save()
+        # Decimate normalmap into the N faces
+        def decimate(array, dec):
+            return (np.floor(array * dec)) / dec
+            
+        step = 1.0/total_faces
+        step_angle = 360.0/total_faces
+        normalmap.data = decimate(normalmap.data, float(total_faces))
 
-        
+        # Mask
+        if isinstance(mask, basestring) or isinstance(mask, str):
+            mask = Image(mask)
+            mask = mask.threshold()
+        surface = surface - mask
+            
+        # Load gradient into dither mask
+        if grayscale != None:
+            gradientmap = Image( grayscale )
+            surface = surface - gradientmap.dither(threshold=threshold, invert=invert)
+
+        # Create texture
+        if texture_resolution == None:
+            texture_resolution = min(surface.width, surface.height) * 0.5
+        if texture == None:
+            texture = Texture( stripes_texture(texture_resolution, min(surface.width, surface.height) * texture_presicion, texture_offset) )
+        elif not isinstance(texture, Texture):
+            texture = Texture( texture )
+        if texture_angle > 0:
+            texture.rotate(texture_angle)
+
+        root = self.body.add( svgwrite.container.Group(id=filename, fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
+        for cut in range(total_faces):
+            sub_surface = surface.copy()
+
+            mask_sub = np.isclose(normalmap.data, cut * step)
+            # sub_surface = remove_mask(sub_surface, mask_sub)
+            sub_surface = sub_surface - mask_sub
+
+            angle_sub = cut * step_angle + 90 + texture_angle
+            angle_sub = angle_sub + step_angle * 0.5
+
+            texture_sub = Texture( texture )
+            texture_sub.rotate(angle_sub)
+            texture_sub.project(sub_surface, camera_angle)
+
+            root.add( svgwrite.path.Path(d=texture_sub.toPaths(self.width, self.height), debug=False) )
