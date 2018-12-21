@@ -9,7 +9,6 @@ from __future__ import unicode_literals
 import math
 import numpy as np
 from .tools import pointInside, linesIntersection, lerp, distance, remap
-from .Texture import Texture
 
 class Polyline(object):
     def __init__( self, parent=None ):
@@ -163,8 +162,8 @@ class Polyline(object):
 
 
     def toTexture(self, width, height, resolution=1000):
-        x = np.zeros(resolution)
-        y = np.zeros(resolution)
+        x = np.zeros(resolution+1)
+        y = np.zeros(resolution+1)
         x.fill(np.nan)
         y.fill(np.nan)
 
@@ -176,6 +175,10 @@ class Polyline(object):
             x[i] = p[0] / float(width)
             y[i] = p[1] / float(height)
 
-        return x.flatten('F'), y.flatten('F')
+        x[resolution] = np.nan
+        y[resolution] = np.nan
+
+        from .Texture import Texture
+        return Texture( (x.flatten('F'), y.flatten('F')) )
 
 

@@ -10,12 +10,10 @@ from __future__ import unicode_literals
 import svgwrite
 
 import numpy as np
-from .image import load_grayscale, load_normalmap, remove_mask, remove_threshold, dither
-# from .texture import make_stripes_texture, rotate_texture, texture_map, texture_plot, fit_texture
-
+from .Image import *
 from .Texture import *
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 # from penkit.write import write_plot
 
 STROKE_WIDTH = 0.2
@@ -64,156 +62,120 @@ def decimate(array, dec):
 #  --------------------------------------------------------
 
 def shadeGrayscale( svg_surface, filename, threshold=0.5, invert=False, texture=None, texture_resolution=None, texture_presicion=1.0, texture_angle=0, texture_offset=0, mask=None ):
-    if isinstance(filename, basestring) or isinstance(filename, str):
-        gradientmap = load_grayscale( filename )
-    else:
-        gradientmap = filename
+    gradientmap = Image( filename )
 
-    if invert:
-        shade = dither(gradientmap, threshold) > 0.5
-    else:
-        shade = dither(gradientmap, threshold) < 0.5
-
+    # Make surface to carve from (copy from gradient to get same dinesions)
     surface = gradientmap.copy()
     surface.fill(1.0)
 
-    # Mask 
+    # Make gradient into dither mask
+    gradientmap.dither(threshold=threshold, invert=invert)
+    surface = surface - gradientmap
+
+    # Load and remove Mask
     if isinstance(mask, basestring) or isinstance(mask, str):
-        mask = load_grayscale(mask) > 0.5
+        mask = Image(mask)
+        mask = mask.threshold()
+    surface = surface - mask
 
-    if isinstance(mask, (np.ndarray, np.generic) ):
-        surface= remove_mask(surface, mask )
 
-    surface = remove_mask(surface, shade )
-
-    # Texture
-    height, width = gradientmap.shape[:2]
-
+    # Create texture
     if texture_resolution == None:
-        texture_resolution = min(width, height) * 0.5
-
+        texture_resolution = min(gradientmap.width, gradientmap.height) * 0.5
     if texture == None:
-        texture = Texture( stripes_texture(texture_resolution, min(width, height) * texture_presicion, texture_offset) )
+        texture = Texture( stripes_texture(texture_resolution, min(gradientmap.width, gradientmap.height) * texture_presicion, texture_offset) )
     elif not isinstance(texture, Texture):
-        texture = Texture(texture)
-
+        texture = Texture( texture )
     if texture_angle > 0:
         texture.rotate(texture_angle)
 
-    texture.plot(surface)
+    # Project texture on surface 
+    texture.project(surface)
 
     root = svg_surface.body.add( svgwrite.container.Group(id=filename, fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
     root.add( svgwrite.path.Path(d=texture.toPaths(svg_surface.width, svg_surface.height), debug=False) )
 
 
 def shadeHeightmap( svg_surface, filename, camera_angle=1.0, grayscale=None, threshold=None, invert=False, texture=None, texture_resolution=None, texture_presicion=1.0, texture_angle=0, texture_offset=0, mask=None ):
-    if isinstance(filename, basestring) or isinstance(filename, str):
-        heightmap = load_grayscale( filename )
-    else:
-        heightmap = filename
+    # Load heightmap
+    heightmap = Image(filename)
+    heightmap.occlude(camera_angle)
 
-
-    # Remove not visible
-    # heightmap = remove_mask(heightmap, make_visible_mask(heightmap, camera_angle))
-
-    # Mask
+    # load and remove mask
     if isinstance(mask, basestring) or isinstance(mask, str):
-        mask = load_grayscale(mask) > 0.5
-    
-    if isinstance(mask, (np.ndarray, np.generic) ):
-        heightmap = remove_mask(heightmap, mask)
+        mask = Image(mask)
+        mask = mask.threshold()
+    heightmap = heightmap - mask
 
-    # Grayscale
-    if isinstance(grayscale, basestring) or isinstance(grayscale, str):
-        grayscale = load_grayscale(mask)
+    # Load gradient into dither mask
+    if grayscale != None:
+        gradientmap = Image( grayscale )
+        heightmap = heightmap - gradientmap.dither(threshold=threshold, invert=invert)
 
-    if isinstance(grayscale, (np.ndarray, np.generic) ):
-        if invert:
-            shade = dither(grayscale, threshold) > 0.5
-        else:
-            shade = dither(grayscale, threshold) < 0.5
-        
-        heightmap = remove_mask(heightmap, shade)
-
-    # Texture
-    height, width = heightmap.shape[:2]
+    # Create texture
     if texture_resolution == None:
-        texture_resolution = min(width, height) * 0.5
-
+        texture_resolution = min(heightmap.width, heightmap.height) * 0.5
     if texture == None:
-        texture = Texture( stripes_texture(texture_resolution, min(width, height) * texture_presicion, texture_offset) )
-
-    if texture_angle != 0:
+        texture = Texture( stripes_texture(texture_resolution, min(heightmap.width, heightmap.height) * texture_presicion, texture_offset) )
+    elif not isinstance(texture, Texture):
+        texture = Texture( texture )
+    if texture_angle > 0:
         texture.rotate(texture_angle)
 
-    texture.plot(heightmap, camera_angle)
+    texture.project(heightmap, camera_angle)
     
     root = svg_surface.body.add( svgwrite.container.Group(id=filename, fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
     root.add( svgwrite.path.Path(d=texture.toPaths(svg_surface.width, svg_surface.height), debug=False) )
 
 def shadeNormalmap( svg_surface, filename, total_faces=18, heightmap=None, camera_angle=0, grayscale=None, threshold=0.5, invert=False, texture=None, texture_resolution=None, texture_presicion=1.0, texture_angle=0, texture_offset=0, mask=None):
-    if isinstance(filename, basestring) or isinstance(filename, str):
-        normalmap = load_normalmap( filename )
-    else:
-        normalmap = filename
+    normalmap = Image(filename, type='2D_angle')
 
-    # Angle map
-    anglemap = normal2angle( normalmap )
+    # create a surface to carve from
+    if heightmap == None:
+        surface = normalmap.copy()
+        surface.fill(0.0)
+    else:
+        surface = heightmap.copy()
+
+    # Decimate normalmap into the N faces
     step = 1.0/total_faces
     step_angle = 360.0/total_faces
-    anglemap = (anglemap / np.pi) * 0.5 + 0.5
-    # anglemap = anglemap + step * 0.5
-    anglemap = decimate(anglemap, float(total_faces))
+    normalmap.data = decimate(normalmap.data, float(total_faces))
 
-    surface = anglemap.copy()
-    surface.fill(0.0)
-
-    if isinstance(heightmap, basestring) or isinstance(heightmap, str):
-        heightmap = load_grayscale( filename )
-        
-    if heightmap.any():
-        # heightmap = remove_mask(heightmap, make_visible_mask(heightmap, camera_angle))
-        surface = heightmap.copy()
-        
-    # Mask 
+    # Mask
     if isinstance(mask, basestring) or isinstance(mask, str):
-        mask = load_grayscale(mask) > 0.5
-
-    if isinstance(mask, (np.ndarray, np.generic) ):
-        surface = remove_mask(surface, mask )
+        mask = Image(mask)
+        mask = mask.threshold()
+    surface = surface - mask
         
-    # Grayscale
-    if isinstance(grayscale, basestring) or isinstance(grayscale, str):
-        grayscale = load_grayscale(mask)
+    # Load gradient into dither mask
+    if grayscale != None:
+        gradientmap = Image( grayscale )
+        surface = surface - gradientmap.dither(threshold=threshold, invert=invert)
 
-    if isinstance(grayscale, (np.ndarray, np.generic) ):
-        if invert:
-            shade = dither(grayscale, threshold) > 0.5
-        else:
-            shade = dither(grayscale, threshold) < 0.5
-        
-        surface = remove_mask(surface, shade )
-
-    # Texture 
-    height, width = normalmap.shape[:2]
+    # Create texture
     if texture_resolution == None:
-        texture_resolution = min(width, height) * 0.5
-
+        texture_resolution = min(surface.width, surface.height) * 0.5
     if texture == None:
-        texture = stripes_texture(texture_resolution, min(width, height) * texture_presicion, texture_offset)
+        texture = Texture( stripes_texture(texture_resolution, min(surface.width, surface.height) * texture_presicion, texture_offset) )
+    elif not isinstance(texture, Texture):
+        texture = Texture( texture )
+    if texture_angle > 0:
+        texture.rotate(texture_angle)
 
     root = svg_surface.body.add( svgwrite.container.Group(id=filename, fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
     for cut in range(total_faces):
         sub_surface = surface.copy()
 
-        mask_sub = np.isclose(anglemap, cut * step)
-        sub_surface = remove_mask(sub_surface, mask_sub)
+        mask_sub = np.isclose(normalmap.data, cut * step)
+        # sub_surface = remove_mask(sub_surface, mask_sub)
+        sub_surface = sub_surface - mask_sub
 
         angle_sub = cut * step_angle + 90 + texture_angle
         angle_sub = angle_sub + step_angle * 0.5
 
         texture_sub = Texture( texture )
         texture_sub.rotate(angle_sub)
-        texture_sub.plot(sub_surface, camera_angle)
+        texture_sub.project(sub_surface, camera_angle)
 
         root.add( svgwrite.path.Path(d=texture_sub.toPaths(svg_surface.width, svg_surface.height), debug=False) )

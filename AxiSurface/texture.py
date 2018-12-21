@@ -9,6 +9,7 @@ from __future__ import unicode_literals
 import svgwrite
 
 import numpy as np
+from .Image import Image
 from .tools import distance, remap
 
 
@@ -118,37 +119,46 @@ def hex_texture(grid_size = 2, resolution=1):
     
     x_t = np.vstack([x_t, np.tile(np.nan, (1, grid_x.size))])
     y_t = np.vstack([y_t, np.tile(np.nan, (1, grid_y.size))])
+
+    return x_t.flatten('F'), y_t.flatten('F')
     
-    return fit_texture((x_t.flatten('F'), y_t.flatten('F')))
-
-
-def layer_to_path_gen(layer):
-    """Generates an SVG path from a given layer.
-    Args:
-        layer (layer): the layer to convert
-    Yields:
-        str: the next component of the path
-    """
-    draw = False
-    for x, y in zip(*layer):
-        if np.isnan(x) or np.isnan(y):
-            draw = False
-        elif not draw:
-            yield 'M {} {}'.format(x, y)
-            draw = True
-        else:
-            yield 'L {} {}'.format(x, y)
-
 
 class Texture(object):
-    def __init__( self, parent ):
+    def __init__( self, parent=None ):
+
+        if parent == None:
+            x = np.zeros(1)
+            x.fill(np.nan)
+            y = np.zeros(1)
+            y.fill(np.nan)
+            self.data = (x, y)
         
-        if isinstance(parent, Texture):
+        elif isinstance(parent, Texture):
             x, y = parent.data
             self.data = (x.copy(), y.copy())
+
         else:
             x, y = parent
             self.data = (x.copy(), y.copy())
+
+
+    def __add__(self, other):
+        from .Polyline import Polyline
+
+        if isinstance(other, Texture):
+            x1, y1 = self.data
+            x2, y2 = other.data
+            return Texture( (np.concatenate([x1, x2]), np.concatenate([y1, y2])) )
+
+        elif isinstance(other, Polyline):
+            return self + other.toTexture()
+
+
+    def __iadd__(self, other):
+        if isinstance(other, Texture):
+            x1, y1 = self.data
+            x2, y2 = other.data
+            self.data = ( np.concatenate([x1, x2]), np.concatenate([y1, y2]) )
 
 
     def rotate(self, rotation, x_offset=0.5, y_offset=0.5):
@@ -204,18 +214,20 @@ class Texture(object):
         return surface_z
 
 
-    def plot(self, surface, angle=0, **kwargs):
+    def project(self, surface, angle=0, **kwargs):
 
-        # TODO:
-        #       - if it's surface
-        #       - if it's just z values
-        #  https://github.com/paulgb/penkit/blob/master/penkit/projection.py#L36
+        # Map the texture to get the Zs
+        if isinstance(surface, Image):
+            if surface.type == "grayscale":
+                z = self._map(surface.data.T)
+            elif surface.type == "mask":
+                return mask()
+
+        else:
+            z = self._map(surface.T)
 
         # Extract the Xs and Ys from the texture
         x, y = self.data
-        
-        # Map the texture to get the Zs
-        z = self._map(surface.T)
 
         if angle > 0:        
             # The projection is as simple as linearly blending the Z and Y
@@ -228,22 +240,50 @@ class Texture(object):
         else:
             self.data = (x, y + z * 0.0)
 
+        return self
 
-    def mask(self, element, width, height):
+
+    def mask(self, element, width=None, height=None):
         x, y = self.data
-        N = x.shape[0]
 
-        z = np.zeros(N)
-        for i in range(N):
-            if np.isnan(x[i]) or np.isnan(y[i]):
-                continue
-            pos = [x[i] * width, y[i] * height]
-            if not element.inside(pos):
-                z[i] = np.nan
+        from .Polyline import Polyline
+        if isinstance(element, Polyline):
+            N = x.shape[0]
+            z = np.zeros(N)
+            for i in range(N):
+                if np.isnan(x[i]) or np.isnan(y[i]):
+                    continue
+                pos = [x[i] * width, y[i] * height]
+                if not element.inside(pos):
+                    z[i] = np.nan
+            self.data = (x, y + z)
 
-        self.data = (x, y + z)
+        elif isinstance(element, Image):
+            if element.type == "mask":
+                self.data = (x, y + Image.data * 0.0)
+
+            else:
+                print("Texture: Masking Image is not a mask but a", element.type)
 
 
     def toPaths(self, width, height):
-        x, y = self.data
-        return ' '.join( layer_to_path_gen( (x * width, y * height) ) )
+        X, Y = self.data
+
+        def layer_to_path_gen(layer):
+            """Generates an SVG path from a given layer.
+            Args:
+                layer (layer): the layer to convert
+            Yields:
+                str: the next component of the path
+            """
+            draw = False
+            for x, y in zip(*layer):
+                if np.isnan(x) or np.isnan(y):
+                    draw = False
+                elif not draw:
+                    yield 'M {} {}'.format(x, y)
+                    draw = True
+                else:
+                    yield 'L {} {}'.format(x, y)
+
+        return ' '.join( layer_to_path_gen( (X * width, Y * height) ) )

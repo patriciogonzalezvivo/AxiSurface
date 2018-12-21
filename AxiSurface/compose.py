@@ -38,3 +38,5 @@ def add(parent, element):
         circle(parent, element.center, element.radius)
     elif isinstance(element, Polyline):
         polyline(parent, element.points)
+    elif isinstance(parent, Texture):
+        path(parent, element.toPaths(parent.width, parent.height))
