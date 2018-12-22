@@ -91,7 +91,7 @@ class AxiSurface(object):
 
     def fromSVG( self, filename ):
         parseSVG( self, filename )
-        
+
 
     def fromThreshold( self, filename, threshold=0.5 ):
         polylines = traceImg( self, filename, threshold )

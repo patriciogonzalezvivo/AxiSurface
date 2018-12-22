@@ -221,8 +221,8 @@ class Image(object):
         
         # Just as in projection, we calculate the Y and Z
         # coefficients with sin/cos.
-        y_coef = np.cos(np.radians(angle))
-        z_coef = np.sin(np.radians(angle))
+        y_coef = np.cos(np.radians( (angle) ))
+        z_coef = np.sin(np.radians( (angle) ))
         
         # Rotate the surface so that the visibilty mask represents
         # the visibility at the desired angle.

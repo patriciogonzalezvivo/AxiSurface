@@ -221,22 +221,21 @@ class Texture(object):
             if surface.type == "grayscale":
                 z = self._map(surface.data.T)
             elif surface.type == "mask":
-                return mask()
-
+                return self.mask(surface)
         else:
             z = self._map(surface.T)
 
         # Extract the Xs and Ys from the texture
         x, y = self.data
 
-        if angle > 0:        
+        if angle != 0:        
             # The projection is as simple as linearly blending the Z and Y
             # dimensions. The multiples are calculated from the given
             # angle with standard trig.
-            z_coef = np.sin(np.radians(angle))
-            y_coef = np.cos(np.radians(angle))
+            z_coef = np.sin(np.radians( (angle) ))
+            y_coef = np.cos(np.radians( (angle) ))
 
-            self.data = (x, y * y_coef + z * z_coef)
+            self.data = (x, y * y_coef - z * z_coef)
         else:
             self.data = (x, y + z * 0.0)
 
