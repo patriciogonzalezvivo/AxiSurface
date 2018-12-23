@@ -8,46 +8,12 @@ from __future__ import unicode_literals
 
 import numpy as np
 from PIL import Image as PILImage
-from numba import prange, jit
-
-
-def decimate(array, dec):
-    return (np.floor(array * dec)) / dec
 
 
 def normalise(im):
     """Normalize an image matrix from 0 - 255 to 0.0 - 1.0f range at 64bit  
     """
     return np.clip(np.float64(im) / 255, 0, None)
-
-
-def compute_normals(elevation):
-    """Generate a 3-channel normal map from a height map.
-    The normal components are in the range [-1,+1] and the size of the
-    normal map is (width-1, height-1) due to forward differencing.
-    """
-    height, width = elevation.shape
-    normals = np.empty([height, width, 3])
-    _compute_normals(elevation, normals)
-    return normals
-
-
-@jit(nopython=True, fastmath=True, cache=True)
-def _compute_normals(el, normals):
-    h, w = normals.shape[:2]
-    for row in range(h):
-        for col in range(w):
-            p =  np.float64((col / w, row / h, el[row][col]))
-            dx = np.float64(((col+1) / w, row / h, el[row][col+1]))
-            dy = np.float64((col / w, (row+1) / h, el[row+1][col]))
-            v1 = dx - p
-            v2 = dy - p
-            n = np.float64((
-                    (v1[1] * v2[2]) - (v1[2] * v2[1]),
-                    (v1[2] * v2[0]) - (v1[0] * v2[2]),
-                    (v1[0] * v2[1]) - (v1[1] * v2[0])))
-            isq = 1 / np.linalg.norm(n)
-            normals[row][col] = n * isq
 
 
 def extract_rgb(image):
@@ -94,44 +60,6 @@ def load_grayscale(filename):
 
 def load_normalmap(filename):
     return load_image_rgb(filename) * 2.0 - 1.0
-
-
-def remove_mask(surface, image):
-    surface = np.copy(surface)
-    surface[np.invert(image)] = np.nan
-    return surface
-
-
-def remove_threshold(surface, threshold):
-    mask = np.copy(surface)
-    return remove_mask(surface, mask > threshold)
-
-
-def dither(num, thresh = 0.5):
-    derr = np.zeros(num.shape, dtype=float)
-
-    div = 8
-    for y in xrange(num.shape[0]):
-        for x in xrange(num.shape[1]):
-            newval = derr[y,x] + num[y,x]
-            if newval >= thresh:
-                errval = newval - 1.0
-                num[y,x] = 1.
-            else:
-                errval = newval
-                num[y,x] = 0.
-            if x + 1 < num.shape[1]:
-                derr[y, x + 1] += errval / div
-                if x + 2 < num.shape[1]:
-                    derr[y, x + 2] += errval / div
-            if y + 1 < num.shape[0]:
-                derr[y + 1, x - 1] += errval / div
-                derr[y + 1, x] += errval / div
-                if y + 2 < num.shape[0]:
-                    derr[y + 2, x] += errval / div
-                if x + 1 < num.shape[1]:
-                    derr[y + 1, x + 1] += errval / div
-    return num[::1,:]
 
 
 class Image(object):
@@ -209,7 +137,30 @@ class Image(object):
 
 
     def dither(self, threshold=0.5, invert=False ):
-        self.data = dither(self.data, threshold)
+        derr = np.zeros(self.data.shape, dtype=float)
+
+        div = 8
+        for y in xrange(self.data.shape[0]):
+            for x in xrange(self.data.shape[1]):
+                newval = derr[y,x] + self.data[y,x]
+                if newval >= threshold:
+                    errval = newval - 1.0
+                    self.data[y,x] = 1.
+                else:
+                    errval = newval
+                    self.data[y,x] = 0.
+                if x + 1 < self.data.shape[1]:
+                    derr[y, x + 1] += errval / div
+                    if x + 2 < self.data.shape[1]:
+                        derr[y, x + 2] += errval / div
+                if y + 1 < self.data.shape[0]:
+                    derr[y + 1, x - 1] += errval / div
+                    derr[y + 1, x] += errval / div
+                    if y + 2 < self.data.shape[0]:
+                        derr[y + 2, x] += errval / div
+                    if x + 1 < self.data.shape[1]:
+                        derr[y + 1, x + 1] += errval / div
+        self.data = self.data[::1,:]
         return self.threshold(0.5, not invert)
 
 
