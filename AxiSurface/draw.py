@@ -90,6 +90,75 @@ def rect( parent, center, size=(1,1) ):
     parent.add( svgwrite.shapes.Rect(insert=center, size=size) )
 
 
+def hexagon_corner(center, radius, i):
+    angle_deg = 60.0 * i - 30.0
+    angle_rad = math.pi / 180.0 * angle_deg
+    return [center[0] + radius * math.cos(angle_rad), center[1] + radius * math.sin(angle_rad)]
+
+
+def hexagon_coorners(center, radius):
+    points = []
+    for i in range(0, 6):
+        points.append( hexagon_corner(center, radius, i) )
+    return points
+
+
+def hexagon_grid(center, cols, rows, hexagon_radius):
+    hexagon_width = math.sqrt(3.0) * hexagon_radius
+    hexagon_height = 2.0 * hexagon_radius
+
+    points = []
+    for row in range(-int(rows/2), int(rows/2)):
+        for col in range(-int(cols/2), int(cols/2)):
+            x = col * hexagon_width
+            y = row * hexagon_height * 3/4
+            if row % 2:
+                x += hexagon_width * 0.5
+            points.append([center[0] + x, center[1] + y])
+    return points
+
+
+def hex(parent, center, radius, type = 0):
+    if isinstance(parent, AxiSurface):
+        parent = parent.body
+
+    if type == 0:
+        # Close border
+        points = hexagon_coorners(center, radius)
+        points.append( points[0] )
+        parent.add( svgwrite.shapes.Polyline(points=points, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
+
+    elif type == 1:
+        # Inner lines
+        points = hexagon_coorners(center, radius)
+        parent.add( svgwrite.shapes.Line(points[0], center) )
+        parent.add( svgwrite.shapes.Line(points[2], center) )
+        parent.add( svgwrite.shapes.Line(points[4], center) )
+
+    elif type == 2:
+        # Inner lines
+        hex(parent=parent, center=center, radius=radius, type=0)
+        hex(parent=parent, center=center, radius=radius, type=1)
+
+    elif type == 3:
+        # Inner lines
+        points = hexagon_coorners(center, radius)
+        parent.add( svgwrite.shapes.Line(points[1], center) )
+        parent.add( svgwrite.shapes.Line(points[3], center) )
+        parent.add( svgwrite.shapes.Line(points[5], center) )
+
+    elif type == 4:
+        # Inner lines
+        hex(parent=parent, center=center, radius=radius, type=0)
+        hex(parent=parent, center=center, radius=radius, type=3)
+
+    elif type == 5:
+        # Vertical lines
+        points = hexagon_coorners(center, radius)
+        parent.add( svgwrite.shapes.Line(points[5], points[2]) )
+
+
+
 def polyline( parent, points ):
     if isinstance(parent, AxiSurface):
         parent = parent.body

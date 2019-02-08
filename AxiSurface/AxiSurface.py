@@ -60,27 +60,6 @@ class AxiSurface(object):
         name = name.replace(" ", "_")
         return parent.add( svgwrite.container.Group(id=name, fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
 
-
-    def addRegisters( self ):
-        reg = self.child("registration_marks")
-        reg.add( svgwrite.shapes.Line(start=(0, 0), end=(10.0, 0.0), stroke_width=STROKE_WIDTH*2.0) )
-        reg.add( svgwrite.shapes.Line(start=(0, 0), end=(0.0, 10.0), stroke_width=STROKE_WIDTH*2.0) )
-
-        reg.add( svgwrite.shapes.Line(start=(self.width - 10.0, self.height), end=(self.width, self.height), stroke_width=STROKE_WIDTH*2.0) )
-        reg.add( svgwrite.shapes.Line(start=(self.width, self.height - 10.0), end=(self.width, self.height), stroke_width=STROKE_WIDTH*2.0) )
-
-        reg.add( svgwrite.shapes.Line(start=(self.width - 10.0, 0.0), end=(self.width, 0.0), stroke_width=STROKE_WIDTH*2.0) )
-        reg.add( svgwrite.shapes.Line(start=(self.width, 0.0), end=(self.width, 10.0), stroke_width=STROKE_WIDTH*2.0) )
-
-        reg.add( svgwrite.shapes.Line(start=(0.0, self.height), end=(10.0, self.height), stroke_width=STROKE_WIDTH*2.0) )
-        reg.add( svgwrite.shapes.Line(start=(0.0, self.height - 10.0), end=(0.0, self.height), stroke_width=STROKE_WIDTH*2.0) )
-
-        reg.add( svgwrite.shapes.Line(start=((self.width * 0.5 - 5.0), 0.0), end=((self.width * 0.5 + 5.0), 0.0), stroke_width=STROKE_WIDTH*2.0) )
-        reg.add( svgwrite.shapes.Line(start=((self.width * 0.5 - 5.0), self.height), end=((self.width * 0.5 + 5.0), self.height), stroke_width=STROKE_WIDTH*2.0) )
-        reg.add( svgwrite.shapes.Line(start=(0.0, (self.height * 0.5 - 5.0)), end=(0.0, (self.height * 0.5 + 5.0)), stroke_width=STROKE_WIDTH*2.0) )
-        reg.add( svgwrite.shapes.Line(start=(self.width, (self.height * 0.5 - 5.0)), end=(self.width, (self.height * 0.5 + 5.0)), stroke_width=STROKE_WIDTH*2.0) )
-
-
     def toSVG( self, filename=None ):
         self.debug = False
         if filename:
