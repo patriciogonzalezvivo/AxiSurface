@@ -14,6 +14,7 @@ from .Circle import Circle
 from .Rectangle import Rectangle
 from .Hexagon import Hexagon
 from .Polyline import Polyline
+from .Text import Text
 
 class Group(AxiElement):
     def __init__( self, id="None", **kwargs ):
@@ -40,6 +41,9 @@ class Group(AxiElement):
 
     def poly(self, points, **kwargs):
         self.elements.append( Polyline(points, **kwargs) )
+
+    def text(self, text, **kwargs):
+        self.elements.append( Text(text, **kwargs) )
 
     def group(self, group_id):
         g = Group(group_id)
