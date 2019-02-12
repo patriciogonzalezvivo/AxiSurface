@@ -20,12 +20,9 @@ def rect_coorner(center, radius, i, angle_offset = 0):
 class Rectangle(AxiElement):
     def __init__( self, center, size, **kwargs ):
         AxiElement.__init__(self, **kwargs);
-
-        # TODO:
-        #   resolve fill
-
         self.center = np.array(center)
         self.size = size
+
 
     def inside( self, pos ):
         if (pos[0] > self.center[0] - self.size[0] * 0.5) and (pos[0] < self.center[0] + self.size[0] * 0.5):
@@ -35,11 +32,17 @@ class Rectangle(AxiElement):
         return False
 
 
-    def getCoorners(self, size_offset=[0,0]):
-        cx = self.center[0] + self.translate[0]
-        cy = self.center[1] + self.translate[1]
-        rx = 1.0
-        ry = 1.0
+    def inside( self, pos ):
+        points = self.getPoints()
+        return pointInside( pos, self.points )
+
+
+    def getCenter(self):
+        return self.center + self.translate
+
+    
+    def getRadius(self):
+        rx, ry = 1.0, 1.0
 
         if isinstance(self.size, tuple) or isinstance(self.size, list):
             rx = self.size[0] * 0.5
@@ -55,8 +58,20 @@ class Rectangle(AxiElement):
             rx *= self.scale
             ry *= self.scale
 
-        rx += size_offset[0]
-        ry += size_offset[1]
+        return [rx, ry]
+
+
+    def getCoorners(self, **kwargs):
+        cx, cy = self.getCenter()
+        rx, ry = self.getRadius()
+
+        size_offset = kwargs.pop('size_offset', [0, 0])
+        if isinstance(size_offset, tuple) or isinstance(size_offset, list):
+            rx += size_offset[0]
+            ry += size_offset[1]
+        else:
+            rx += size_offset
+            ry += size_offset
 
         points = []
         for i in range(0, 4):
@@ -64,16 +79,16 @@ class Rectangle(AxiElement):
         return points
 
 
-    def getPoints(self, size_offset = [0,0] ):
-        points = self.getCoorners(size_offset)
+    def getPoints(self, **kwargs ):
+        points = self.getCoorners(**kwargs)
         points.append(points[0])
         return points
 
 
     def getPathString(self):
         
-        def path_gen(size_offset = [0,0]):
-            points = self.getPoints(size_offset)
+        def path_gen(**kwargs):
+            points = self.getPoints(**kwargs)
             return 'M' + 'L'.join('{0} {1}'.format(x,y) for x,y in points)
 
         path_str = ''
@@ -104,7 +119,7 @@ class Rectangle(AxiElement):
                 h_target = 0
 
             while w > w_target or h > h_target:
-                path_str += path_gen( [w - rx, h - ry] )
+                path_str += path_gen( size_offset=[w - rx, h - ry] )
                 w = max(w - self.head_width, w_target)
                 h = max(h - self.head_width, h_target)
         else:

@@ -50,8 +50,25 @@ def lerp(A, B, t):
 
 def polar2xy(center, angle, radius):
     a = math.radians(angle)
-    return [center[0] + radius * math.cos(a), 
-            center[1] + radius * math.sin(a) ]
+    rx = 1.0
+    ry = 1.0
+    if isinstance(radius, tuple) or isinstance(radius, list):
+        rx = radius[0]
+        ry = radius[1]
+    else:
+        rx = radius
+        ry = radius
+    return [center[0] + rx * math.cos(a), 
+            center[1] + ry * math.sin(a) ]
+
+
+def xy2polar(center, pos):
+    ab = np.array(pos) - np.array(center)
+
+    dist = np.sqrt( ab[0] * ab[0] + ab[1] * ab[1] )
+    
+    angle = math.atan2(ab[1], ab[0])
+    return [math.degrees(angle), dist]
 
 
 # Bezier controls

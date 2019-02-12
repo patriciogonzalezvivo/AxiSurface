@@ -6,6 +6,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from .AxiElement import AxiElement
+
 import svgwrite
 from AxiSurface.AxiSurface import AxiSurface
 import AxiSurface.hersheydata as hersheydata
@@ -36,7 +38,7 @@ def text(parent, text, center=(0.0, 0.0), scale=1.0, rotate=0, font_name=FONT_DE
         parent = parent.body
 
     font = getattr(hersheydata, font_name)
-    g = parent.add( svgwrite.container.Group(id="text"))
+    g = parent.add( svgwrite.container.Group(id="text") )
     w = 0  # Initial spacing offset
     v = 0  # Initial vertical offset
     spacing = 3  # spacing between letters
@@ -62,3 +64,7 @@ def text(parent, text, center=(0.0, 0.0), scale=1.0, rotate=0, font_name=FONT_DE
         g.rotate( rotate , (w * 0.5, v * 0.5))
 
     return [w * scale, v * scale]
+
+class Image(AxiElement):
+    def __init__( self, text, font_name='grayscale', **kwargs ):
+        AxiElement.__init__(self, **kwargs);

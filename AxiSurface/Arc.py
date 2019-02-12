@@ -24,6 +24,7 @@ class Arc(AxiElement):
         #    - FIX THIS! Only aplicable for lines
         return linesIntersection(self.start, self.end, line.start, line.end )
 
+
     def getPathString(self):
         rx = self.radius[0]
         ry = self.radius[1]

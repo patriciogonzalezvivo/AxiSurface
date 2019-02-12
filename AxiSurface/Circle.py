@@ -38,23 +38,37 @@ class Circle(AxiElement):
         else:
             rx = self.radius
             ry = self.radius
-
         if isinstance(self.scale, tuple) or isinstance(self.scale, list):
             rx *= self.scale[0]
             ry *= self.scale[1]
         else:
             rx *= self.scale
             ry *= self.scale
-
         return [rx, ry]
 
 
     def getPathString(self):
 
         def path_gen(cx, cy, rx, ry):
-            d = 'M' + str(cx - rx) + ',' + str(cy)
-            d += 'a' + str(rx) + ',' + str(ry) + ' 0 1,0 ' + str(2 * rx) + ',0'
-            d += 'a' + str(rx) + ',' + str(ry) + ' 0 1,0 ' + str(-2 * rx) + ',0'
+            d = ''
+            if self.open_angle != None:
+                posA = polar2xy([cx, cy], self.rotate + self.open_angle, [rx, ry])
+                posB = polar2xy([cx, cy], self.rotate + 360 - self.open_angle, [rx, ry])
+                args = {
+                    'x0':posA[0], 
+                    'y0':posA[1], 
+                    'xradius': rx, 
+                    'yradius': ry, 
+                    'ellipseRotation':0,
+                    'x1':posB[0], 
+                    'y1':posB[1]
+                }
+
+                d = "M %(x0)f,%(y0)f A %(xradius)f,%(yradius)f%(ellipseRotation)f 1,1 %(x1)f,%(y1)f"%args
+            else:
+                d = 'M' + str(cx - rx) + ',' + str(cy)
+                d += 'a' + str(rx) + ',' + str(ry) + ' 0 1,0 ' + str(2 * rx) + ',0'
+                d += 'a' + str(rx) + ',' + str(ry) + ' 0 1,0 ' + str(-2 * rx) + ',0'
             return d
 
         cx, cy = self.getCenter()
