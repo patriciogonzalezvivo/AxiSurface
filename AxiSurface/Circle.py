@@ -9,11 +9,76 @@ from __future__ import unicode_literals
 import math
 import numpy as np
 
-class Circle(object):
-    def __init__( self, center, radius ):
+from .AxiElement import AxiElement
+from .tools import polar2xy
+
+class Circle(AxiElement):
+    def __init__( self, center, radius, **kwargs ):
+        AxiElement.__init__(self, **kwargs);
+
         self.center = np.array(center)
         self.radius = radius
+
+        # Open Circles
+        self.open_angle =  kwargs.pop('open_angle', None)
 
     def inside( self, pos ):
         dist = math.hypot(pos[0]-self.center[0], pos[1]-self.center[1])
         return dist < self.radius
+
+    
+    def getCenter(self):
+        return self.center + self.translate
+        
+    
+    def getRadius(self):
+        if isinstance(self.radius, tuple) or isinstance(self.radius, list):
+            rx = self.radius[0]
+            ry = self.radius[1]
+        else:
+            rx = self.radius
+            ry = self.radius
+
+        if isinstance(self.scale, tuple) or isinstance(self.scale, list):
+            rx *= self.scale[0]
+            ry *= self.scale[1]
+        else:
+            rx *= self.scale
+            ry *= self.scale
+
+        return [rx, ry]
+
+
+    def getPathString(self):
+
+        def path_gen(cx, cy, rx, ry):
+            d = 'M' + str(cx - rx) + ',' + str(cy)
+            d += 'a' + str(rx) + ',' + str(ry) + ' 0 1,0 ' + str(2 * rx) + ',0'
+            d += 'a' + str(rx) + ',' + str(ry) + ' 0 1,0 ' + str(-2 * rx) + ',0'
+            return d
+
+        cx, cy = self.getCenter()
+        rx, ry = self.getRadius()
+
+        path_str = ''
+        if self.stroke_width > 1 or self.fill:
+            rad_x = rx + (self.stroke_width * self.head_width) * 0.5
+            rad_y = ry + (self.stroke_width * self.head_width) * 0.5
+            rad_x_target = rx - (self.stroke_width * self.head_width) * 0.5
+            rad_y_target = ry - (self.stroke_width * self.head_width) * 0.5
+
+            if self.fill:
+                rad_x_target = 0.0
+                rad_y_target = 0.0
+
+            while rad_x > rad_x_target or rad_y > rad_y_target:
+                path_str += path_gen(cx, cy, rad_x, rad_y)
+                rad_x = max(rad_x - self.head_width, rad_x_target)
+                rad_y = max(rad_y - self.head_width, rad_y_target)
+
+        else:
+            path_str += path_gen(cx, cy, rx, ry)
+        return path_str
+
+        
+

@@ -119,8 +119,8 @@ def pointInside( pos, points ):
             if pos[1] <= max(p1[1], p2[1]):
                 if pos[0] <= max(p1[0], p2[0]):
                     if p1[1] != p2[1]:
-                        xinters = (p[1] - p1[1]) * (p2[0] - p1[0]) / (p2[1] - p1[1]) + p1[0]
-                        if p1[0] == p2[0] or x <= xinters:
+                        xinters = (pos[1] - p1[1]) * (p2[0] - p1[0]) / (p2[1] - p1[1]) + p1[0]
+                        if p1[0] == p2[0] or pos[0] <= xinters:
                             counter += 1
         p1 = p2
         

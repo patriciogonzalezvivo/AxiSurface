@@ -15,6 +15,9 @@ from .tools import polar2xy, perpendicular, bezierCommand
 
 STROKE_WIDTH = 0.2
 
+# BASIC ELEMENTS
+# ------------------------
+
 def dot( parent, center, radius ):
     if isinstance(parent, AxiSurface):
         parent = parent.body
@@ -23,7 +26,6 @@ def dot( parent, center, radius ):
     while rad >= 0:
         parent.add( svgwrite.shapes.Circle(center=center, r=rad) )
         rad -= STROKE_WIDTH
-
 
 def line( parent, posA, posB, width=1 ):
     if isinstance(parent, AxiSurface):
@@ -60,6 +62,9 @@ def arc( parent, posA, posB, radius_x, rsdius_y=None ):
     parent.add( svgwrite.path.Path(d=path_string, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
 
 
+# BASIC SHAPES
+# ------------------------
+
 def circle( parent, center, radius, open_angle=None, offset_angle=0):
     if isinstance(parent, AxiSurface):
         parent = parent.body
@@ -89,6 +94,8 @@ def rect( parent, center, size=(1,1) ):
 
     parent.add( svgwrite.shapes.Rect(insert=center, size=size) )
 
+# HEXAGONS
+# ------------------------
 
 def hexagon_corner(center, radius, i):
     angle_deg = 60.0 * i - 30.0
@@ -118,7 +125,7 @@ def hexagon_grid(center, cols, rows, hexagon_radius):
     return points
 
 
-def hex(parent, center, radius, type = 0):
+def hexagon(parent, center, radius, type = 0):
     if isinstance(parent, AxiSurface):
         parent = parent.body
 
@@ -137,8 +144,8 @@ def hex(parent, center, radius, type = 0):
 
     elif type == 2:
         # Inner lines
-        hex(parent=parent, center=center, radius=radius, type=0)
-        hex(parent=parent, center=center, radius=radius, type=1)
+        hexagon(parent=parent, center=center, radius=radius, type=0)
+        hexagon(parent=parent, center=center, radius=radius, type=1)
 
     elif type == 3:
         # Inner lines
@@ -149,14 +156,17 @@ def hex(parent, center, radius, type = 0):
 
     elif type == 4:
         # Inner lines
-        hex(parent=parent, center=center, radius=radius, type=0)
-        hex(parent=parent, center=center, radius=radius, type=3)
+        hexagon(parent=parent, center=center, radius=radius, type=0)
+        hexagon(parent=parent, center=center, radius=radius, type=3)
 
     elif type == 5:
         # Vertical lines
         points = hexagon_coorners(center, radius)
         parent.add( svgwrite.shapes.Line(points[5], points[2]) )
 
+
+# POLYLINES
+# ------------------------
 
 
 def polyline( parent, points ):
@@ -166,12 +176,16 @@ def polyline( parent, points ):
     parent.add( svgwrite.shapes.Polyline(points=points, fill="none", stroke='black', stroke_width=STROKE_WIDTH) )
 
 
+# PATHS
+# ------------------------
+
+
 def path( parent, path_str ):
     if isinstance(parent, AxiSurface):
         parent = parent.body
 
     # if isinstance(path_str, basestring) or isinstance(path_str, str):
-    parent.add( svgwrite.path.Path(d=string, fill="none", stroke='black', stroke_width=STROKE_WIDTH, debug=False) )
+    parent.add( svgwrite.path.Path(d=path_str, fill="none", stroke='black', stroke_width=STROKE_WIDTH, debug=False) )
     # else:
     #     # asume path_str is actually an array of points
     #     path_str = "M " + str(points[0][0]) + " " + str(points[0][1])

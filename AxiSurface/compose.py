@@ -15,7 +15,6 @@ from .Line import Line
 from .Rectangle import Rectangle
 from .Circle import Circle
 from .Polyline import Polyline
-from .Path import Path
 from .Texture import Texture
 
 STROKE_WIDTH = 0.2
@@ -39,4 +38,4 @@ def add(parent, element):
     elif isinstance(element, Polyline):
         polyline(parent, element.points)
     elif isinstance(parent, Texture):
-        path(parent, element.toPaths(parent.width, parent.height))
+        path(parent, element.getPathString(parent.width, parent.height))

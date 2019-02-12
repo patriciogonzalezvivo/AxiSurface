@@ -30,6 +30,20 @@ Or use the Makefile by:
 make install
 ```
 
+# MacOS Notes:
+
+```
+pip install opencv-python
+pip install opencv-contrib-python
+
+brew install vtk
+brew install boost-python --build-from-source  
+brew install qd --build-from-source  
+brew install graphviz  
+```
+
+
+
 # Example 
 
 ```python

@@ -60,6 +60,7 @@ class AxiSurface(object):
         name = name.replace(" ", "_")
         return parent.add( svgwrite.container.Group(id=name, fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
 
+
     def toSVG( self, filename=None ):
         self.debug = False
         if filename:
@@ -112,7 +113,7 @@ class AxiSurface(object):
         texture.project(surface)
 
         root = self.body.add( svgwrite.container.Group(id=filename, fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
-        root.add( svgwrite.path.Path(d=texture.toPaths(self.width, self.height), debug=False) )
+        root.add( svgwrite.path.Path(d=texture.getPathString(self.width, self.height), debug=False) )
 
 
     def fromHeightmap( self, filename, camera_angle=10.0, grayscale=None, threshold=0.5, invert=False, texture=None, texture_resolution=None, texture_presicion=1.0, texture_angle=0, texture_offset=0, mask=None):
@@ -144,7 +145,7 @@ class AxiSurface(object):
         texture.project(heightmap, camera_angle)
         
         root = self.body.add( svgwrite.container.Group(id=filename, fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
-        root.add( svgwrite.path.Path(d=texture.toPaths(self.width, self.height), debug=False) )
+        root.add( svgwrite.path.Path(d=texture.getPathString(self.width, self.height), debug=False) )
 
 
     def fromNormalmap( self, filename, total_faces=18, heightmap=None, camera_angle=0, grayscale=None, threshold=0.5, invert=False, texture=None, texture_resolution=None, texture_presicion=1.0, texture_angle=0, texture_offset=0, mask=None):
@@ -201,4 +202,4 @@ class AxiSurface(object):
             texture_sub.rotate(angle_sub)
             texture_sub.project(sub_surface, camera_angle)
 
-            root.add( svgwrite.path.Path(d=texture_sub.toPaths(self.width, self.height), debug=False) )
+            root.add( svgwrite.path.Path(d=texture_sub.getPathString(self.width, self.height), debug=False) )

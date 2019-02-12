@@ -151,7 +151,7 @@ class Texture(object):
             return Texture( (np.concatenate([x1, x2]), np.concatenate([y1, y2])) )
 
         elif isinstance(other, Polyline):
-            return self + other.toTexture()
+            return self + other.getTexture()
 
 
     def __iadd__(self, other):
@@ -265,10 +265,10 @@ class Texture(object):
                 print("Texture: Masking Image is not a mask but a", element.type)
 
 
-    def toPaths(self, width, height):
+    def getPathString(self, width, height):
         X, Y = self.data
 
-        def layer_to_path_gen(layer):
+        def path_gen(layer):
             """Generates an SVG path from a given layer.
             Args:
                 layer (layer): the layer to convert
@@ -285,4 +285,4 @@ class Texture(object):
                 else:
                     yield 'L {} {}'.format(x, y)
 
-        return ' '.join( layer_to_path_gen( (X * width, Y * height) ) )
+        return ' '.join( path_gen( (X * width, Y * height) ) )
