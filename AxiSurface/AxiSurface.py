@@ -63,21 +63,26 @@ class AxiSurface(Group):
     def fromThreshold( self, filename, threshold=0.5 ):
         polylines = traceImg( self, filename, threshold )
         
-        group = self.child(filename)
+        group = Group(filename)
         for polyline in polylines:
-            group.add( svgwrite.shapes.Polyline(points=polyline.points) )
+            self.poly( polyline.points )
 
 
-    def fromImage( self, filename, threshold=0.5, invert=False, texture=None, texture_angle=0, texture_resolution=None, texture_presicion=1.0, texture_offset=0, mask=None):
-        gradientmap = Image( filename )
+    def fromImage( self, filename, **kwargs):
+        grayscale = Image( filename )
+
+        threshold = float(kwargs.pop('threshold', 0.5))
+        invert = kwargs.pop('invert', False)
+        texture = kwargs.pop('texture', None)
+        mask = kwargs.pop('mask', None)
 
         # Make surface to carve from (copy from gradient to get same dinesions)
-        surface = gradientmap.copy()
+        surface = grayscale.copy()
         surface.fill(1.0)
 
         # Make gradient into dither mask
-        gradientmap.dither(threshold=threshold, invert=invert)
-        surface = surface - gradientmap
+        grayscale.dither(threshold=threshold, invert=invert)
+        surface = surface - grayscale
 
         # Load and remove Mask
         if isinstance(mask, basestring) or isinstance(mask, str):
@@ -85,27 +90,33 @@ class AxiSurface(Group):
             mask = mask.threshold()
         surface = surface - mask
 
-
         # Create texture
-        if texture_resolution == None:
-            texture_resolution = min(gradientmap.width, gradientmap.height) * 0.5
         if texture == None:
-            texture = Texture( stripes_texture(texture_resolution, min(gradientmap.width, gradientmap.height) * texture_presicion, texture_offset) )
+            texture_resolution = kwargs.pop('texture_resolution', min(grayscale.width, grayscale.height) * 0.5)
+            texture_presicion = float(kwargs.pop('texture_presicion', 1.0))
+            texture_angle = float(kwargs.pop('texture_angle', 0.0))
+            texture_offset = float(kwargs.pop('texture_offset', 0.0)) 
+            texture = Texture( stripes_texture(texture_resolution, min(grayscale.width, grayscale.height) * texture_presicion, texture_offset), **kwargs)
         elif not isinstance(texture, Texture):
-            texture = Texture( texture )
+            texture = Texture( texture, **kwargs  )
         if texture_angle > 0:
-            texture.rotate(texture_angle)
-
+            texture.turn(texture_angle)
 
         # Project texture on surface 
         texture.project(surface)
 
-
-        root = self.body.add( svgwrite.container.Group(id=filename, fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
-        root.add( svgwrite.path.Path(d=texture.getPathString(self.width, self.height), debug=False) )
+        self.texture( texture )
 
 
-    def fromHeightmap( self, filename, camera_angle=10.0, grayscale=None, threshold=0.5, invert=False, texture=None, texture_resolution=None, texture_presicion=1.0, texture_angle=0, texture_offset=0, mask=None):
+    def fromHeightmap( self, filename, **kwargs):
+        grayscale = kwargs.pop('grayscale', None)
+        camera_angle = float(kwargs.pop('camera_angle', 10.0))
+
+        threshold = float(kwargs.pop('threshold', 0.5))
+        invert = kwargs.pop('invert', False)
+        texture = kwargs.pop('texture', None)
+        mask = kwargs.pop('mask', None)
+
         # Load heightmap
         heightmap = Image(filename)
         heightmap.occlude(camera_angle)
@@ -122,22 +133,33 @@ class AxiSurface(Group):
             heightmap = heightmap - gradientmap.dither(threshold=threshold, invert=invert)
 
         # Create texture
-        if texture_resolution == None:
-            texture_resolution = min(heightmap.width, heightmap.height) * 0.5
         if texture == None:
-            texture = Texture( stripes_texture(texture_resolution, min(heightmap.width, heightmap.height) * texture_presicion, texture_offset) )
+            texture_resolution = kwargs.pop('texture_resolution', min(gradientmap.width, gradientmap.height) * 0.5)
+            texture_presicion = float(kwargs.pop('texture_presicion', 1.0))
+            texture_angle = float(kwargs.pop('texture_angle', 0.0))
+            texture_offset = float(kwargs.pop('texture_offset', 0.0)) 
+            texture = Texture( stripes_texture(num_lines=texture_resolution, resolution=min(heightmap.width, heightmap.height) * texture_presicion, offset=texture_offset), **kwargs )
         elif not isinstance(texture, Texture):
-            texture = Texture( texture )
+            texture = Texture( texture, **kwargs )
         if texture_angle > 0:
-            texture.rotate(texture_angle)
+            texture.turn(texture_angle)
 
         texture.project(heightmap, camera_angle)
-        
-        root = self.body.add( svgwrite.container.Group(id=filename, fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
-        root.add( svgwrite.path.Path(d=texture.getPathString(self.width, self.height), debug=False) )
+
+        self.texture( texture )
 
 
-    def fromNormalmap( self, filename, total_faces=18, heightmap=None, camera_angle=0, grayscale=None, threshold=0.5, invert=False, texture=None, texture_resolution=None, texture_presicion=1.0, texture_angle=0, texture_offset=0, mask=None):
+    def fromNormalmap( self, filename, **kwargs):
+        total_faces = int(kwargs.pop('total_faces', 14))
+        heightmap = kwargs.pop('heightmap', None)
+        camera_angle = float(kwargs.pop('camera_angle', 10.0))
+
+        grayscale = kwargs.pop('grayscale', None)
+        threshold = float(kwargs.pop('threshold', 0.5))
+        invert = kwargs.pop('invert', False)
+        texture = kwargs.pop('texture', None)
+        mask = kwargs.pop('mask', None)
+
         normalmap = Image(filename, type='2D_angle')
 
         # create a surface to carve from
@@ -167,16 +189,17 @@ class AxiSurface(Group):
             surface = surface - gradientmap.dither(threshold=threshold, invert=invert)
 
         # Create texture
-        if texture_resolution == None:
-            texture_resolution = min(surface.width, surface.height) * 0.5
         if texture == None:
-            texture = Texture( stripes_texture(texture_resolution, min(surface.width, surface.height) * texture_presicion, texture_offset) )
+            texture_resolution = kwargs.pop('texture_resolution', min(gradientmap.width, gradientmap.height) * 0.5)
+            texture_presicion = float(kwargs.pop('texture_presicion', 1.0))
+            texture_angle = float(kwargs.pop('texture_angle', 0.0))
+            texture_offset = float(kwargs.pop('texture_offset', 0.0)) 
+            texture = Texture( stripes_texture(texture_resolution, min(surface.width, surface.height) * texture_presicion, texture_offset), **kwargs)
         elif not isinstance(texture, Texture):
-            texture = Texture( texture )
+            texture = Texture( texture, **kwargs )
         if texture_angle > 0:
-            texture.rotate(texture_angle)
+            texture.turn(texture_angle)
 
-        root = self.body.add( svgwrite.container.Group(id=filename, fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
         for cut in range(total_faces):
             sub_surface = surface.copy()
 
@@ -188,7 +211,7 @@ class AxiSurface(Group):
             angle_sub = angle_sub + step_angle * 0.5
 
             texture_sub = Texture( texture )
-            texture_sub.rotate(angle_sub)
+            texture_sub.turn(angle_sub)
             texture_sub.project(sub_surface, camera_angle)
 
-            root.add( svgwrite.path.Path(d=texture_sub.getPathString(self.width, self.height), debug=False) )
+            self.texture( texture_sub )

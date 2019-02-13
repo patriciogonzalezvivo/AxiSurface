@@ -43,7 +43,7 @@ class Polyline(AxiElement):
         if type(index) is int:
             # return self.points[ index ]
             if self.isTranformed:
-                return translate(self.points[ index ], deg=self.rotate, scale=self.scale, translate=self.translate, origin=self.origin)
+                return translate(self.points[ index ], deg=self.rotate, scale=self.scale, translate=self.translate, anchor=self.origin)
             else:
                 return self.points[ index ]
         else:
@@ -308,7 +308,7 @@ class Polyline(AxiElement):
         if self.isTranformed():
             points = []
             for p in self.points:
-                points.append( transform(p, rotate=self.rotate, scale=self.scale, translate=self.translate, origin=self.origin) )
+                points.append( transform(p, rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.origin) )
             return points
         else:
             return self.points
@@ -327,7 +327,7 @@ class Polyline(AxiElement):
         p = lerp(self.points[i1], self.points[i2], t)
 
         if self.isTranformed:
-            return translate(p, deg=self.rotate, scale=self.scale, translate=self.translate, origin=self.origin)
+            return translate(p, deg=self.rotate, scale=self.scale, translate=self.translate, anchor=self.origin)
         else:
             return p
 

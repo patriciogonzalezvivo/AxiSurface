@@ -14,12 +14,12 @@ from .tools import polar2xy
 
 class Circle(AxiElement):
     def __init__( self, center, radius, **kwargs ):
-        AxiElement.__init__(self, **kwargs);
+        AxiElement.__init__(self, **kwargs)
 
         self.center = np.array(center)
         self.radius = radius
 
-        # Open Circles
+        # Optative
         self.open_angle =  kwargs.pop('open_angle', None)
 
     def inside( self, pos ):

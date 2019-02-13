@@ -6,11 +6,11 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import svgwrite
-
 import numpy as np
+
+from .AxiElement import AxiElement
 from .Image import Image
-from .tools import distance, remap
+from .tools import distance, remap, transform
 
 
 # This code is adapted from Paul Butler great Surface Projection tutorial
@@ -49,8 +49,8 @@ def stripes_texture(num_lines=10, resolution=50, offset=0):
 
 
 def grid_texture(num_h_lines=10, num_v_lines=10, resolution=50):
-    x_h, y_h = make_stripes_texture(num_h_lines, resolution)
-    y_v, x_v = make_stripes_texture(num_v_lines, resolution)
+    x_h, y_h = stripes_texture(num_h_lines, resolution)
+    y_v, x_v = stripes_texture(num_v_lines, resolution)
     return np.concatenate([x_h, x_v]), np.concatenate([y_h, y_v])
 
 
@@ -77,7 +77,7 @@ def spiral_texture(spirals=6.0, ccw=False, offset=0.0, resolution=1000):
     return spiral_texture
 
 
-def hex_texture(grid_size = 2, resolution=1):
+def hex_texture(grid_size = 10, resolution=50):
     """Makes a texture consisting on a grid of hexagons.
     Args:
         grid_size (int): the number of hexagons along each dimension of the grid
@@ -123,8 +123,12 @@ def hex_texture(grid_size = 2, resolution=1):
     return x_t.flatten('F'), y_t.flatten('F')
     
 
-class Texture(object):
-    def __init__( self, parent=None ):
+class Texture(AxiElement):
+    def __init__( self, parent, **kwargs ):
+        AxiElement.__init__(self, **kwargs)
+        self.width = float(kwargs.pop('width', 100))
+        self.height = float(kwargs.pop('height', 100))
+        self.anchor = kwargs.pop('anchor', [0.5, 0.5])
 
         if parent == None:
             x = np.zeros(1)
@@ -136,6 +140,10 @@ class Texture(object):
         elif isinstance(parent, Texture):
             x, y = parent.data
             self.data = (x.copy(), y.copy())
+            self.translate = parent.translate
+            self.scale = parent.scale
+            self.rotate = parent.rotate
+            self.anchor = parent.anchor
 
         else:
             x, y = parent
@@ -161,7 +169,7 @@ class Texture(object):
             self.data = ( np.concatenate([x1, x2]), np.concatenate([y1, y2]) )
 
 
-    def rotate(self, rotation, x_offset=0.5, y_offset=0.5):
+    def turn(self, rotation, x_offset=0.5, y_offset=0.5):
         """Rotates the given texture by a given angle.
         Args:
             rotation (float): the angle of rotation in degrees
@@ -265,8 +273,9 @@ class Texture(object):
                 print("Texture: Masking Image is not a mask but a", element.type)
 
 
-    def getPathString(self, width, height):
+    def getPathString(self):
         X, Y = self.data
+        W, H = self.width, self.height
 
         def path_gen(layer):
             """Generates an SVG path from a given layer.
@@ -277,12 +286,14 @@ class Texture(object):
             """
             draw = False
             for x, y in zip(*layer):
+                nx, ny = transform( [x,y], rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=[self.width * self.anchor[0], self.head_width * self.anchor[1]])
+
                 if np.isnan(x) or np.isnan(y):
                     draw = False
                 elif not draw:
-                    yield 'M {} {}'.format(x, y)
+                    yield 'M {} {}'.format(nx, ny)
                     draw = True
                 else:
-                    yield 'L {} {}'.format(x, y)
+                    yield 'L {} {}'.format(nx, ny)
 
-        return ' '.join( path_gen( (X * width, Y * height) ) )
+        return ' '.join( path_gen( (X * W, Y * H) ) )

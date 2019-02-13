@@ -43,7 +43,7 @@ class Line(AxiElement):
 
         if self.rotate != 0 or self.scale != 1:
             center = self.start + (self.end - self.start) * 0.5
-            start = transform(start, rotate=self.rotate, scale=self.scale, origin=center)
+            start = transform(start, rotate=self.rotate, scale=self.scale, anchor=center)
 
         return [start[0] + self.translate[0], start[1] + self.translate[1]] 
 
@@ -53,7 +53,7 @@ class Line(AxiElement):
 
         if self.rotate != 0 or self.scale != 1:
             center = self.start + (self.end - self.start) * 0.5
-            end = transform(end, rotate=self.rotate, scale=self.scale, origin=center)
+            end = transform(end, rotate=self.rotate, scale=self.scale, anchor=center)
 
         return [end[0] + self.translate[0], end[1] + self.translate[1]]
 

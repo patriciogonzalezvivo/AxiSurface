@@ -15,6 +15,3 @@ from .Rectangle import Rectangle
 from .Circle import Circle
 from .Polyline import Polyline
 from .Texture import *
-
-# drawing primitives
-from .tools import normalize, perpendicular, polar2xy

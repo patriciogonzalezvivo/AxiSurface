@@ -15,6 +15,7 @@ from .Rectangle import Rectangle
 from .Hexagon import Hexagon
 from .Polyline import Polyline
 from .Text import Text
+from .Texture import Texture
 
 class Group(AxiElement):
     def __init__( self, id="Untitle", **kwargs ):
@@ -27,40 +28,44 @@ class Group(AxiElement):
 
     def add(self, element ):
         self.elements.append(element)
+        return element
 
 
     def line(self, start_pos, end_pos, **kwargs):
-        self.elements.append( Line(start_pos, end_pos, **kwargs) )
+        return self.add( Line(start_pos, end_pos, **kwargs) )
 
 
     def arc(self, start_pos, end_pos, radius, **kwargs):
-        self.elements.append( Arc(start_pos, end_pos, radius, **kwargs) )
+        return self.add( Arc(start_pos, end_pos, radius, **kwargs) )
 
 
     def circle(self, center, radius, **kwargs):
-        self.elements.append( Circle(center, radius, **kwargs) )
+        return self.add( Circle(center, radius, **kwargs) )
 
 
     def rect(self, center, size, **kwargs):
-        self.elements.append( Rectangle(center, size, **kwargs) )
+        return self.add( Rectangle(center, size, **kwargs) )
 
 
     def hex(self, center, radius, **kwargs):
-        self.elements.append( Hexagon( center, radius, **kwargs) )
+        return self.add( Hexagon( center, radius, **kwargs) )
 
 
     def poly(self, points, **kwargs):
-        self.elements.append( Polyline(points, **kwargs) )
+        return self.add( Polyline(points, **kwargs) )
 
 
     def text(self, text, **kwargs):
-        self.elements.append( Text(text, **kwargs) )
+        return self.add( Text(text, **kwargs) )
+
+    def texture(self, texture, **kwargs):
+        return self.add( Texture(texture, **kwargs) )
 
 
     def group(self, group_id):
         g = Group(group_id)
-        self.elements.append( g )
         self.subgroup[group_id] = g
+        return self.add( g )
 
 
     def getPathString(self):
@@ -68,6 +73,7 @@ class Group(AxiElement):
         for el in self.elements:
             d += el.getPathString()
         return d
+
 
     def getElementString(self):
         svg_str = '<g fill="none" id="' + self.id + '" stroke="black" stroke-width="0.2">'
@@ -79,7 +85,7 @@ class Group(AxiElement):
                 svg_str += '<path d="' + el.getPathString() + '" />\n'
 
         svg_str += '</g>'
-
+        
         return svg_str
         
 

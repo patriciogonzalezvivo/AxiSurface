@@ -31,21 +31,21 @@ def perpendicular(A, B):
     return np.array([-dir_ab[1], dir_ab[0]])
 
 
-def rotate(xy, deg, origin=[0, 0]):
+def rotate(xy, deg, anchor=[0, 0]):
     radians = math.radians(deg)
     x, y = xy
 
-    x = x - origin[0]
-    y = y - origin[1]
+    x = x - anchor[0]
+    y = y - anchor[1]
     cos_rad = math.cos(radians)
     sin_rad = math.sin(radians)
-    qx = origin[0] + cos_rad * x + sin_rad * y
-    qy = origin[1] + -sin_rad * x + cos_rad * y
+    qx = anchor[0] + cos_rad * x + sin_rad * y
+    qy = anchor[1] + -sin_rad * x + cos_rad * y
 
     return [qx, qy]
 
 
-def transform(xy, rotate = 0, scale = [1,1], translate = [0,0], origin=[0, 0]):
+def transform(xy, rotate = 0, scale = [1,1], translate = [0,0], anchor=[0, 0]):
 
     x, y = xy
     radians = math.radians(rotate)
@@ -55,8 +55,8 @@ def transform(xy, rotate = 0, scale = [1,1], translate = [0,0], origin=[0, 0]):
     else:
         scale_x, scale_y = scale, scale
 
-    x = x - origin[0]
-    y = y - origin[1]
+    x = x - anchor[0]
+    y = y - anchor[1]
 
     cos_theta = math.cos(radians)
     sin_theta = math.sin(radians)
@@ -66,8 +66,8 @@ def transform(xy, rotate = 0, scale = [1,1], translate = [0,0], origin=[0, 0]):
     nx *= scale_x
     ny *= scale_y
 
-    nx += origin[0] + translate[0]
-    ny += origin[1] + translate[1]
+    nx += anchor[0] + translate[0]
+    ny += anchor[1] + translate[1]
     return [nx, ny]
 
 

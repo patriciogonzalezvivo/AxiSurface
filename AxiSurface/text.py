@@ -16,9 +16,29 @@ class Text(AxiElement):
         AxiElement.__init__(self, **kwargs);
         self.text = text
 
+        self.center =  kwargs.pop('center', [0.0, 0.0])
         self.font =  kwargs.pop('font', FUTURAL)
         self.spacing =  kwargs.pop('spacing', 0)
         self.extra =  kwargs.pop('extra', 0)
+
+
+    def getWidth(self):
+        x = 0
+        for ch in self.text:
+            index = ord(ch) - 32
+            if index < 0 or index >= 96:
+                x += self.spacing
+                continue
+
+            lt, rt, coords = self.font[index]
+            x += rt - lt + self.spacing
+
+        if isinstance(self.scale, tuple) or isinstance(self.scale, list):
+            x *= self.scale[0]
+        else:
+            x *= self.scale
+
+        return x
 
 
     def getPolylines(self, **kwargs ):
@@ -46,7 +66,8 @@ class Text(AxiElement):
                 x += self.extra
 
         for i in range(len(result)):
-            result[i].translate = self.translate
+            result[i].translate = [ self.translate[0] + self.center[0] - self.getWidth() * 0.5, 
+                                    self.translate[1] + self.center[1] ]
             result[i].scale = self.scale
             result[i].rotate = self.rotate
             result[i].origin = bbox.center
