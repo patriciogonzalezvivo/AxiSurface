@@ -17,45 +17,69 @@ from .Polyline import Polyline
 from .Text import Text
 
 class Group(AxiElement):
-    def __init__( self, id="None", **kwargs ):
+    def __init__( self, id="Untitle", **kwargs ):
         AxiElement.__init__(self, **kwargs);
 
         self.id = id
         self.elements = []
         self.subgroup = { } 
 
+
     def add(self, element ):
         self.elements.append(element)
+
 
     def line(self, start_pos, end_pos, **kwargs):
         self.elements.append( Line(start_pos, end_pos, **kwargs) )
 
+
     def arc(self, start_pos, end_pos, radius, **kwargs):
         self.elements.append( Arc(start_pos, end_pos, radius, **kwargs) )
+
 
     def circle(self, center, radius, **kwargs):
         self.elements.append( Circle(center, radius, **kwargs) )
 
+
     def rect(self, center, size, **kwargs):
         self.elements.append( Rectangle(center, size, **kwargs) )
+
 
     def hex(self, center, radius, **kwargs):
         self.elements.append( Hexagon( center, radius, **kwargs) )
 
+
     def poly(self, points, **kwargs):
         self.elements.append( Polyline(points, **kwargs) )
 
+
     def text(self, text, **kwargs):
         self.elements.append( Text(text, **kwargs) )
+
 
     def group(self, group_id):
         g = Group(group_id)
         self.elements.append( g )
         self.subgroup[group_id] = g
 
+
     def getPathString(self):
         d = ''
         for el in self.elements:
             d += el.getPathString()
         return d
+
+    def getElementString(self):
+        svg_str = '<g fill="none" id="' + self.id + '" stroke="black" stroke-width="0.2">'
+
+        for el in self.elements:
+            if isinstance(el, Group):
+                svg_str += el.getElementString()
+            else:
+                svg_str += '<path d="' + el.getPathString() + '" />\n'
+
+        svg_str += '</g>'
+
+        return svg_str
+        
 

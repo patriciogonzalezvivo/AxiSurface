@@ -13,7 +13,7 @@ from .tools import linesIntersection
 
 class Arc(AxiElement):
     def __init__( self, start, end, radius, **kwargs):
-        AxiElement.__init__(self, **kwargs);
+        AxiElement.__init__(self, **kwargs)
 
         self.start = np.array(start)
         self.end = np.array(end)

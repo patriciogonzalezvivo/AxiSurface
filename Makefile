@@ -6,4 +6,4 @@ install:
 
 clean:
 	rm -rf build
-	rm Lines/*.pyc
+	rm AxiSurface/*.pyc

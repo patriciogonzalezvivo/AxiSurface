@@ -9,7 +9,6 @@ from __future__ import unicode_literals
 import numpy as np
 from PIL import Image as PILImage
 
-
 def normalise(im):
     """Normalize an image matrix from 0 - 255 to 0.0 - 1.0f range at 64bit  
     """

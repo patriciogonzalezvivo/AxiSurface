@@ -6,18 +6,19 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import svgwrite
-from svgwrite import cm, mm
 
-from .parser import parseSVG
-from .tracer import traceImg
+from .Group import *
 from .Image import *
 from .Texture import *
+from .parser import parseSVG
+from .tracer import traceImg
 
 STROKE_WIDTH = 0.2
 
-class AxiSurface(object):
-    def __init__(self, size='A3', scale=1.0, unit=mm, filename=None):
+class AxiSurface(Group):
+    def __init__(self, size='A3', **kwargs):
+        Group.__init__(self, **kwargs)
+        self.id = 'Body'
 
         if size == 'A4':
             self.width = 210.0
@@ -39,34 +40,20 @@ class AxiSurface(object):
             self.width = float(size)
             self.height = float(size)
 
-        self.scale = scale
-        self.filename = filename
 
-        if filename:
-            self.dwg = svgwrite.Drawing( filename=filename, debug=False, profile='tiny', size=(self.width * unit, self.height * unit) )
-        else:
-            self.dwg = svgwrite.Drawing( debug=False, profile='tiny', size=(self.width * unit, self.height * unit) )
-
-        self.dwg.viewbox(width=self.width / self.scale, height=self.height / self.scale)
-        self.body = self.dwg.add( svgwrite.container.Group(id='body', fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
-
-
-    def child( self, name ):
-        name = name.replace(" ", "_")
-        return self.body.add( svgwrite.container.Group(id=name, fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
+    def toSVG( self, filename, scale=1.0, unit='mm'):
+        svg_str = '<?xml version="1.0" encoding="utf-8" ?>\n<svg '
+        svg_str += 'width="'+ str(self.width) + unit + '" '
+        svg_str += 'height="' + str(self.height) + unit + '" '
+        svg_str += 'viewBox="0,0,'+ str(self.width * scale) + ',' + str(self.height * scale) + '" '
+        svg_str += 'baseProfile="tiny" version="1.2" xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" ><defs/>'
         
+        svg_str += self.getElementString()
 
-    def childOf( self, parent, name ):
-        name = name.replace(" ", "_")
-        return parent.add( svgwrite.container.Group(id=name, fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
+        svg_str += '</svg>'
 
-
-    def toSVG( self, filename=None ):
-        self.debug = False
-        if filename:
-            self.dwg.saveas( filename )
-        elif self.filename:
-            self.dwg.save()
+        with open(filename, "w") as file:
+            file.write(svg_str)
 
 
     def fromSVG( self, filename ):
@@ -109,8 +96,10 @@ class AxiSurface(object):
         if texture_angle > 0:
             texture.rotate(texture_angle)
 
+
         # Project texture on surface 
         texture.project(surface)
+
 
         root = self.body.add( svgwrite.container.Group(id=filename, fill='none', stroke='black', stroke_width=STROKE_WIDTH) )
         root.add( svgwrite.path.Path(d=texture.getPathString(self.width, self.height), debug=False) )
