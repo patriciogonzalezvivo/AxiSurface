@@ -1,0 +1,88 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
+class Bbox(object):
+    def __init__( self, **kwargs ):
+        self.min_x, self.min_y = float("inf"), float("inf")
+        self.max_x, self.max_y = float("-inf"), float("-inf")
+
+        if kwargs.has_key('x'):
+            self.min_x = kwargs['x'] 
+            if kwargs.has_key('width'):
+                self.max_x = self.min_x + kwargs['width']
+
+        if kwargs.has_key('y'):
+            self.min_y = kwargs['y'] 
+            if kwargs.has_key('height'):
+                self.max_y = self.min_y + kwargs['height']
+
+        if kwargs.has_key('points'):
+            self.setFromPoints( kwargs['points'] )
+
+
+    def setFromPoints(self, points):
+        self.min_x, self.min_y = float("inf"), float("inf")
+        self.max_x, self.max_y = float("-inf"), float("-inf")
+        for x, y in points:
+            # Set min coords
+            if x < self.min_x:
+                self.min_x = x
+            if y < self.min_y:
+                self.min_y = y
+            # Set max coords
+            if x > self.max_x:
+                self.max_x = x
+            elif y > self.max_y:
+                self.max_y = y
+
+
+    def join(self, other):
+        if isinstance(other, Bbox):
+            self.min_x = min( self.min_x, other.min_x)
+            self.min_y = min( self.min_y, other.min_y)
+            self.max_x = max( self.max_x, other.max_x)
+            self.max_y = max( self.max_y, other.max_y)
+
+
+    def __repr__(self):
+        return "BoundingBox({}, {}, {}, {})".format(
+            self.min_x, self.max_x, self.min_y, self.max_y)
+
+    @property
+    def x(self):
+        return self.min_x
+
+
+    @property
+    def y(self):
+        return self.min_y
+
+
+    @property
+    def width(self):
+        return self.max_x - self.min_x
+
+
+    @property
+    def height(self):
+        return self.max_y - self.min_y
+
+
+    @property
+    def center(self):
+        return [ self.min_y + (self.max_y - self.min_y) * 0.5, 
+                 self.min_y + (self.max_y - self.min_y) * 0.5 ]
+
+
+    def inside( self, pos ):
+        if (pos[0] > self.min_x) and (pos[0] < self.max_x):
+            if (pos[1] > self.min_y) and (pos[1] < self.max_y):
+                return True
+        return False
+
+    

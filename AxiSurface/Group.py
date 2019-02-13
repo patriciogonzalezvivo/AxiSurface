@@ -24,6 +24,9 @@ class Group(AxiElement):
         self.elements = []
         self.subgroup = { } 
 
+    def add(self, element ):
+        self.elements.append(element)
+
     def line(self, start_pos, end_pos, **kwargs):
         self.elements.append( Line(start_pos, end_pos, **kwargs) )
 

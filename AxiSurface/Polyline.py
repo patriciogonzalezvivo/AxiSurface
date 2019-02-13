@@ -10,7 +10,8 @@ import math
 import numpy as np
 
 from .AxiElement import AxiElement
-from .tools import pointInside, linesIntersection, lerp, distance, remap
+from .Bbox import Bbox
+from .tools import pointInside, linesIntersection, lerp, distance, remap, transform
 
 class Polyline(AxiElement):
     def __init__( self, points=None, **kwargs):
@@ -30,6 +31,7 @@ class Polyline(AxiElement):
         self.points = points
         self.lengths = []
         self.isClosed = kwargs.pop('isClosed', False) 
+        self.origin = kwargs.pop('origin', [0.0, 0.0]) 
         self._updateCache()
 
     def __setitem__(self, index, value):
@@ -39,7 +41,11 @@ class Polyline(AxiElement):
 
     def __getitem__(self, index):
         if type(index) is int:
-            return self.points[ index ]
+            # return self.points[ index ]
+            if self.isTranformed:
+                return translate(self.points[ index ], deg=self.rotate, scale=self.scale, translate=self.translate, origin=self.origin)
+            else:
+                return self.points[ index ]
         else:
             return None
 
@@ -294,14 +300,42 @@ class Polyline(AxiElement):
         return pointInside( pos, self.points )
 
 
+    def isTranformed(self):
+        return self.translate[0] != 0.0 or self.translate[1] != 0.0 or self.scale != 1.0 or self.rotate != 0.0
+
+
+    def getPoints(self):
+        if self.isTranformed():
+            points = []
+            for p in self.points:
+                points.append( transform(p, rotate=self.rotate, scale=self.scale, translate=self.translate, origin=self.origin) )
+            return points
+        else:
+            return self.points
+
+
+    def getBbox(self):
+        return Bbox( points=self.getPoints() )
+        
+
+    def getPointAtLength(self, length):
+        return self.getPointAtIndexInterpolated( self.getIndexAtLength( length ) )
+
+
+    def getPointAtIndexInterpolated(self, findex):
+        i1, i2, t = self.getInterpolationParams(findex)
+        p = lerp(self.points[i1], self.points[i2], t)
+
+        if self.isTranformed:
+            return translate(p, deg=self.rotate, scale=self.scale, translate=self.translate, origin=self.origin)
+        else:
+            return p
+
+
     def getPerimeter(self):
         if len(self.lengths) < 1:
             return 0
         return self.lengths[-1]
-
-
-    def getPointAtLength(self, length):
-        return self.getPointAtIndexInterpolated( self.getIndexAtLength( length ) )
 
 
     def getIndexAtLength(self, length):
@@ -332,11 +366,6 @@ class Polyline(AxiElement):
             i1 = (leftLimit + rightLimit) / 2
 
         return 0
-
-
-    def getPointAtIndexInterpolated(self, findex):
-        i1, i2, t = self.getInterpolationParams(findex)
-        return lerp(self.points[i1], self.points[i2], t)
 
 
     def getInterpolationParams(self, findex):
@@ -411,7 +440,7 @@ class Polyline(AxiElement):
 
 
     def getPathString(self):
-        points = self.points[:]
+        points = self.getPoints()[:]
         if self.isClosed:
             points.append(self.points[0])
 

@@ -31,6 +31,46 @@ def perpendicular(A, B):
     return np.array([-dir_ab[1], dir_ab[0]])
 
 
+def rotate(xy, deg, origin=[0, 0]):
+    radians = math.radians(deg)
+    x, y = xy
+
+    x = x - origin[0]
+    y = y - origin[1]
+    cos_rad = math.cos(radians)
+    sin_rad = math.sin(radians)
+    qx = origin[0] + cos_rad * x + sin_rad * y
+    qy = origin[1] + -sin_rad * x + cos_rad * y
+
+    return [qx, qy]
+
+
+def transform(xy, rotate = 0, scale = [1,1], translate = [0,0], origin=[0, 0]):
+
+    x, y = xy
+    radians = math.radians(rotate)
+
+    if isinstance(scale, tuple) or isinstance(scale, list):
+        scale_x, scale_y = scale
+    else:
+        scale_x, scale_y = scale, scale
+
+    x = x - origin[0]
+    y = y - origin[1]
+
+    cos_theta = math.cos(radians)
+    sin_theta = math.sin(radians)
+    nx = x * cos_theta - y * sin_theta
+    ny = x * sin_theta + y * cos_theta
+
+    nx *= scale_x
+    ny *= scale_y
+
+    nx += origin[0] + translate[0]
+    ny += origin[1] + translate[1]
+    return [nx, ny]
+
+
 def remap(value, in_min, in_max, out_min, out_max):
     in_span = in_max - in_min
     out_span = out_max - out_min

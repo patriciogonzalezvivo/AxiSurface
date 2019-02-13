@@ -9,7 +9,7 @@ from __future__ import unicode_literals
 import numpy as np
 
 from .AxiElement import AxiElement
-from .tools import linesIntersection, perpendicular, xy2polar, polar2xy
+from .tools import linesIntersection, perpendicular, transform
 
 class Line(AxiElement):
     def __init__( self, start, end, **kwargs):
@@ -43,10 +43,9 @@ class Line(AxiElement):
 
         if self.rotate != 0 or self.scale != 1:
             center = self.start + (self.end - self.start) * 0.5
-            ang_rad = xy2polar(center, self.start)
-            start = polar2xy(center, ang_rad[0] + self.rotate, ang_rad[1] * self.scale)
+            start = transform(start, rotate=self.rotate, scale=self.scale, origin=center)
 
-        return  [start[0] + self.translate[0], start[1] + self.translate[1]] 
+        return [start[0] + self.translate[0], start[1] + self.translate[1]] 
 
 
     def getEnd(self):
@@ -54,10 +53,9 @@ class Line(AxiElement):
 
         if self.rotate != 0 or self.scale != 1:
             center = self.start + (self.end - self.start) * 0.5
-            ang_rad = xy2polar(center, self.end)
-            end = polar2xy(center, ang_rad[0] + self.rotate, ang_rad[1] * self.scale)
+            end = transform(end, rotate=self.rotate, scale=self.scale, origin=center)
 
-        return  [end[0] + self.translate[0], end[1] + self.translate[1]] 
+        return [end[0] + self.translate[0], end[1] + self.translate[1]]
 
 
     def intersect(self, line):
