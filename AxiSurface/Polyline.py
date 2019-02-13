@@ -31,7 +31,7 @@ class Polyline(AxiElement):
         self.points = points
         self.lengths = []
         self.isClosed = kwargs.pop('isClosed', False) 
-        self.origin = kwargs.pop('origin', [0.0, 0.0]) 
+        self.anchor = kwargs.pop('anchor', [0.0, 0.0]) 
         self._updateCache()
 
     def __setitem__(self, index, value):
@@ -43,7 +43,7 @@ class Polyline(AxiElement):
         if type(index) is int:
             # return self.points[ index ]
             if self.isTranformed:
-                return translate(self.points[ index ], deg=self.rotate, scale=self.scale, translate=self.translate, anchor=self.origin)
+                return transform(self.points[ index ], rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.anchor)
             else:
                 return self.points[ index ]
         else:
@@ -308,7 +308,7 @@ class Polyline(AxiElement):
         if self.isTranformed():
             points = []
             for p in self.points:
-                points.append( transform(p, rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.origin) )
+                points.append( transform(p, rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.anchor) )
             return points
         else:
             return self.points
@@ -327,7 +327,7 @@ class Polyline(AxiElement):
         p = lerp(self.points[i1], self.points[i2], t)
 
         if self.isTranformed:
-            return translate(p, deg=self.rotate, scale=self.scale, translate=self.translate, anchor=self.origin)
+            return transform(p, rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.anchor)
         else:
             return p
 

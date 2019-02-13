@@ -74,6 +74,7 @@ class AxiSurface(Group):
         threshold = float(kwargs.pop('threshold', 0.5))
         invert = kwargs.pop('invert', False)
         texture = kwargs.pop('texture', None)
+        texture_angle = float(kwargs.pop('texture_angle', 0.0))
         mask = kwargs.pop('mask', None)
 
         # Make surface to carve from (copy from gradient to get same dinesions)
@@ -94,11 +95,11 @@ class AxiSurface(Group):
         if texture == None:
             texture_resolution = kwargs.pop('texture_resolution', min(grayscale.width, grayscale.height) * 0.5)
             texture_presicion = float(kwargs.pop('texture_presicion', 1.0))
-            texture_angle = float(kwargs.pop('texture_angle', 0.0))
             texture_offset = float(kwargs.pop('texture_offset', 0.0)) 
             texture = Texture( stripes_texture(texture_resolution, min(grayscale.width, grayscale.height) * texture_presicion, texture_offset), **kwargs)
         elif not isinstance(texture, Texture):
             texture = Texture( texture, **kwargs  )
+
         if texture_angle > 0:
             texture.turn(texture_angle)
 
@@ -115,6 +116,7 @@ class AxiSurface(Group):
         threshold = float(kwargs.pop('threshold', 0.5))
         invert = kwargs.pop('invert', False)
         texture = kwargs.pop('texture', None)
+        texture_angle = float(kwargs.pop('texture_angle', 0.0))
         mask = kwargs.pop('mask', None)
 
         # Load heightmap
@@ -136,11 +138,11 @@ class AxiSurface(Group):
         if texture == None:
             texture_resolution = kwargs.pop('texture_resolution', min(gradientmap.width, gradientmap.height) * 0.5)
             texture_presicion = float(kwargs.pop('texture_presicion', 1.0))
-            texture_angle = float(kwargs.pop('texture_angle', 0.0))
             texture_offset = float(kwargs.pop('texture_offset', 0.0)) 
             texture = Texture( stripes_texture(num_lines=texture_resolution, resolution=min(heightmap.width, heightmap.height) * texture_presicion, offset=texture_offset), **kwargs )
         elif not isinstance(texture, Texture):
             texture = Texture( texture, **kwargs )
+
         if texture_angle > 0:
             texture.turn(texture_angle)
 
@@ -158,6 +160,7 @@ class AxiSurface(Group):
         threshold = float(kwargs.pop('threshold', 0.5))
         invert = kwargs.pop('invert', False)
         texture = kwargs.pop('texture', None)
+        texture_angle = float(kwargs.pop('texture_angle', 0.0))
         mask = kwargs.pop('mask', None)
 
         normalmap = Image(filename, type='2D_angle')
@@ -192,11 +195,11 @@ class AxiSurface(Group):
         if texture == None:
             texture_resolution = kwargs.pop('texture_resolution', min(gradientmap.width, gradientmap.height) * 0.5)
             texture_presicion = float(kwargs.pop('texture_presicion', 1.0))
-            texture_angle = float(kwargs.pop('texture_angle', 0.0))
             texture_offset = float(kwargs.pop('texture_offset', 0.0)) 
             texture = Texture( stripes_texture(texture_resolution, min(surface.width, surface.height) * texture_presicion, texture_offset), **kwargs)
         elif not isinstance(texture, Texture):
             texture = Texture( texture, **kwargs )
+            
         if texture_angle > 0:
             texture.turn(texture_angle)
 

@@ -124,7 +124,7 @@ def hex_texture(grid_size = 10, resolution=50):
     
 
 class Texture(AxiElement):
-    def __init__( self, parent, **kwargs ):
+    def __init__( self, parent=None, **kwargs ):
         AxiElement.__init__(self, **kwargs)
         self.width = float(kwargs.pop('width', 100))
         self.height = float(kwargs.pop('height', 100))
