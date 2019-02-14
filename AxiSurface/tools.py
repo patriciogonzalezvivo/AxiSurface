@@ -16,8 +16,22 @@ def normalize(v, tolerance=0.00001):
     mag2 = sum(n * n for n in v)
     if abs(mag2 - 1.0) > tolerance:
         mag = math.sqrt(mag2)
+        if mag == 0.0:
+            return None
         v = tuple(n / mag for n in v)
     return np.array(v)
+
+
+def dot(v1, v2):
+    n = 0
+    lim = min( len(v1) , len(v2) )
+    for i in range(lim):
+        n += v1[i] * v2[i]
+    return n
+
+
+def length(v):
+    return sqrt(sum(n * n for n in v))
 
 
 def distance(A, B):
@@ -43,6 +57,10 @@ def rotate(xy, deg, anchor=[0, 0]):
     qy = anchor[1] + -sin_rad * x + cos_rad * y
 
     return [qx, qy]
+
+
+def clamp(value, min_value, max_value):
+    return max(min(value, max_value), min_value)
 
 
 def transform(xy, rotate = 0, scale = [1,1], translate = [0,0], anchor=[0, 0]):

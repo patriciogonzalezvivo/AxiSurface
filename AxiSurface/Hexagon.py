@@ -75,7 +75,7 @@ class Hexagon(AxiElement):
         rx, ry = self.getRadius()
 
         path_str = ''
-        if self.stroke_width > 1 or self.fill:
+        if self.stroke_width > self.head_width or self.fill:
             rx, ry = self.getRadius()
 
             rx_delta = rx + (self.stroke_width * self.head_width) * 0.5

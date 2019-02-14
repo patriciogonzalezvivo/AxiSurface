@@ -6,18 +6,12 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from AxiSurface import AxiSurface, text, circle, rect
-
-WIDTH = 297
-HEIGHT = 420.0
-MARGIN = WIDTH*0.05
-SCALE = 1.0
+from AxiSurface import AxiSurface
 
 paper = AxiSurface()
-t = paper.child('test')
 
-circle(t, center=(paper.width*0.5, paper.height*0.5), radius=paper.width*0.5 )
-rect(t, center=(0,0), size=(paper.width, paper.height) )
-text(t, text='hello world', center=(paper.width*0.5, paper.height*0.5) )
+paper.circle(center=(paper.width*0.5, paper.height*0.5), radius=paper.width*0.5 )
+paper.rect(center=(paper.width*0.5, paper.height*0.5), size=(paper.width, paper.height) )
+paper.text(text='hello world', center=(paper.width*0.5, paper.height*0.5) )
 
-paper.toSVG('test.svg')
+paper.toSVG('hello_world.svg')

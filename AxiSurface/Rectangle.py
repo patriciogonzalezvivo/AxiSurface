@@ -92,7 +92,7 @@ class Rectangle(AxiElement):
             return 'M' + 'L'.join('{0} {1}'.format(x,y) for x,y in points)
 
         path_str = ''
-        if self.stroke_width > 1 or self.fill:
+        if self.stroke_width > self.head_width or self.fill:
 
             if isinstance(self.size, tuple) or isinstance(self.size, list):
                 rx = self.size[0] * 0.5

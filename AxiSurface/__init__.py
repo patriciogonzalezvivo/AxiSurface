@@ -15,3 +15,6 @@ from .Rectangle import Rectangle
 from .Circle import Circle
 from .Polyline import Polyline
 from .Texture import *
+from .Text import Text
+
+from .hershey_fonts import *

@@ -72,11 +72,10 @@ class Line(AxiElement):
         B = self.getEnd()
 
         path_str = ''
-        if self.stroke_width > 1:
+        if self.stroke_width > self.head_width:
             passes = self.stroke_width / self.head_width
             perp = perpendicular(A, B)
             perp_step = perp * self.head_width
-
             for i in range(int(-passes/2), int(passes/2) ):
                 path_str += path_gen(   [ A[0] + perp_step[0] * i, A[1] + perp_step[1] * i ], 
                                         [ B[0] + perp_step[0] * i, B[1] + perp_step[1] * i ] )

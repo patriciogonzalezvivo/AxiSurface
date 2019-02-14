@@ -14,7 +14,7 @@ from .hershey_fonts import *
 class Text(AxiElement):
     def __init__( self, text, **kwargs ):
         AxiElement.__init__(self, **kwargs);
-        self.text = text
+        self.text = str(text)
 
         self.center =  kwargs.pop('center', [0.0, 0.0])
         self.font =  kwargs.pop('font', FUTURAL)
@@ -71,6 +71,7 @@ class Text(AxiElement):
             result[i].scale = self.scale
             result[i].rotate = self.rotate
             result[i].origin = bbox.center
+            result[i].stroke_width = self.stroke_width / result[i].scale
 
         return result
 
@@ -87,7 +88,7 @@ class Text(AxiElement):
 
 
     def getBbox(self):
-        return Bbox(self.getPoints())
+        return Bbox(points=self.getPoints())
 
 
     def getPathString(self):

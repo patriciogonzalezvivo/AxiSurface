@@ -75,7 +75,7 @@ class Circle(AxiElement):
         rx, ry = self.getRadius()
 
         path_str = ''
-        if self.stroke_width > 1 or self.fill:
+        if self.stroke_width > self.head_width or self.fill:
             rad_x = rx + (self.stroke_width * self.head_width) * 0.5
             rad_y = ry + (self.stroke_width * self.head_width) * 0.5
             rad_x_target = rx - (self.stroke_width * self.head_width) * 0.5
