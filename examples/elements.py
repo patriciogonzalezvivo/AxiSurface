@@ -70,11 +70,10 @@ poly = Polyline( [ [-col_width*0.5, 0.0], [col_width*0.5, 0.0], [0.0, col_width*
 for col in range(cols):
     poly.translate = [x + col * col_width, y + col_height]
     poly.rotate = col*ang_step
-    poly.stroke_width = col*0.25+1
-    axi.poly( poly.getPoints() )
+    axi.poly( poly.getPoints(), stroke_width=col*0.25+0.2 )
 
 y += col_height
 for col in range(cols):
-    axi.text( "Hi", translate=[x + col * col_width, y + col_height], scale=0.2, rotate=col*ang_step,)
+    axi.text( "Hi", translate=[x + col * col_width, y + col_height], scale=0.2, rotate=col*ang_step, stroke_width=col*0.25+0.2)
 
 axi.toSVG('elements.svg')

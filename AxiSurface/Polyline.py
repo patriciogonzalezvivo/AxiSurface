@@ -559,8 +559,8 @@ class Polyline(AxiElement):
         r = self.stroke_width
         path_str = ''
         if self.stroke_width > self.head_width:
-            r = (self.stroke_width * self.head_width)
-            r_target = r - (self.stroke_width * self.head_width)
+            r = (self.stroke_width * self.head_width) * 0.5
+            r_target = -(self.stroke_width * self.head_width) * 0.5
 
             while r > r_target:
                 poly = self.getPolygonOffset(r)

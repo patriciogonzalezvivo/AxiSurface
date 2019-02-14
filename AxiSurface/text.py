@@ -66,13 +66,14 @@ class Text(AxiElement):
                 x += self.extra
 
         for i in range(len(result)):
-            result[i].translate = [ self.translate[0] + self.center[0] - self.getWidth() * 0.5, 
-                                    self.translate[1] + self.center[1] ]
+            
+            result[i].translate = [ self.translate[0] + self.center[0], 
+                                    self.translate[1] + self.center[1]]
             result[i].scale = self.scale
             result[i].rotate = self.rotate
             result[i].origin = bbox.center
             result[i].stroke_width = self.stroke_width / result[i].scale
-
+       
         return result
 
 
