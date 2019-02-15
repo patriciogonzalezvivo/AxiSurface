@@ -75,7 +75,7 @@ class Bbox(object):
 
     @property
     def center(self):
-        return [ self.min_y + (self.max_y - self.min_y) * 0.5, 
+        return [ self.min_x + (self.max_x - self.min_x) * 0.5, 
                  self.min_y + (self.max_y - self.min_y) * 0.5 ]
 
 

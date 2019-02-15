@@ -10,13 +10,14 @@ from .AxiElement import AxiElement
 from .Polyline import Polyline
 from .Bbox import Bbox
 from .hershey_fonts import *
+from .tools import transform
 
 class Text(AxiElement):
-    def __init__( self, text, **kwargs ):
+    def __init__( self, text, center, **kwargs ):
         AxiElement.__init__(self, **kwargs);
         self.text = str(text)
+        self.center = center
 
-        self.center =  kwargs.pop('center', [0.0, 0.0])
         self.font =  kwargs.pop('font', FUTURAL)
         self.spacing =  kwargs.pop('spacing', 0)
         self.extra =  kwargs.pop('extra', 0)
@@ -65,14 +66,15 @@ class Text(AxiElement):
             if index == 0:
                 x += self.extra
 
-        for i in range(len(result)):
-            
-            result[i].translate = [ self.translate[0] + self.center[0], 
-                                    self.translate[1] + self.center[1]]
+        toCenter = transform(bbox.center, rotate=self.rotate, scale=self.scale)
+
+        for i in range(len(result)):  
+            result[i].translate = [ self.translate[0] + self.center[0] - toCenter[0],
+                                    self.translate[1] + self.center[1] - toCenter[1]]
             result[i].scale = self.scale
             result[i].rotate = self.rotate
             result[i].origin = bbox.center
-            result[i].stroke_width = self.stroke_width / result[i].scale
+            result[i].stroke_width = self.stroke_width / self.scale
        
         return result
 

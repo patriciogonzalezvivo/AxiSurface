@@ -55,8 +55,8 @@ class Group(AxiElement):
         return self.add( Polyline(points, **kwargs) )
 
 
-    def text(self, text, **kwargs):
-        return self.add( Text(text, **kwargs) )
+    def text(self, text, center, **kwargs):
+        return self.add( Text(text, center, **kwargs) )
 
     def texture(self, texture, **kwargs):
         return self.add( Texture(texture, **kwargs) )
