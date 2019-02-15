@@ -141,10 +141,6 @@ class Polyline(AxiElement):
         return pointInside( pos, self.points )
 
 
-    def isTranformed(self):
-        return self.translate[0] != 0.0 or self.translate[1] != 0.0 or self.scale != 1.0 or self.rotate != 0.0
-
-
     def getPerimeter(self):
         if len(self.lengths) < 1:
             return 0
@@ -309,7 +305,7 @@ class Polyline(AxiElement):
 
 
     def getPoints(self):
-        if self.isTranformed():
+        if self.isTranformed:
             points = []
             for p in self.points:
                 points.append( transform(p, rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.anchor) )
@@ -380,20 +376,3 @@ class Polyline(AxiElement):
             texture = texture + Texture( (x.flatten('F'), y.flatten('F')) )
 
         return texture
-
-
-    def getPathString(self):
-
-        def path_gen(points):
-            return 'M' + 'L'.join('{0} {1}'.format(x,y) for x,y in points)
-        
-        path = self.getPath()
-        path_str = ''
-
-        for poly in path:
-            path_str += path_gen( poly )
-
-        return path_str
-
-
-

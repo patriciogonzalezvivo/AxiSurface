@@ -16,28 +16,24 @@ class Circle(AxiElement):
     def __init__( self, center, radius, **kwargs ):
         AxiElement.__init__(self, **kwargs)
 
-        self.center = np.array(center)
-        self.radius = radius
+        self._center = np.array(center)
+        self._radius = radius
 
         # Optative
-        self.open_angle =  kwargs.pop('open_angle', None)
+        self.open_angle = kwargs.pop('open_angle', 0)
 
-    def inside( self, pos ):
-        dist = math.hypot(pos[0]-self.center[0], pos[1]-self.center[1])
-        return dist < self.radius
-
-    
-    def getCenter(self):
-        return self.center + self.translate
+    @property
+    def center(self):
+        return self._center + self.translate
         
-    
-    def getRadius(self):
-        if isinstance(self.radius, tuple) or isinstance(self.radius, list):
-            rx = self.radius[0]
-            ry = self.radius[1]
+    @property
+    def radius(self):
+        if isinstance(self._radius, tuple) or isinstance(self._radius, list):
+            rx = self._radius[0]
+            ry = self._radius[1]
         else:
-            rx = self.radius
-            ry = self.radius
+            rx = self._radius
+            ry = self._radius
         if isinstance(self.scale, tuple) or isinstance(self.scale, list):
             rx *= self.scale[0]
             ry *= self.scale[1]
@@ -47,34 +43,45 @@ class Circle(AxiElement):
         return [rx, ry]
 
 
-    def getPathString(self):
+    def inside( self, pos ):
+        dist = math.hypot(pos[0]-self.center[0], pos[1]-self.center[1])
+        return dist < self.radius
 
-        def path_gen(cx, cy, rx, ry):
-            d = ''
-            if self.open_angle != None:
-                posA = polar2xy([cx, cy], self.rotate + self.open_angle, [rx, ry])
-                posB = polar2xy([cx, cy], self.rotate + 360 - self.open_angle, [rx, ry])
-                args = {
-                    'x0':posA[0], 
-                    'y0':posA[1], 
-                    'xradius': rx, 
-                    'yradius': ry, 
-                    'ellipseRotation':0,
-                    'x1':posB[0], 
-                    'y1':posB[1]
-                }
 
-                d = "M %(x0)f,%(y0)f A %(xradius)f,%(yradius)f%(ellipseRotation)f 1,1 %(x1)f,%(y1)f"%args
-            else:
-                d = 'M' + str(cx - rx) + ',' + str(cy)
-                d += 'a' + str(rx) + ',' + str(ry) + ' 0 1,0 ' + str(2 * rx) + ',0'
-                d += 'a' + str(rx) + ',' + str(ry) + ' 0 1,0 ' + str(-2 * rx) + ',0'
-            return d
+    def getPoints(self, resolution=36):
+        if isinstance(self.radius, tuple) or isinstance(self.radius, list):
+            rx = self.radius[0]
+            ry = self.radius[1]
+        else:
+            rx = self.radius
+            ry = self.radius
+        cx, cy = self.center
+        
+        points = []
+        deg = 0.0
+        # if self.open_angle != None:
+        deg = self.open_angle * 0.5
+        step = 360.0/resolution
+        for i in range(int(resolution+1)):
+            if deg > 360 - self.open_angle * 0.5:
+                break
+            a = math.radians(deg + self.rotate)
+            points.append([ cx + math.cos(a) * rx,
+                            cy + math.sin(a) * ry ])
+            deg += step
 
-        cx, cy = self.getCenter()
-        rx, ry = self.getRadius()
+        return points
 
-        path_str = ''
+    
+    def getBbox(self):
+        return Bbox( points=self.getPoints() )
+
+
+    def getPath(self):
+        cx, cy = self.center
+        rx, ry = self.radius
+
+        path = []
         if self.stroke_width > self.head_width or self.fill:
             rad_x = rx + (self.stroke_width * self.head_width) * 0.5
             rad_y = ry + (self.stroke_width * self.head_width) * 0.5
@@ -86,13 +93,62 @@ class Circle(AxiElement):
                 rad_y_target = 0.0
 
             while rad_x > rad_x_target or rad_y > rad_y_target:
-                path_str += path_gen(cx, cy, rad_x, rad_y)
+                path.append( Circle([cx, cy],[rad_x, rad_y], fill=self.fill, open_angle=self.open_angle, rotate=self.rotate).getPoints() )
                 rad_x = max(rad_x - self.head_width, rad_x_target)
                 rad_y = max(rad_y - self.head_width, rad_y_target)
 
         else:
-            path_str += path_gen(cx, cy, rx, ry)
-        return path_str
+            path.append(self.getPoints())
+
+        return path
+
+
+    # def getPathString(self):
+
+    #     def path_gen(cx, cy, rx, ry):
+    #         d = ''
+    #         if self.open_angle != 0:
+    #             posA = polar2xy([cx, cy], self.rotate + self.open_angle * 0.5, [rx, ry])
+    #             posB = polar2xy([cx, cy], self.rotate + 360 - self.open_angle * 0.5, [rx, ry])
+    #             args = {
+    #                 'x0':posA[0], 
+    #                 'y0':posA[1], 
+    #                 'xradius': rx, 
+    #                 'yradius': ry, 
+    #                 'ellipseRotation':0,
+    #                 'x1':posB[0], 
+    #                 'y1':posB[1]
+    #             }
+
+    #             d = "M %(x0)f,%(y0)f A %(xradius)f,%(yradius)f%(ellipseRotation)f 1,1 %(x1)f,%(y1)f"%args
+    #         else:
+    #             d = 'M' + str(cx - rx) + ',' + str(cy)
+    #             d += 'a' + str(rx) + ',' + str(ry) + ' 0 1,0 ' + str(2 * rx) + ',0'
+    #             d += 'a' + str(rx) + ',' + str(ry) + ' 0 1,0 ' + str(-2 * rx) + ',0'
+    #         return d
+
+    #     cx, cy = self.center
+    #     rx, ry = self.radius
+
+    #     path_str = ''
+    #     if self.stroke_width > self.head_width or self.fill:
+    #         rad_x = rx + (self.stroke_width * self.head_width) * 0.5
+    #         rad_y = ry + (self.stroke_width * self.head_width) * 0.5
+    #         rad_x_target = rx - (self.stroke_width * self.head_width) * 0.5
+    #         rad_y_target = ry - (self.stroke_width * self.head_width) * 0.5
+
+    #         if self.fill:
+    #             rad_x_target = 0.0
+    #             rad_y_target = 0.0
+
+    #         while rad_x > rad_x_target or rad_y > rad_y_target:
+    #             path_str += path_gen(cx, cy, rad_x, rad_y)
+    #             rad_x = max(rad_x - self.head_width, rad_x_target)
+    #             rad_y = max(rad_y - self.head_width, rad_y_target)
+
+    #     else:
+    #         path_str += path_gen(cx, cy, rx, ry)
+    #     return path_str
 
         
 

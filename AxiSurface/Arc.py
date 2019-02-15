@@ -19,6 +19,9 @@ class Arc(AxiElement):
         self.end = np.array(end)
         self.radius = radius
 
+        # TODO:
+        #  -- add getPoints(), getBbox(), getPath()
+
     def intersect(self, line):
         # TODO:
         #    - FIX THIS! Only aplicable for lines
