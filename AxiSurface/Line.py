@@ -62,25 +62,36 @@ class Line(AxiElement):
         return linesIntersection(self.getStart(), self.getEnd(), line.start, line.end )
 
 
-    def getPathString(self):
-        
-        def path_gen(A, B):
-            d = 'M %(x0)f,%(y0)f L %(x1)f,%(y1)f'%{ 'x0':A[0], 'y0':A[1], 'x1': B[0], 'y1':B[1]}
-            return d
+    def getPath(self):
+        path = []
 
         A = self.getStart()
         B = self.getEnd()
 
-        path_str = ''
         if self.stroke_width > self.head_width:
             passes = self.stroke_width / self.head_width
             perp = perpendicular(A, B)
             perp_step = perp * self.head_width
             for i in range(int(-passes/2), int(passes/2) ):
-                path_str += path_gen(   [ A[0] + perp_step[0] * i, A[1] + perp_step[1] * i ], 
-                                        [ B[0] + perp_step[0] * i, B[1] + perp_step[1] * i ] )
+                path.append([ [ A[0] + perp_step[0] * i, A[1] + perp_step[1] * i ], 
+                              [ B[0] + perp_step[0] * i, B[1] + perp_step[1] * i ] ])
         else:
-            path_str = path_gen(A, B)
+            path.append([A, B])
+
+        return path
+
+
+    def getPathString(self):
+    
+        def path_gen(points):
+            return 'M' + 'L'.join('{0} {1}'.format(x,y) for x,y in points)
+
+        path = self.getPath()
+        path_str = ''
+
+        for poly in path:
+            path_str += path_gen( poly )
 
         return path_str
+        
 

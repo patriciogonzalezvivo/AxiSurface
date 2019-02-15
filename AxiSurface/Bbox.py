@@ -6,6 +6,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from .tools import remap
+
 class Bbox(object):
     def __init__( self, **kwargs ):
         self.min_x, self.min_y = float("inf"), float("inf")
@@ -15,11 +17,19 @@ class Bbox(object):
             self.min_x = kwargs['x'] 
             if kwargs.has_key('width'):
                 self.max_x = self.min_x + kwargs['width']
+        else:
+            if kwargs.has_key('width'):
+                self.min_x = 0
+                self.max_x = kwargs['width']
 
         if kwargs.has_key('y'):
             self.min_y = kwargs['y'] 
             if kwargs.has_key('height'):
                 self.max_y = self.min_y + kwargs['height']
+        else:
+            if kwargs.has_key('height'):
+                self.min_y = 0
+                self.max_y = kwargs['height']
 
         if kwargs.has_key('points'):
             self.setFromPoints( kwargs['points'] )
@@ -84,5 +94,10 @@ class Bbox(object):
             if (pos[1] > self.min_y) and (pos[1] < self.max_y):
                 return True
         return False
+
+
+    def normalize(self, pos):
+        return [remap(float(pos[0]), float(self.min_x), float(self.max_x), 0.0, 1.0),
+                remap(float(pos[1]), float(self.min_x), float(self.max_y), 0.0, 1.0) ]
 
     

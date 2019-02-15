@@ -53,7 +53,7 @@ class Polyline(AxiElement):
         tangent = [0.0, 0.0]
 
         if self.size() < 2:
-            return self
+            return normal, tangent
 
         if index == 0:
             normal = perpendicular(self.points[0], self.points[1])
@@ -100,8 +100,8 @@ class Polyline(AxiElement):
         N = len(self.points)
 
         # Check
-        if N == 0:
-            return 
+        if N < 2:
+            return self
 
         # Process
         length = 0
@@ -122,230 +122,19 @@ class Polyline(AxiElement):
         if self.isClosed:
             self.lengths.append(length)
 
+
+    def size(self):
+        return len(self.points)
+
+
     def lineTo( self, pos ):
         self.points.append( pos )
         self._updateCache()
 
 
-    def bezierTo(self, pos, cpos1, curveResolution = 20):
-    # 	# if, and only if poly vertices has points, we can make a bezier
-    # 	# from the last point
-    # 	curveVertices.clear();
-        
-    # the resolultion with which we computer this bezier
-    # is arbitrary, can we possibly make it dynamic?
-        
-        if self.size() > 0:
-    		x0 = points[-1][0]
-    		y0 = points[-1][1]
-            
-    # 		  ax, bx, cx;
-    # 		  ay, by, cy;
-    # 		  az, bz, cz;
-    # 		  t, t2, t3;
-    # 		  x, y, z;
-            
-    # 		// polynomial coefficients
-    # 		cx = 3.0f * (cp1.x - x0);
-    # 		bx = 3.0f * (cp2.x - cp1.x) - cx;
-    # 		ax = to.x - x0 - cx - bx;
-            
-    # 		cy = 3.0f * (cp1.y - y0);
-    # 		by = 3.0f * (cp2.y - cp1.y) - cy;
-    # 		ay = to.y - y0 - cy - by;
-            
-    # 		cz = 3.0f * (cp1.z - z0);
-    # 		bz = 3.0f * (cp2.z - cp1.z) - cz;
-    # 		az = to.z - z0 - cz - bz;
-            
-    # 		for (int i = 1; i <= curveResolution; i++){
-    # 			t 	=  (float)i / (float)(curveResolution);
-    # 			t2 = t * t;
-    # 			t3 = t2 * t;
-    # 			x = (ax * t3) + (bx * t2) + (cx * t) + x0;
-    # 			y = (ay * t3) + (by * t2) + (cy * t) + y0;
-    # 			z = (az * t3) + (bz * t2) + (cz * t) + z0;
-    # 			points.emplace_back(x,y,z);
-    # 		}
-    # 	}
-    #     flagHasChanged();
-    # }
-
-    # //----------------------------------------------------------
-    # template<class T>
-    # void ofPolyline_<T>::quadBezierTo(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, int curveResolution){
-    # 	curveVertices.clear();
-    # 	for(int i=0; i <= curveResolution; i++){
-    # 		double t = (double)i / (double)(curveResolution);
-    # 		double a = (1.0 - t)*(1.0 - t);
-    # 		double b = 2.0 * t * (1.0 - t);
-    # 		double c = t*t;
-    # 		double x = a * x1 + b * x2 + c * x3;
-    # 		double y = a * y1 + b * y2 + c * y3;
-    # 		double z = a * z1 + b * z2 + c * z3;
-    # 		points.emplace_back(x, y, z);
-    # 	}
-    #     flagHasChanged();
-    # }
-
-    # //----------------------------------------------------------
-    # template<class T>
-    # void ofPolyline_<T>::curveTo( const T & to, int curveResolution ){
-        
-    # 	curveVertices.push_back(to);
-        
-    # 	if (curveVertices.size() == 4){
-            
-    # 		float x0 = curveVertices[0].x;
-    # 		float y0 = curveVertices[0].y;
-    # 		float z0 = curveVertices[0].z;
-    # 		float x1 = curveVertices[1].x;
-    # 		float y1 = curveVertices[1].y;
-    # 		float z1 = curveVertices[1].z;
-    # 		float x2 = curveVertices[2].x;
-    # 		float y2 = curveVertices[2].y;
-    # 		float z2 = curveVertices[2].z;
-    # 		float x3 = curveVertices[3].x;
-    # 		float y3 = curveVertices[3].y;
-    # 		float z3 = curveVertices[3].z;
-            
-    # 		float t,t2,t3;
-    # 		float x,y,z;
-            
-    # 		for (int i = 1; i <= curveResolution; i++){
-                
-    # 			t 	=  (float)i / (float)(curveResolution);
-    # 			t2 	= t * t;
-    # 			t3 	= t2 * t;
-                
-    # 			x = 0.5f * ( ( 2.0f * x1 ) +
-    #                         ( -x0 + x2 ) * t +
-    #                         ( 2.0f * x0 - 5.0f * x1 + 4 * x2 - x3 ) * t2 +
-    #                         ( -x0 + 3.0f * x1 - 3.0f * x2 + x3 ) * t3 );
-                
-    # 			y = 0.5f * ( ( 2.0f * y1 ) +
-    #                         ( -y0 + y2 ) * t +
-    #                         ( 2.0f * y0 - 5.0f * y1 + 4 * y2 - y3 ) * t2 +
-    #                         ( -y0 + 3.0f * y1 - 3.0f * y2 + y3 ) * t3 );
-                
-    # 			z = 0.5f * ( ( 2.0f * z1 ) +
-    #                         ( -z0 + z2 ) * t +
-    #                         ( 2.0f * z0 - 5.0f * z1 + 4 * z2 - z3 ) * t2 +
-    #                         ( -z0 + 3.0f * z1 - 3.0f * z2 + z3 ) * t3 );
-                
-    # 			points.emplace_back(x,y,z);
-    # 		}
-    # 		curveVertices.pop_front();
-    # 	}
-    #     flagHasChanged();
-    # }
-
-    # //----------------------------------------------------------
-    # template<class T>
-    # void ofPolyline_<T>::arc(const T & center, float radiusX, float radiusY, float angleBegin, float angleEnd, bool clockwise, int circleResolution){
-        
-    #     if(circleResolution<=1) circleResolution=2;
-    #     setCircleResolution(circleResolution);
-    #     points.reserve(points.size()+circleResolution);
-
-    #     const float epsilon = 0.0001f;
-        
-    #     const size_t nCirclePoints = circlePoints.size();
-    #     float segmentArcSize  = M_TWO_PI / (float)nCirclePoints;
-        
-    #     // convert angles to radians and wrap them into the range 0-M_TWO_PI and
-    #     float angleBeginRad = wrapAngle(ofDegToRad(angleBegin));
-    #     float angleEndRad =   wrapAngle(ofDegToRad(angleEnd));
-        
-    #     while(angleBeginRad >= angleEndRad) angleEndRad += M_TWO_PI;
-        
-    #     // determine the directional angle delta
-    #     float d = clockwise ? angleEndRad - angleBeginRad : angleBeginRad - angleEndRad;
-    #     // find the shortest angle delta, clockwise delta direction yeilds POSITIVE values
-    #     float deltaAngle = atan2(sin(d),cos(d));
-        
-    #     // establish the remaining angle that we have to work through
-    #     float remainingAngle = deltaAngle;
-        
-    #     // if the delta angle is in the CCW direction OR the start and stop angles are
-    #     // effectively the same adjust the remaining angle to be a be a full rotation
-    #     if(deltaAngle < 0 || std::abs(deltaAngle) < epsilon) remainingAngle += M_TWO_PI;
-        
-    # 	T radii(radiusX, radiusY, 0.f);
-    # 	T point;
-        
-    #     int currentLUTIndex = 0;
-    #     bool isFirstPoint = true; // special case for the first point
-        
-    #     while(remainingAngle > 0) {
-    #         if(isFirstPoint) {
-    #             // TODO: should this be the exact point on the circle or
-    #             // should it be an intersecting point on the line that connects two
-    #             // surrounding LUT points?
-    #             //
-    #             // get the EXACT first point requested (for points that
-    #             // don't fall precisely on a LUT entry)
-    # 			point = T(cos(angleBeginRad), sin(angleBeginRad), 0.f);
-    #             // set up the get any in between points from the LUT
-    #             float ratio = angleBeginRad / M_TWO_PI * (float)nCirclePoints;
-    #             currentLUTIndex = clockwise ? (int)ceil(ratio) : (int)floor(ratio);
-    #             float lutAngleAtIndex = currentLUTIndex * segmentArcSize;
-    #             // the angle between the beginning angle and the next angle in the LUT table
-    #             float d = clockwise ? (lutAngleAtIndex - angleBeginRad) : (angleBeginRad - lutAngleAtIndex);
-    #             float firstPointDelta = atan2(sin(d),cos(d)); // negative is in the clockwise direction
-                
-    #             // if the are "equal", get the next one CCW
-    #             if(std::abs(firstPointDelta) < epsilon) {
-    #                 currentLUTIndex = clockwise ? (currentLUTIndex + 1) : (currentLUTIndex - 1);
-    #                 firstPointDelta = segmentArcSize; // we start at the next lut point
-    #             }
-                
-    #             // start counting from the offset
-    #             remainingAngle -= firstPointDelta;
-    #             isFirstPoint = false;
-    #         } else {
-    # 			point = T(circlePoints[currentLUTIndex].x, circlePoints[currentLUTIndex].y, 0.f);
-    #             if(clockwise) {
-    #                 currentLUTIndex++; // go to the next LUT point
-    #                 remainingAngle -= segmentArcSize; // account for next point
-    #                 // if the angle overshoots, then the while loop will fail next time
-    #             } else {
-    #                 currentLUTIndex--; // go to the next LUT point
-    #                 remainingAngle -= segmentArcSize; // account for next point
-    #                 // if the angle overshoots, then the while loop will fail next time
-    #             }
-    #         }
-            
-    #         // keep the current lut index in range
-    #         if(clockwise) {
-    #             currentLUTIndex = currentLUTIndex % nCirclePoints;
-    #         } else {
-    #             if(currentLUTIndex < 0) currentLUTIndex = nCirclePoints + currentLUTIndex;
-    #         }
-            
-    #         // add the point to the poly line
-    #         point = point * radii + center;
-    #         points.push_back(point);
-            
-    #         // if the next LUT point moves us past the end angle then
-    #         // add a a point a the exact end angle and call it finished
-    #         if(remainingAngle < epsilon) {
-    # 			point = T(cos(angleEndRad), sin(angleEndRad), 0.f);
-    #             point = point * radii + center;
-    #             points.push_back(point);
-    #             remainingAngle = 0; // call it finished, the next while loop test will fail
-    #         }
-    #     }
-    #     flagHasChanged();
-    # }
-
     def setClose(self, close):
         self.isClosed = close
         self._updateCache()
-
-
-    def size(self):
-        return len(self.points)
 
 
     def inside( self, pos ):
@@ -354,20 +143,6 @@ class Polyline(AxiElement):
 
     def isTranformed(self):
         return self.translate[0] != 0.0 or self.translate[1] != 0.0 or self.scale != 1.0 or self.rotate != 0.0
-
-
-    def getPoints(self):
-        if self.isTranformed():
-            points = []
-            for p in self.points:
-                points.append( transform(p, rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.anchor) )
-            return points
-        else:
-            return self.points
-
-
-    def getBbox(self):
-        return Bbox( points=self.getPoints() )
 
 
     def getPerimeter(self):
@@ -505,10 +280,14 @@ class Polyline(AxiElement):
 
 
     def getPolygonOffset(self, offset):
-        if offset==0 or (self.points) == 0:
+        if offset == 0 or (self.points) <= 2:
             return self
 
         points = []
+
+        if self.size() < 2:
+            return Polyline(points)
+
         for i in range(self.size()):
             width = offset
 
@@ -529,46 +308,90 @@ class Polyline(AxiElement):
         return Polyline(points)
 
 
-    def getTexture(self, width, height, resolution=1000):
-        x = np.zeros(resolution+1)
-        y = np.zeros(resolution+1)
-        x.fill(np.nan)
-        y.fill(np.nan)
+    def getPoints(self):
+        if self.isTranformed():
+            points = []
+            for p in self.points:
+                points.append( transform(p, rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.anchor) )
 
-        poly = self.getResampledByCount(resolution)
-
-        for i in range(poly.size()):
-            p = poly[i]
-
-            x[i] = p[0] / float(width)
-            y[i] = p[1] / float(height)
-
-        x[resolution] = np.nan
-        y[resolution] = np.nan
-
-        from .Texture import Texture
-        return Texture( (x.flatten('F'), y.flatten('F')) )
-
-
-    def getPathString(self):
-        def path_gen(points):
             if self.isClosed:
-                points.append(self.points[0])
-            return 'M' + 'L'.join('{0} {1}'.format(x,y) for x,y in points)
-        
-        r = self.stroke_width
-        path_str = ''
+                points.append( transform(self.points[0], rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.anchor) )
+            return points
+        else:
+            if self.isClosed:
+                points = self.points[:]
+                points.append( self.points[0] )
+                return points
+            else:
+                return self.points
+
+
+    def getBbox(self):
+        return Bbox( points=self.getPoints() )
+
+
+    def getPath(self):
+        path = []
+
         if self.stroke_width > self.head_width:
             r = (self.stroke_width * self.head_width) * 0.5
             r_target = -(self.stroke_width * self.head_width) * 0.5
-
             while r > r_target:
-                poly = self.getPolygonOffset(r)
-                path_str += path_gen(poly.getPoints())
+                path.append( self.getPolygonOffset(r).getPoints() )
                 r = max(r - self.head_width, r_target)
-
         else:
-            path_str += path_gen( self.getPoints()[:] )
+            path.append( self.getPoints() )
+
+        return path
+
+
+    def getTexture(self, **kwargs):
+        size = kwargs.pop('size', None)
+        resolution = kwargs.pop('resolution', None)
+
+        if size == None:
+            bbox = self.getBbox()
+        
+        path = self.getPath()
+
+        from .Texture import Texture
+        texture = Texture()
+
+        for points in path:
+            poly = Polyline(points)
+
+            if resolution:
+                poly = poly.getResampledBySpacing(resolution)
+
+            N = poly.size()
+            x = np.zeros(int(N)+1)
+            y = np.zeros(int(N)+1)
+            x.fill(np.nan)
+            y.fill(np.nan)
+
+            for i in range(N):
+                p = poly[i]
+                x[i] = p[0] / float(size[0])
+                y[i] = p[1] / float(size[1])
+
+            x[N] = np.nan
+            y[N] = np.nan
+
+            texture = texture + Texture( (x.flatten('F'), y.flatten('F')) )
+
+        return texture
+
+
+    def getPathString(self):
+
+        def path_gen(points):
+            return 'M' + 'L'.join('{0} {1}'.format(x,y) for x,y in points)
+        
+        path = self.getPath()
+        path_str = ''
+
+        for poly in path:
+            path_str += path_gen( poly )
 
         return path_str
 

@@ -21,13 +21,13 @@ axi = AxiSurface()
 
 def charRow(y, font_index):
     x = MARGIN
-    axi.text( fonts_names[font_index], translate=[WIDTH*0.1, y + 5], scale=0.15)
+    axi.text( fonts_names[font_index], [WIDTH*0.1, y + 5], scale=0.15)
     y += 10
     for i in range(32, 128):
         if i == 91:
             x = MARGIN * 2.0
             y += 5
-        t = axi.text( chr(i), translate=[x,y], scale=0.1, font=fonts[font_index])
+        t = axi.text( chr(i), [x,y], scale=0.1, font=fonts[font_index])
         x += t.getWidth() * 2.0
     
 

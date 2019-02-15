@@ -46,6 +46,6 @@ axi.poly( poly.getPolygonOffset(10.0) )
 y += col_height * 2.0
 
 for col in range(cols):
-    axi.text( "Hi", translate=[x + col * col_width, y + col_height], scale=0.2, rotate=col*ang_step, stroke_width=col*0.25+0.2)
+    axi.text( "Hi", [x + col * col_width, y + col_height], scale=0.2, rotate=col*ang_step, stroke_width=col*0.25+0.2)
 
 axi.toSVG('polyline.svg')

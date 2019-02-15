@@ -98,6 +98,7 @@ def remap(value, in_min, in_max, out_min, out_max):
         value /= float(in_span)
     return out_min + (value * out_span)
 
+
 def lerp(A, B, t):
     A = np.array(A)
     B = np.array(B)
