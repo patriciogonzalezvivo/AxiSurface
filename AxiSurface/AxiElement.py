@@ -8,6 +8,9 @@ from __future__ import unicode_literals
 
 import numpy as np
 
+from .Bbox import Bbox
+from .tools import pointInside
+
 class AxiElement(object):
     def __init__(self, **kwargs):
         self.head_width = kwargs.pop('head_width', 0.2)
@@ -22,16 +25,32 @@ class AxiElement(object):
     def isTranformed(self):
         return self.translate[0] != 0.0 or self.translate[1] != 0.0 or self.scale != 1.0 or self.rotate != 0.0
 
+
+    def inside( self, pos ):
+        return pointInside( pos, self.getPoints() )
+
+    
+    def getPoints(self):
+        return []
+
+
+    def getBbox(self):
+        return Bbox( points=self.getPoints() )
+
+    
+    # def getPath(self):
+    #     return []
+
+
     def getPathString(self):
     
         def path_gen(points):
             return 'M' + 'L'.join('{0} {1}'.format(x,y) for x,y in points)
 
-        path = self.getPath()
         path_str = ''
-
-        for points in path:
-            path_str += path_gen( points )
+        path = self.getPath()
+        for pts in path:
+            path_str += path_gen( pts )
 
         return path_str
 

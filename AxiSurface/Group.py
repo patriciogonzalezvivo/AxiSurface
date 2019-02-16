@@ -68,11 +68,20 @@ class Group(AxiElement):
         return self.add( g )
 
 
-    def getPathString(self):
-        d = ''
+    def getPath(self):
+        print('Group, getPath')
+        path = []
         for el in self.elements:
-            d += el.getPathString()
-        return d
+            for pts in el.getPath():
+                path.append(pts)
+        return path
+
+
+    # def getPathString(self):
+    #     d = ''
+    #     for el in self.elements:
+    #         d += el.getPathString()
+    #     return d
 
 
     def getElementString(self):

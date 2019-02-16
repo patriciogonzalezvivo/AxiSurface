@@ -28,11 +28,11 @@ axi = AxiSurface()
 
 for col in range(cols):
     if col == cols-1:
-        axi.rect(center=[x + col * col_width, y], size=[col_width*0.4, col_width*0.4], rotate=col*ang_step, stroke_width=col+0.2, fill=True)
+        axi.rect(center=[x + col * col_width, y], size=[col_width, col_width], rotate=col*ang_step, stroke_width=col+0.2, fill=True)
     else:
-        axi.rect(center=[x + col * col_width, y], size=[col_width*0.4, col_width*0.4], rotate=col*ang_step, stroke_width=col+0.2)
+        axi.rect(center=[x + col * col_width, y], size=[col_width, col_width], rotate=col*ang_step, stroke_width=col+0.2)
 
-    axi.rect(center=[x + col * col_width, y + col_height], size=[col_width*0.4, col_width*0.4], rotate=col*ang_step, scale=scl_step+scl_step*col*2.0, fill=True)
+    axi.rect(center=[x + col * col_width, y + col_height], size=[col_width, col_width], rotate=col*ang_step, scale=scl_step+scl_step*col*2.0, fill=True)
 
 y += col_height * 2.0
 

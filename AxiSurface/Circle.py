@@ -21,11 +21,14 @@ class Circle(AxiElement):
 
         # Optative
         self.open_angle = kwargs.pop('open_angle', 0)
+        self.resolution = kwargs.pop('resolution', 36)
+
 
     @property
     def center(self):
         return self._center + self.translate
         
+
     @property
     def radius(self):
         if isinstance(self._radius, tuple) or isinstance(self._radius, list):
@@ -34,6 +37,7 @@ class Circle(AxiElement):
         else:
             rx = self._radius
             ry = self._radius
+        
         if isinstance(self.scale, tuple) or isinstance(self.scale, list):
             rx *= self.scale[0]
             ry *= self.scale[1]
@@ -48,18 +52,13 @@ class Circle(AxiElement):
         return dist < self.radius
 
 
-    def getPoints(self, resolution=36):
-        if isinstance(self.radius, tuple) or isinstance(self.radius, list):
-            rx = self.radius[0]
-            ry = self.radius[1]
-        else:
-            rx = self.radius
-            ry = self.radius
+    def getPoints(self, **kwargs):
+        rx, ry = self.radius
         cx, cy = self.center
+        resolution = kwargs.pop('resolution', self.resolution)
         
         points = []
         deg = 0.0
-        # if self.open_angle != None:
         deg = self.open_angle * 0.5
         step = 360.0/resolution
         for i in range(int(resolution+1)):
@@ -71,10 +70,6 @@ class Circle(AxiElement):
             deg += step
 
         return points
-
-    
-    def getBbox(self):
-        return Bbox( points=self.getPoints() )
 
 
     def getPath(self):

@@ -137,10 +137,6 @@ class Polyline(AxiElement):
         self._updateCache()
 
 
-    def inside( self, pos ):
-        return pointInside( pos, self.points )
-
-
     def getPerimeter(self):
         if len(self.lengths) < 1:
             return 0
@@ -320,10 +316,6 @@ class Polyline(AxiElement):
                 return points
             else:
                 return self.points
-
-
-    def getBbox(self):
-        return Bbox( points=self.getPoints() )
 
 
     def getPath(self):

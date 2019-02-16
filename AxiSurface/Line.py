@@ -9,8 +9,7 @@ from __future__ import unicode_literals
 import numpy as np
 
 from .AxiElement import AxiElement
-from .Bbox import Bbox
-from .tools import linesIntersection, perpendicular, transform
+from .tools import linesIntersection, perpendicular, transform, distance
 
 class Line(AxiElement):
     def __init__( self, start, end, **kwargs):
@@ -44,31 +43,15 @@ class Line(AxiElement):
 
     @property
     def length(self):
-        if isinstance(self.radius, tuple) or isinstance(self.radius, list):
-            rx = self.radius[0]
-            ry = self.radius[1]
-        else:
-            rx = self.radius
-            ry = self.radius
-        if isinstance(self.scale, tuple) or isinstance(self.scale, list):
-            rx *= self.scale[0]
-            ry *= self.scale[1]
-        else:
-            rx *= self.scale
-            ry *= self.scale
-        return [rx, ry]
+        return distance(self.start, self.end)
 
 
     def intersect(self, line):
-        return linesIntersection(self.getStart(), self.getEnd(), line._start, line._end )
+        return linesIntersection(self.start, self.end, line.start, line.end )
 
 
     def getPoints(self):
-        return [self.getStart(), self.getEnd()]
-
-    
-    def getBbox(self):
-        return Bbox( points=self.getPoints() )
+        return [self.start, self.end]
 
 
     def getPath(self):
