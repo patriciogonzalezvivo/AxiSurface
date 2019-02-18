@@ -130,7 +130,7 @@ class Texture(AxiElement):
         self.height = float(kwargs.pop('height', 100))
         self.anchor = kwargs.pop('anchor', [0.5, 0.5])
 
-        if parent == None:
+        if parent is None:
             x = np.zeros(1)
             x.fill(np.nan)
             y = np.zeros(1)
@@ -167,6 +167,11 @@ class Texture(AxiElement):
             x1, y1 = self.data
             x2, y2 = other.data
             self.data = ( np.concatenate([x1, x2]), np.concatenate([y1, y2]) )
+
+
+    @property
+    def center(self):
+        return [self.width * self.anchor[0], self.height * self.anchor[1]]
 
 
     def turn(self, rotation, x_offset=0.5, y_offset=0.5):
@@ -273,27 +278,39 @@ class Texture(AxiElement):
                 print("Texture: Masking Image is not a mask but a", element.type)
 
 
-    def getPathString(self):
+    def getPoints(self):
         X, Y = self.data
         W, H = self.width, self.height
 
-        def path_gen(layer):
-            """Generates an SVG path from a given layer.
-            Args:
-                layer (layer): the layer to convert
-            Yields:
-                str: the next component of the path
-            """
-            draw = False
-            for x, y in zip(*layer):
-                nx, ny = transform( [x,y], rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=[self.width * self.anchor[0], self.head_width * self.anchor[1]])
+        pts = []
+        for x, y in zip( *(X * W, Y * H) ):
+            if not np.isnan(x) and not np.isnan(y):
+                pts.append( transform( [x,y], rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.center) )
 
-                if np.isnan(x) or np.isnan(y):
-                    draw = False
-                elif not draw:
-                    yield 'M {} {}'.format(nx, ny)
+        return pts
+
+    def getPath(self):
+        from .Path import Path
+
+        X, Y = self.data
+        W, H = self.width, self.height
+
+        pts = []
+        path = []
+        draw = False
+        for x, y in zip( *(X * W, Y * H) ):
+            if np.isnan(x) or np.isnan(y):
+                if draw and len(pts) > 0:
+                    path.append( pts[:] )
+                draw = False
+            else:
+                if not draw:
+                    pts = [] 
                     draw = True
-                else:
-                    yield 'L {} {}'.format(nx, ny)
+                pts.append( transform( [x,y], rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.center) )
 
-        return ' '.join( path_gen( (X * W, Y * H) ) )
+        if draw and len(pts) > 0:
+            path.append( pts[:] )
+
+        return Path(path)
+

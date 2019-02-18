@@ -20,6 +20,7 @@ class AxiElement(object):
         self.translate = kwargs.pop('translate', np.array([0, 0]) )
         self.rotate = kwargs.pop('rotate', 0.0)
         self.scale = kwargs.pop('scale', 1.0)
+        self.id = kwargs.pop('id', None)
 
     @property
     def isTranformed(self):
@@ -33,25 +34,12 @@ class AxiElement(object):
     def getPoints(self):
         return []
 
-
-    def getBbox(self):
+    @property
+    def bounds(self):
         return Bbox( points=self.getPoints() )
 
-    
-    # def getPath(self):
-    #     return []
 
-
-    def getPathString(self):
-    
-        def path_gen(points):
-            return 'M' + 'L'.join('{0} {1}'.format(x,y) for x,y in points)
-
-        path_str = ''
-        path = self.getPath()
-        for pts in path:
-            path_str += path_gen( pts )
-
-        return path_str
+    def getSVGElementString(self):
+        return self.getPath().getSVGElementString()
 
 

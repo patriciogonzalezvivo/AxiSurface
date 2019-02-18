@@ -10,8 +10,9 @@ from __future__ import unicode_literals
 from .Group import *
 from .Image import *
 from .Texture import *
+from .Polyline import Polyline
+
 from .parser import parseSVG
-from .tracer import traceImg
 
 STROKE_WIDTH = 0.2
 
@@ -41,14 +42,25 @@ class AxiSurface(Group):
             self.height = float(size)
 
 
-    def toSVG( self, filename, scale=1.0, unit='mm'):
+    def fromSVG( self, filename ):
+        parseSVG( self, filename )
+
+
+    def toSVG( self, filename, sorted=False, **kwargs ):
+        scale = kwargs.pop('scale', 1.0)
+        unit = kwargs.pop('unit', 'mm')
+
         svg_str = '<?xml version="1.0" encoding="utf-8" ?>\n<svg '
         svg_str += 'width="'+ str(self.width) + unit + '" '
         svg_str += 'height="' + str(self.height) + unit + '" '
         svg_str += 'viewBox="0,0,'+ str(self.width * scale) + ',' + str(self.height * scale) + '" '
         svg_str += 'baseProfile="tiny" version="1.2" xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" ><defs/>'
         
-        svg_str += self.getElementString()
+        if sorted:
+            print("Sorting paths")
+            svg_str += self.getPath().getSorted().getSVGElementString()
+        else:
+            svg_str += self.getSVGElementString()
 
         svg_str += '</svg>'
 
@@ -56,16 +68,42 @@ class AxiSurface(Group):
             file.write(svg_str)
 
 
-    def fromSVG( self, filename ):
-        parseSVG( self, filename )
+    def toGCODE(self, filename, **kwargs ):
+        gcode_str = 'M3\n'
+        
+        gcode_str += self.getPath().getSorted().getGCodeString(**kwargs)
+
+        gcode_str += "G0 Z10\n"
+        gcode_str += "G0 X0 Y0\n"
+        gcode_str += "M5\n"
+
+        with open(filename, "w") as file:
+            file.write(gcode_str)
 
 
     def fromThreshold( self, filename, threshold=0.5 ):
-        polylines = traceImg( self, filename, threshold )
-        
-        group = Group(filename)
+        import cv2 as cv
+
+        polylines = []    
+        im = cv.imread( filename )
+        blur = cv.GaussianBlur(im, (3, 3),0)
+        imgray = cv.cvtColor( blur, cv.COLOR_BGR2GRAY )
+        ret, thresh = cv.threshold(imgray, int(threshold * 255), 255, cv.THRESH_BINARY)
+        image, contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+
+        height, width = im.shape[:2]
+        scale = [ (1.0 / width) * surface.width, (1.0 / height) * surface.height ]
+
+        for contour in contours:
+            points = []
+            for point in contour:
+                points.append( (point[0][0] * scale[0], point[0][1] * scale[1]) )
+
+            polylines.append(Polyline(points))
+
+        group = self.group(filename)
         for polyline in polylines:
-            self.poly( polyline.points )
+            group.poly( polyline.points )
 
 
     def fromImage( self, filename, **kwargs):
@@ -92,7 +130,7 @@ class AxiSurface(Group):
         surface = surface - mask
 
         # Create texture
-        if texture == None:
+        if texture is None:
             texture_resolution = kwargs.pop('texture_resolution', min(grayscale.width, grayscale.height) * 0.5)
             texture_presicion = float(kwargs.pop('texture_presicion', 1.0))
             texture_offset = float(kwargs.pop('texture_offset', 0.0)) 
@@ -135,7 +173,7 @@ class AxiSurface(Group):
             heightmap = heightmap - gradientmap.dither(threshold=threshold, invert=invert)
 
         # Create texture
-        if texture == None:
+        if texture is None:
             texture_resolution = kwargs.pop('texture_resolution', min(gradientmap.width, gradientmap.height) * 0.5)
             texture_presicion = float(kwargs.pop('texture_presicion', 1.0))
             texture_offset = float(kwargs.pop('texture_offset', 0.0)) 
@@ -166,7 +204,7 @@ class AxiSurface(Group):
         normalmap = Image(filename, type='2D_angle')
 
         # create a surface to carve from
-        if heightmap == None:
+        if heightmap is None:
             surface = normalmap.copy()
             surface.fill(0.0)
         else:
@@ -192,7 +230,7 @@ class AxiSurface(Group):
             surface = surface - gradientmap.dither(threshold=threshold, invert=invert)
 
         # Create texture
-        if texture == None:
+        if texture is None:
             texture_resolution = kwargs.pop('texture_resolution', min(gradientmap.width, gradientmap.height) * 0.5)
             texture_presicion = float(kwargs.pop('texture_presicion', 1.0))
             texture_offset = float(kwargs.pop('texture_offset', 0.0)) 

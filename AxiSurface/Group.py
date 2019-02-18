@@ -15,6 +15,7 @@ from .Rectangle import Rectangle
 from .Hexagon import Hexagon
 from .Polyline import Polyline
 from .Text import Text
+from .Path import Path
 from .Texture import Texture
 
 class Group(AxiElement):
@@ -69,29 +70,23 @@ class Group(AxiElement):
 
 
     def getPath(self):
-        print('Group, getPath')
-        path = []
+        path = Path()
         for el in self.elements:
-            for pts in el.getPath():
-                path.append(pts)
+            if isinstance(el, Path ):
+                path.add( el )
+            else:
+                path.add( el.getPath() )
         return path
 
 
-    # def getPathString(self):
-    #     d = ''
-    #     for el in self.elements:
-    #         d += el.getPathString()
-    #     return d
-
-
-    def getElementString(self):
-        svg_str = '<g fill="none" id="' + self.id + '" stroke="black" stroke-width="0.2">'
+    def getSVGElementString(self):
+        svg_str = '<g '
+        if self.id != None:
+            svg_str += 'id="' + self.id + '" '
+        svg_str += 'fill="none" stroke="black" stroke-width="'+str(self.head_width)+'">'
 
         for el in self.elements:
-            if isinstance(el, Group):
-                svg_str += el.getElementString()
-            else:
-                svg_str += '<path d="' + el.getPathString() + '" />\n'
+            svg_str += el.getSVGElementString()
 
         svg_str += '</g>'
         

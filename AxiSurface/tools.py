@@ -104,6 +104,20 @@ def lerp(A, B, t):
     B = np.array(B)
     return A * (1.0 - t) + B * t
 
+# Paths operations 
+# -----------------------------------------------------------------
+
+def points_length(points):
+    result = 0
+    for (x1, y1), (x2, y2) in zip(points, points[1:]):
+        result += math.hypot(x2 - x1, y2 - y1)
+    return result
+
+
+def path_length(paths):
+    return sum([points_length(path) for path in paths], 0)
+
+
 # Convertions
 # -----------------------------------------------------------------
 
@@ -143,9 +157,9 @@ def controlPoint( current, _previous, _next, reverse ):
     p = _previous
     n = _next
 
-    if _previous == None:
+    if _previous is None:
         p = current
-    if _next == None:
+    if _next is None:
         n = current
 
     smoothing = 0.2

@@ -59,6 +59,8 @@ class Hexagon(AxiElement):
 
 
     def getPath(self):
+        from .Path import Path
+
         cx, cy = self.center
         rx, ry = self.radius
 
@@ -80,7 +82,7 @@ class Hexagon(AxiElement):
 
         else:
             path.append(self.getPoints())
-        return path
+        return Path(path)
 
 
     # def getPathString(self):

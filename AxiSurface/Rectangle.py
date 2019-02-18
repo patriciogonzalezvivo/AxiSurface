@@ -16,6 +16,8 @@ class Rectangle(AxiElement):
         AxiElement.__init__(self, **kwargs);
         self._center = np.array(center)
         self.size = size
+        # self.size[0] = float(kwargs.pop('width', size[0]))
+        # self.size[1] = float(kwargs.pop('height', size[1]))
 
 
     def inside( self, pos ):
@@ -24,6 +26,7 @@ class Rectangle(AxiElement):
                 return True
 
         return False
+
 
     @property
     def center(self):
@@ -69,6 +72,8 @@ class Rectangle(AxiElement):
 
 
     def getPath(self):
+        from .Path import Path
+        
         cx, cy = self.center
         rx, ry = self.radius 
 
@@ -90,7 +95,7 @@ class Rectangle(AxiElement):
 
         else:
             path.append( self.getPoints() )
-        return path
+        return Path(path)
 
 
     # def getPathString(self):

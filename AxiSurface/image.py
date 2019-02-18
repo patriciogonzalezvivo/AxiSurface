@@ -104,7 +104,7 @@ class Image(AxiElement):
             else:
                 print("Other is not a mask")
 
-        elif other == None:
+        elif other is None:
             return self
 
         else:

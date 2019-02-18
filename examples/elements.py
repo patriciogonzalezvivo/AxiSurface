@@ -6,6 +6,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import math
 from AxiSurface import *
 
 WIDTH = 297.0
@@ -28,11 +29,11 @@ axi = AxiSurface()
 
 for col in range(cols):
     if col == cols-1:
-        axi.rect(center=[x + col * col_width, y], size=[col_width, col_width], rotate=col*ang_step, stroke_width=col+0.2, fill=True)
+        axi.rect(center=[x + col * col_width, y], size=[col_width*0.8, col_width*0.8], rotate=col*ang_step, stroke_width=col+0.2, fill=True)
     else:
-        axi.rect(center=[x + col * col_width, y], size=[col_width, col_width], rotate=col*ang_step, stroke_width=col+0.2)
+        axi.rect(center=[x + col * col_width, y], size=[col_width*0.8, col_width*0.8], rotate=col*ang_step, stroke_width=col+0.2)
 
-    axi.rect(center=[x + col * col_width, y + col_height], size=[col_width, col_width], rotate=col*ang_step, scale=scl_step+scl_step*col*2.0, fill=True)
+    axi.rect(center=[x + col * col_width, y + col_height], size=[col_width*0.8, col_width*0.8], rotate=col*ang_step, scale=scl_step+scl_step*col*2.0, fill=True)
 
 y += col_height * 2.0
 
@@ -72,7 +73,18 @@ for col in range(cols):
     poly.rotate = col*ang_step
     axi.poly( poly.getPoints(), stroke_width=col*0.25+0.2 )
 
-y += col_height
+y += col_height * 1.5
+
+points = []
+for t in range(int(MARGIN), int(WIDTH-MARGIN)):
+    t = float(t)
+    points.append( [t, math.sin(t * 0.1) * col_height*0.5] )
+
+poly = axi.poly(points, translate=[0.0, y + col_height])
+axi.poly( poly.getPolygonOffset(10.0), stroke_width=1.0 )
+
+y += col_height * 2.
+
 for col in range(cols):
     axi.text( "Hi", [x + col * col_width, y + col_height], scale=0.2, rotate=col*ang_step, stroke_width=col*0.25+0.2)
 

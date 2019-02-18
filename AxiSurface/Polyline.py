@@ -10,7 +10,6 @@ import math
 import numpy as np
 
 from .AxiElement import AxiElement
-from .Bbox import Bbox
 from .tools import pointInside, linesIntersection, lerp, distance, remap, transform, normalize, clamp, perpendicular, dot
 
 class Polyline(AxiElement):
@@ -19,13 +18,12 @@ class Polyline(AxiElement):
 
         # TODO:
         #   Polyline < > Polygon
-        #   Resolve width
         #   resolve fill
 
         if isinstance(points, Polyline):
             points = points.points
 
-        if points == None:
+        if points is None:
             points = []
 
         self.points = points
@@ -319,6 +317,8 @@ class Polyline(AxiElement):
 
 
     def getPath(self):
+        from .Path import Path
+
         path = []
 
         if self.stroke_width > self.head_width:
@@ -330,22 +330,22 @@ class Polyline(AxiElement):
         else:
             path.append( self.getPoints() )
 
-        return path
+        return Path(path)
 
 
     def getTexture(self, **kwargs):
         size = kwargs.pop('size', None)
         resolution = kwargs.pop('resolution', None)
 
-        if size == None:
-            bbox = self.getBbox()
+        if size is None:
+            bbox = self.bounds
         
         path = self.getPath()
 
         from .Texture import Texture
         texture = Texture()
 
-        for points in path:
+        for points in path.path:
             poly = Polyline(points)
 
             if resolution:

@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 
 from .AxiElement import AxiElement
 from .Polyline import Polyline
+from .Path import Path
 from .Bbox import Bbox
 from .hershey_fonts import *
 from .tools import transform
@@ -66,7 +67,7 @@ class Text(AxiElement):
                 path = [ (x + i - lt, j) for i, j in path]
                 if path:
                     pol = Polyline(path)
-                    bbox.join( pol.getBbox() )
+                    bbox.join( pol.bounds )
                     result.append( pol )
             x += rt - lt + self.spacing
             if index == 0:
@@ -96,11 +97,12 @@ class Text(AxiElement):
 
 
     def getPath(self):
-        path = []
+        path = Path()
         polys = self.getPolylines()
 
         for poly in polys:
-            path.extend( poly.getPath() )
+            path.add( poly.getPath() )
+            
         return path
 
 
