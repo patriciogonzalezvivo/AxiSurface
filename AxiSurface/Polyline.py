@@ -269,6 +269,15 @@ class Polyline(AxiElement):
         return self.getResampledBySpacing( perimeter / (count-1) )
 
 
+    def simplify(self, tolerance):
+        if len(self.points) < 2:
+            return
+
+        from shapely import geometry
+        line = geometry.LineString(points)
+        line = line.simplify(tolerance, preserve_topology=False)
+        
+
     def getPolygonOffset(self, offset):
         if offset == 0 or (self.points) <= 2:
             return self
@@ -332,39 +341,3 @@ class Polyline(AxiElement):
 
         return Path(path)
 
-
-    def getTexture(self, **kwargs):
-        size = kwargs.pop('size', None)
-        resolution = kwargs.pop('resolution', None)
-
-        if size is None:
-            bbox = self.bounds
-        
-        path = self.getPath()
-
-        from .Texture import Texture
-        texture = Texture()
-
-        for points in path.path:
-            poly = Polyline(points)
-
-            if resolution:
-                poly = poly.getResampledBySpacing(resolution)
-
-            N = poly.size()
-            x = np.zeros(int(N)+1)
-            y = np.zeros(int(N)+1)
-            x.fill(np.nan)
-            y.fill(np.nan)
-
-            for i in range(N):
-                p = poly[i]
-                x[i] = p[0] / float(size[0])
-                y[i] = p[1] / float(size[1])
-
-            x[N] = np.nan
-            y[N] = np.nan
-
-            texture = texture + Texture( (x.flatten('F'), y.flatten('F')) )
-
-        return texture

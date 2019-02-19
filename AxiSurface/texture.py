@@ -140,6 +140,8 @@ class Texture(AxiElement):
         elif isinstance(parent, Texture):
             x, y = parent.data
             self.data = (x.copy(), y.copy())
+            self.width = parent.width
+            self.height = parent.height
             self.translate = parent.translate
             self.scale = parent.scale
             self.rotate = parent.rotate
@@ -151,22 +153,25 @@ class Texture(AxiElement):
 
 
     def __add__(self, other):
-        from .Polyline import Polyline
-
-        if isinstance(other, Texture):
-            x1, y1 = self.data
-            x2, y2 = other.data
-            return Texture( (np.concatenate([x1, x2]), np.concatenate([y1, y2])) )
-
-        elif isinstance(other, Polyline):
-            return self + other.getTexture()
+        return self.add(other)
 
 
     def __iadd__(self, other):
+        return self.add(other)
+
+
+    def add(self, other):
         if isinstance(other, Texture):
             x1, y1 = self.data
             x2, y2 = other.data
-            self.data = ( np.concatenate([x1, x2]), np.concatenate([y1, y2]) )
+            self.data = (np.concatenate([x1, x2]), np.concatenate([y1, y2]))
+            return self
+
+        else:
+            x1, y1 = self.data
+            x2, y2 = other
+            self.data = (np.concatenate([x1, x2]), np.concatenate([y1, y2]))
+            return self
 
 
     @property
@@ -288,6 +293,7 @@ class Texture(AxiElement):
                 pts.append( transform( [x,y], rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.center) )
 
         return pts
+
 
     def getPath(self):
         from .Path import Path

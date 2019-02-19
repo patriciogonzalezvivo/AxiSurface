@@ -104,7 +104,7 @@ def lerp(A, B, t):
     B = np.array(B)
     return A * (1.0 - t) + B * t
 
-# Paths operations 
+# Path operations 
 # -----------------------------------------------------------------
 
 def points_length(points):
@@ -114,9 +114,23 @@ def points_length(points):
     return result
 
 
-def path_length(paths):
-    return sum([points_length(path) for path in paths], 0)
+def path_length(path):
+    return sum([points_length(path) for path in path], 0)
 
+
+def join_path(path, tolerance):
+    if len(path) < 2:
+        return path
+    result = [list(path[0])]
+    for path in path[1:]:
+        x1, y1 = result[-1][-1]
+        x2, y2 = path[0]
+        d = hypot(x2 - x1, y2 - y1)
+        if d <= tolerance:
+            result[-1].extend(path)
+        else:
+            result.append(list(path))
+    return result
 
 # Convertions
 # -----------------------------------------------------------------

@@ -88,4 +88,6 @@ y += col_height * 2.
 for col in range(cols):
     axi.text( "Hi", [x + col * col_width, y + col_height], scale=0.2, rotate=col*ang_step, stroke_width=col*0.25+0.2)
 
-axi.toSVG('elements.svg')
+axi.toSVG('elements.svg', sorted=True)
+axi.toGCODE('elements.gcode')
+axi.render( scale=20 ).write_to_png('elements.png')

@@ -32,6 +32,12 @@ class AxiElement(object):
 
     
     def getPoints(self):
+        print('getPoints(): Function not declare')
+        return []
+
+
+    def getPath(self):
+        print('getPath(): Function not declare')
         return []
 
     @property

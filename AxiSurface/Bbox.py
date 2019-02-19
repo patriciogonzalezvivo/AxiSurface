@@ -87,6 +87,10 @@ class Bbox(object):
         return [ self.min_x + (self.max_x - self.min_x) * 0.5, 
                  self.min_y + (self.max_y - self.min_y) * 0.5 ]
 
+    @property
+    def limits(self):
+        return (self.min_x, self.min_y, self.max_x, self.max_y)
+
 
     def inside( self, pos ):
         if (pos[0] > self.min_x) and (pos[0] < self.max_x):

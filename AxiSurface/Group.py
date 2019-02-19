@@ -56,8 +56,13 @@ class Group(AxiElement):
         return self.add( Polyline(points, **kwargs) )
 
 
+    def path(self, path, **kwargs):
+        return self.add( Path(path, **kwargs) )
+
+
     def text(self, text, center, **kwargs):
         return self.add( Text(text, center, **kwargs) )
+
 
     def texture(self, texture, **kwargs):
         return self.add( Texture(texture, **kwargs) )
@@ -67,6 +72,13 @@ class Group(AxiElement):
         g = Group(group_id)
         self.subgroup[group_id] = g
         return self.add( g )
+
+
+    def getPoints(self):
+        points = []
+        for el in self.elements:
+            points.extend( el.getPoints() )
+        return points
 
 
     def getPath(self):

@@ -28,7 +28,7 @@ class Arc(AxiElement):
         return linesIntersection(self.start, self.end, line.start, line.end )
 
 
-    def getPathString(self):
+    def getSVGElementString(self):
         rx = self.radius[0]
         ry = self.radius[1]
         d = ''
@@ -42,5 +42,13 @@ class Arc(AxiElement):
             'y1': self.end[1]
         }
         d = "M %(x0)f,%(y0)f A %(xradius)f,%(yradius)f%(ellipseRotation)f 1,1 %(x1)f,%(y1)f"%args
-        return d
+
+        svg_str = '<path '
+        if self.id != None:
+            svg_str += 'id="' + self.id + '" '
+        svg_str += 'd="' + d + '" '
+        svg_str += 'fill="none" stroke="black" stroke-width="'+str(self.head_width) + '" '
+        svg_str += '/>\n'
+        
+        return svg_str
 

@@ -66,25 +66,33 @@ class Text(AxiElement):
             for path in coords:
                 path = [ (x + i - lt, j) for i, j in path]
                 if path:
-                    pol = Polyline(path)
-                    bbox.join( pol.bounds )
-                    result.append( pol )
+                    line = Polyline(path)
+                    bbox.join( line.bounds )
+                    result.append( line )
             x += rt - lt + self.spacing
             if index == 0:
                 x += self.extra
 
         toCenter = transform(bbox.center, rotate=self.rotate, scale=self.scale)
-        stroke_width = kwargs.pop('stroke_width', self.stroke_width / self.scale)
+        stroke_width = kwargs.pop('stroke_width', self.stroke_width )
 
-        for i in range(len(result)):  
-            result[i].translate = [ self.center[0] - toCenter[0],
-                                    self.center[1] - toCenter[1]]
-            result[i].scale = self.scale
-            result[i].rotate = self.rotate
-            result[i].origin = bbox.center
-            result[i].stroke_width = stroke_width
+        translate = [ self.center[0] - toCenter[0], self.center[1] - toCenter[1] ]
+
+        polys = []
+        for line in result:
+            points = []
+            for point in line.points:
+                points.append( transform(point, translate=translate, rotate=self.rotate, scale=self.scale) )
+            polys.append( Polyline(points, stroke_width=stroke_width) )
+            # result[i].translate = translate
+            # result[i].scale = self.scale
+            # result[i].rotate = self.rotate
+            # result[i].origin = bbox.center
+            # result[i].stroke_width = stroke_width
+
+        len(polys)
        
-        return result
+        return polys
 
 
     def getPoints(self):
@@ -102,7 +110,7 @@ class Text(AxiElement):
 
         for poly in polys:
             path.add( poly.getPath() )
-            
+
         return path
 
 

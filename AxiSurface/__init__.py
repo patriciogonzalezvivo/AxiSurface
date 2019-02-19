@@ -2,12 +2,11 @@
 
 from svgwrite import cm, mm
 
+
 # Surface Class
 from .AxiSurface import AxiSurface
 from .AxiElement import AxiElement
 
-# Composing
-from .Group import Group
 
 # Elements Class
 from .Line import Line
@@ -16,5 +15,7 @@ from .Circle import Circle
 from .Polyline import Polyline
 from .Texture import *
 from .Text import Text
+from .Group import Group
 
+from .convert import *
 from .hershey_fonts import *

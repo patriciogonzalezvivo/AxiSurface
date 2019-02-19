@@ -1,2 +1,4 @@
 numpy
 opencv-python
+Shapely
+cairocffi

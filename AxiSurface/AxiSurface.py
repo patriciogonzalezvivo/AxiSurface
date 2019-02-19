@@ -6,15 +6,12 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-
 from .Group import *
 from .Image import *
 from .Texture import *
 from .Polyline import Polyline
 
 from .parser import parseSVG
-
-STROKE_WIDTH = 0.2
 
 class AxiSurface(Group):
     def __init__(self, size='A3', **kwargs):
@@ -81,178 +78,38 @@ class AxiSurface(Group):
             file.write(gcode_str)
 
 
-    def fromThreshold( self, filename, threshold=0.5 ):
-        import cv2 as cv
+    def render(self, scale=20, margin=1, line_width=0.35/25.4, show_bounds=True):
+        try:
+            import cairocffi as cairo
+        except ImportError:
+            cairo = None
 
-        polylines = []    
-        im = cv.imread( filename )
-        blur = cv.GaussianBlur(im, (3, 3),0)
-        imgray = cv.cvtColor( blur, cv.COLOR_BGR2GRAY )
-        ret, thresh = cv.threshold(imgray, int(threshold * 255), 255, cv.THRESH_BINARY)
-        image, contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+        if cairo is None:
+            raise Exception('AxiSurface.render() requires cairo')
 
-        height, width = im.shape[:2]
-        scale = [ (1.0 / width) * surface.width, (1.0 / height) * surface.height ]
+        margin *= scale
+        width = int(scale * self.width + margin * 2)
+        height = int(scale * self.height + margin * 2)
+        surface = cairo.ImageSurface(cairo.FORMAT_RGB24, width, height)
+        dc = cairo.Context(surface)
+        dc.set_line_cap(cairo.LINE_CAP_ROUND)
+        dc.set_line_join(cairo.LINE_JOIN_ROUND)
+        dc.translate(margin, margin)
+        dc.scale(scale, scale)
+        dc.set_source_rgb(1, 1, 1)
+        dc.paint()
+        if show_bounds:
+            dc.set_source_rgb(0.5, 0.5, 0.5)
+            dc.set_line_width(1 / scale)
+            dc.rectangle(0, 0, self.width ,self.height)
+            dc.stroke()
+        dc.set_source_rgb(0, 0, 0)
+        dc.set_line_width(line_width)
 
-        for contour in contours:
-            points = []
-            for point in contour:
-                points.append( (point[0][0] * scale[0], point[0][1] * scale[1]) )
-
-            polylines.append(Polyline(points))
-
-        group = self.group(filename)
-        for polyline in polylines:
-            group.poly( polyline.points )
-
-
-    def fromImage( self, filename, **kwargs):
-        grayscale = Image( filename )
-
-        threshold = float(kwargs.pop('threshold', 0.5))
-        invert = kwargs.pop('invert', False)
-        texture = kwargs.pop('texture', None)
-        texture_angle = float(kwargs.pop('texture_angle', 0.0))
-        mask = kwargs.pop('mask', None)
-
-        # Make surface to carve from (copy from gradient to get same dinesions)
-        surface = grayscale.copy()
-        surface.fill(1.0)
-
-        # Make gradient into dither mask
-        grayscale.dither(threshold=threshold, invert=invert)
-        surface = surface - grayscale
-
-        # Load and remove Mask
-        if isinstance(mask, basestring) or isinstance(mask, str):
-            mask = Image(mask)
-            mask = mask.threshold()
-        surface = surface - mask
-
-        # Create texture
-        if texture is None:
-            texture_resolution = kwargs.pop('texture_resolution', min(grayscale.width, grayscale.height) * 0.5)
-            texture_presicion = float(kwargs.pop('texture_presicion', 1.0))
-            texture_offset = float(kwargs.pop('texture_offset', 0.0)) 
-            texture = Texture( stripes_texture(texture_resolution, min(grayscale.width, grayscale.height) * texture_presicion, texture_offset), **kwargs)
-        elif not isinstance(texture, Texture):
-            texture = Texture( texture, **kwargs  )
-
-        if texture_angle > 0:
-            texture.turn(texture_angle)
-
-        # Project texture on surface 
-        texture.project(surface)
-
-        self.texture( texture )
-
-
-    def fromHeightmap( self, filename, **kwargs):
-        grayscale = kwargs.pop('grayscale', None)
-        camera_angle = float(kwargs.pop('camera_angle', 10.0))
-
-        threshold = float(kwargs.pop('threshold', 0.5))
-        invert = kwargs.pop('invert', False)
-        texture = kwargs.pop('texture', None)
-        texture_angle = float(kwargs.pop('texture_angle', 0.0))
-        mask = kwargs.pop('mask', None)
-
-        # Load heightmap
-        heightmap = Image(filename)
-        heightmap.occlude(camera_angle)
-
-        # load and remove mask
-        if isinstance(mask, basestring) or isinstance(mask, str):
-            mask = Image(mask)
-            mask = mask.threshold()
-        heightmap = heightmap - mask
-
-        # Load gradient into dither mask
-        if grayscale != None:
-            gradientmap = Image( grayscale )
-            heightmap = heightmap - gradientmap.dither(threshold=threshold, invert=invert)
-
-        # Create texture
-        if texture is None:
-            texture_resolution = kwargs.pop('texture_resolution', min(gradientmap.width, gradientmap.height) * 0.5)
-            texture_presicion = float(kwargs.pop('texture_presicion', 1.0))
-            texture_offset = float(kwargs.pop('texture_offset', 0.0)) 
-            texture = Texture( stripes_texture(num_lines=texture_resolution, resolution=min(heightmap.width, heightmap.height) * texture_presicion, offset=texture_offset), **kwargs )
-        elif not isinstance(texture, Texture):
-            texture = Texture( texture, **kwargs )
-
-        if texture_angle > 0:
-            texture.turn(texture_angle)
-
-        texture.project(heightmap, camera_angle)
-
-        self.texture( texture )
-
-
-    def fromNormalmap( self, filename, **kwargs):
-        total_faces = int(kwargs.pop('total_faces', 14))
-        heightmap = kwargs.pop('heightmap', None)
-        camera_angle = float(kwargs.pop('camera_angle', 10.0))
-
-        grayscale = kwargs.pop('grayscale', None)
-        threshold = float(kwargs.pop('threshold', 0.5))
-        invert = kwargs.pop('invert', False)
-        texture = kwargs.pop('texture', None)
-        texture_angle = float(kwargs.pop('texture_angle', 0.0))
-        mask = kwargs.pop('mask', None)
-
-        normalmap = Image(filename, type='2D_angle')
-
-        # create a surface to carve from
-        if heightmap is None:
-            surface = normalmap.copy()
-            surface.fill(0.0)
-        else:
-            surface = heightmap.copy()
-
-        # Decimate normalmap into the N faces
-        def decimate(array, dec):
-            return (np.floor(array * dec)) / dec
-            
-        step = 1.0/total_faces
-        step_angle = 360.0/total_faces
-        normalmap.data = decimate(normalmap.data, float(total_faces))
-
-        # Mask
-        if isinstance(mask, basestring) or isinstance(mask, str):
-            mask = Image(mask)
-            mask = mask.threshold()
-        surface = surface - mask
-            
-        # Load gradient into dither mask
-        if grayscale != None:
-            gradientmap = Image( grayscale )
-            surface = surface - gradientmap.dither(threshold=threshold, invert=invert)
-
-        # Create texture
-        if texture is None:
-            texture_resolution = kwargs.pop('texture_resolution', min(gradientmap.width, gradientmap.height) * 0.5)
-            texture_presicion = float(kwargs.pop('texture_presicion', 1.0))
-            texture_offset = float(kwargs.pop('texture_offset', 0.0)) 
-            texture = Texture( stripes_texture(texture_resolution, min(surface.width, surface.height) * texture_presicion, texture_offset), **kwargs)
-        elif not isinstance(texture, Texture):
-            texture = Texture( texture, **kwargs )
-            
-        if texture_angle > 0:
-            texture.turn(texture_angle)
-
-        for cut in range(total_faces):
-            sub_surface = surface.copy()
-
-            mask_sub = np.isclose(normalmap.data, cut * step)
-            # sub_surface = remove_mask(sub_surface, mask_sub)
-            sub_surface = sub_surface - mask_sub
-
-            angle_sub = cut * step_angle + 90 + texture_angle
-            angle_sub = angle_sub + step_angle * 0.5
-
-            texture_sub = Texture( texture )
-            texture_sub.turn(angle_sub)
-            texture_sub.project(sub_surface, camera_angle)
-
-            self.texture( texture_sub )
+        path = self.getPath()
+        for points in path.path:
+            dc.move_to(*points[0])
+            for x, y in points:
+                dc.line_to(x, y)
+        dc.stroke()
+        return surface

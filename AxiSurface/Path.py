@@ -23,11 +23,19 @@ class Path(AxiElement):
         if path is None:
             self.path = []
         elif isinstance(path, Path):
-            self.path = path.points
+            self.path = path.path
+            # self.translate = path.translate
+            # self.scale = path.scale
+            # self.rotate = path.rotate
+            # self.anchor = path.anchor
+
         elif isinstance(path, AxiElement):
             self.path = path.getPath()
         else:
             self.path = path
+
+        self._length = None
+        self._down_length = None
 
 
     @property
@@ -75,6 +83,39 @@ class Path(AxiElement):
         return [(x, y) for points in self.path for x, y in points]
 
 
+    def getTexture(self, width, height, **kwargs):
+        resolution = kwargs.pop('resolution', None)
+
+        from .Texture import Texture
+        from .Polyline import Polyline
+        texture = Texture(width=width, height=height, **kwargs)
+
+        for points in self.path:
+        
+            if resolution:
+                poly = Polyline(points)
+                poly = poly.getResampledBySpacing(resolution)
+                points = poly.getPoints()
+
+            N = len(points)
+            x = np.zeros(int(N)+1)
+            y = np.zeros(int(N)+1)
+            x.fill(np.nan)
+            y.fill(np.nan)
+
+            for i in range(N):
+                X, Y = points[i]
+                x[i] = X / float(texture.width)
+                y[i] = Y / float(texture.height)
+
+            x[N] = np.nan
+            y[N] = np.nan
+
+            texture.add( (x.flatten('F'), y.flatten('F')) )
+
+        return texture
+
+
     def getSorted(self, reversable=True):
         path = self.path[:]
 
@@ -103,14 +144,14 @@ class Path(AxiElement):
         return Path(result)
 
 
-    def getTransform(self, func):
-        return Path([[func(x, y) for x, y in path] for path in self.path])
+    def getTransformed(self, func):
+        return Path([[func(x, y) for x, y in points] for points in self.path])
 
 
     def getTranslated(self, dx, dy):
         def func(x, y):
             return (x + dx, y + dy)
-        return self.getTransform(func)
+        return self.getTransformed(func)
 
 
     def getScaled(self, sx, sy=None):
@@ -118,7 +159,7 @@ class Path(AxiElement):
             sy = sx
         def func(x, y):
             return (x * sx, y * sy)
-        return self.getTransform(func)
+        return self.getTransformed(func)
 
 
     def getRotated(self, angle):
@@ -126,7 +167,70 @@ class Path(AxiElement):
         s = sin(radians(angle))
         def func(x, y):
             return (x * c - y * s, y * c + x * s)
-        return self.getTransform(func)
+        return self.getTransformed(func)
+
+
+    def getMoved(self, x, y, ax, ay):
+        bbox = self.bounds
+        x1, y1, x2, y2 = bbox.limits
+        dx = x1 + (x2 - x1) * ax - x
+        dy = y1 + (y2 - y1) * ay - y
+        return self.getTranslated(-dx, -dy)
+
+
+    def getCentered(self, width, height):
+        return self.getMoved(width / 2, height / 2, 0.5, 0.5)
+
+
+    def getRotatedToFit(self, width, height, step=5):
+        for angle in range(0, 180, step):
+            path = self.getRotated(angle)
+            if path.width <= width and path.height <= height:
+                return path.getCentered(width, height)
+        return None
+
+
+    def getScaledToFit(self, width, height, padding=0):
+        width -= padding * 2
+        height -= padding * 2
+        scale = min(width / self.width, height / self.height)
+        return self.getScaled(scale, scale).getCentered(width, height)
+
+
+    # def getScaledToFitWidth(self, width, padding=0):
+    #     return self.getScaledToFit(width, 1e9, padding)
+
+
+    # def getScaledToFitHeight(self, height, padding=0):
+    #     return self.getScaledToFit(1e9, height, padding)
+
+
+    # def getRotateAndScaleToFit(self, width, height, padding=0, step=1):
+    #     values = []
+    #     width -= padding * 2
+    #     height -= padding * 2
+    #     hull = Drawing([self.convex_hull])
+    #     for angle in range(0, 180, step):
+    #         d = hull.rotate(angle)
+    #         scale = min(width / d.width, height / d.height)
+    #         values.append((scale, angle))
+    #     scale, angle = max(values)
+    #     return self.getRotated(angle).getScaled(scale, scale).getCentered(width, height)
+
+
+    # def getCropped(self, width, height):
+    #     e = 1e-8
+    #     paths = []
+    #     for path in self.path:
+    #         ok = True
+    #         for x, y in path:
+    #             if x < -e or y < -e or x > width + e or y > height + e:
+    #                 ok = False
+    #                 break
+    #         if ok:
+    #             path.append(path)
+
+    #     return Path(paths)
 
 
     def getSVGElementString(self):
@@ -153,6 +257,7 @@ class Path(AxiElement):
         # bed_max_x = kwargs.pop('bed_max_x', 200)
         # bed_max_y = kwargs.pop('bed_max_y', 200)
 
+        gcode_str = ''
         for points in self.path:
             gcode_str += "G0 Z%0.1f F" % (head_up_height) + str(head_up_speed) + "\n"
             gcode_str += "G0 X%0.1f Y%0.1f\n" % (points[0][0], points[0][1]) 
