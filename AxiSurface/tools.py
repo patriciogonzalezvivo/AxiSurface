@@ -64,28 +64,34 @@ def clamp(value, min_value, max_value):
 
 
 def transform(xy, rotate = 0, scale = [1,1], translate = [0,0], anchor=[0, 0]):
-
     x, y = xy
-    radians = math.radians(rotate)
+    
+    if scale != [1, 1] or rotate != 0:
+        radians = math.radians(rotate)
+        if isinstance(scale, tuple) or isinstance(scale, list):
+            scale_x, scale_y = scale
+        else:
+            scale_x, scale_y = scale, scale
 
-    if isinstance(scale, tuple) or isinstance(scale, list):
-        scale_x, scale_y = scale
+        x = x - anchor[0]
+        y = y - anchor[1]
+
+        cos_theta = math.cos(radians)
+        sin_theta = math.sin(radians)
+        nx = x * cos_theta - y * sin_theta
+        ny = x * sin_theta + y * cos_theta
+
+        nx *= scale_x
+        ny *= scale_y
+
+        nx += anchor[0]
+        ny += anchor[1] 
     else:
-        scale_x, scale_y = scale, scale
+        nx = x
+        ny = y
 
-    x = x - anchor[0]
-    y = y - anchor[1]
-
-    cos_theta = math.cos(radians)
-    sin_theta = math.sin(radians)
-    nx = x * cos_theta - y * sin_theta
-    ny = x * sin_theta + y * cos_theta
-
-    nx *= scale_x
-    ny *= scale_y
-
-    nx += anchor[0] + translate[0]
-    ny += anchor[1] + translate[1]
+    nx += translate[0]
+    ny += translate[1]
     return [nx, ny]
 
 

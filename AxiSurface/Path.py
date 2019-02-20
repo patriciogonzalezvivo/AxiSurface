@@ -11,7 +11,7 @@ import numpy as np
 
 from .AxiElement import AxiElement
 from .Index import Index
-from .tools import path_length
+from .tools import path_length, transform
 
 # Mostly rom Axi by Michael Fogleman
 # https://github.com/fogleman/axi/blob/master/axi/spatial.py
@@ -272,8 +272,20 @@ class Path(AxiElement):
 
     def getSVGElementString(self):
         path_str = ''
-        for points in self.path:
-            path_str += 'M' + ' L'.join('{0} {1}'.format(x,y) for x,y in points)
+
+        if self.isTranformed:
+            for points in self.path:
+                first = True
+                for point in points:
+                    p = transform(point, translate=self.translate, scale=self.scale, rotate=self.rotate)
+                    if first:
+                        first = False
+                        path_str += 'M%0.1f %0.1f' % (p[0], p[1])
+                    else:
+                        path_str += 'L%0.1f %0.1f' % (p[0], p[1])
+        else:
+            for points in self.path:
+                path_str += 'M' + ' L'.join('{0} {1}'.format(x,y) for x,y in points)
 
         svg_str = '<path '
         if self.id != None:
@@ -294,16 +306,29 @@ class Path(AxiElement):
         # bed_max_x = kwargs.pop('bed_max_x', 200)
         # bed_max_y = kwargs.pop('bed_max_y', 200)
 
+
+        transformed = self.isTranformed
         gcode_str = ''
         for points in self.path:
             gcode_str += "G0 Z%0.1f F" % (head_up_height) + str(head_up_speed) + "\n"
-            gcode_str += "G0 X%0.1f Y%0.1f\n" % (points[0][0], points[0][1]) 
+            
+            p = points[0][:]
+            if transformed:
+                p = transform(points[0], translate=self.translate, scale=self.scale, rotate=self.rotate)
+                gcode_str += "G0 X%0.1f Y%0.1f\n" % (p[0], p[1])
+            else:
+                gcode_str += "G0 X%0.1f Y%0.1f\n" % (p[0], p[1])
+
             gcode_str += "G1 Z%0.1f F" % (head_down_height) + str(head_down_speed) +"\n"
 
             first = True
-            for x,y in points[1:]:
+            for point in points[1:]:
                 # if x > 0 and x < bed_max_x and y > 0 and y < bed_max_y:  
-                gcode_str += "G1 X%0.1f Y%0.1f" % (x, y)
+                p = point[:]
+                if transformed:
+                    p = transform(p, translate=self.translate, scale=self.scale, rotate=self.rotate)
+                gcode_str += "G1 X%0.1f Y%0.1f\n" % (p[0], p[1])
+
                 if first:
                     gcode_str += " F" + str(move_speed)
                     first = False

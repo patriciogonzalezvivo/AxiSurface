@@ -21,6 +21,7 @@ class AxiElement(object):
         self.rotate = kwargs.pop('rotate', 0.0)
         self.scale = kwargs.pop('scale', 1.0)
         self.id = kwargs.pop('id', None)
+        self.parent = None
 
     @property
     def isTranformed(self):

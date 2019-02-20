@@ -71,7 +71,7 @@ poly = Polyline( [ [-col_width*0.5, 0.0], [col_width*0.5, 0.0], [0.0, col_width*
 for col in range(cols):
     poly.translate = [x + col * col_width, y + col_height]
     poly.rotate = col*ang_step
-    axi.poly( poly.getPoints(), stroke_width=col*0.25+0.2 )
+    axi.polyline( poly.getPoints(), stroke_width=col*0.25+0.2 )
 
 y += col_height * 1.5
 
@@ -80,8 +80,8 @@ for t in range(int(MARGIN), int(WIDTH-MARGIN)):
     t = float(t)
     points.append( [t, math.sin(t * 0.1) * col_height*0.5] )
 
-poly = axi.poly(points, translate=[0.0, y + col_height])
-axi.poly( poly.getOffset(10.0), stroke_width=1.0 )
+poly = axi.polyline(points, translate=[0.0, y + col_height])
+axi.polyline( poly.getOffset(10.0), stroke_width=1.0 )
 
 y += col_height * 2.
 
@@ -92,5 +92,5 @@ for col in range(cols):
 
 axi.toSVG('elements.svg')
 # axi.toGCODE('elements.gcode')
-axi.render( debug=True ).write_to_png('elements.png')
-axi.render( sort=True, debug=True ).write_to_png('elements_sorted.png')
+# axi.render( debug=True ).write_to_png('elements.png')
+# axi.render( sort=True, debug=True ).write_to_png('elements_sorted.png')

@@ -13,6 +13,7 @@ from .Line import Line
 from .Rectangle import Rectangle
 from .Circle import Circle
 from .Polyline import Polyline
+from .Polygon import Polygon
 from .Texture import *
 from .Text import Text
 from .Group import Group

@@ -6,13 +6,16 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from collections import defaultdict
+
 
 from .Path import Path
+from .Polygon import Polygon
 from .Image import Image
 from .Texture import *
 from .tools import transform
 
-def ImageContourToPath(filename, threshold=0.5):
+def ImageContourToPath(filename, threshold=0.5, scale=1.0):
     try:
         import cv2 as cv
     except ImportError:
@@ -38,10 +41,62 @@ def ImageContourToPath(filename, threshold=0.5):
         points = []
         for point in contour:
             # points.append( (point[0][0] * scale[0], point[0][1] * scale[1]) )
-            points.append( (point[0][0], point[0][1]) )
+            points.append( (point[0][0] * scale, point[0][1] * scale) )
         path.append( points )
 
     return Path( path )
+
+
+def ImageThresholdToPolygons(filename, threshold=0.5, min_area=10.0, scale=1.0):
+    try:
+        import cv2 as cv
+    except ImportError:
+        cv = None
+
+    if cv is None:
+        raise Exception('AxiSurface.fromThreshold() requires OpenCV')
+
+    polygons = []    
+
+    if isinstance(filename, Image):
+        filename = filename.filename
+    im = cv.imread( filename )
+    blur = cv.GaussianBlur(im, (3, 3),0)
+    imgray = cv.cvtColor( blur, cv.COLOR_BGR2GRAY )
+    ret, thresh = cv.threshold(imgray, int(threshold * 255), 255, cv.THRESH_BINARY)
+    image, contours, hierarchy = cv.findContours(thresh, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE)
+
+    if not contours:
+        return polygons
+
+    # now messy stuff to associate parent and child contours
+    cnt_children = defaultdict(list)
+    child_contours = set()
+    assert hierarchy.shape[0] == 1
+    # http://docs.opencv.org/3.1.0/d9/d8b/tutorial_py_contours_hierarchy.html
+    for idx, (_, _, _, parent_idx) in enumerate(hierarchy[0]):
+        if parent_idx != -1:
+            child_contours.add(idx)
+            cnt_children[parent_idx].append(contours[idx])
+    # create actual polygons filtering by area (removes artifacts)
+
+    def scaled(points):
+        result = []
+        for point in points:
+            result.append( [point[0] * scale, point[1] * scale] )
+        return result
+
+    for idx, cnt in enumerate(contours):
+        if idx not in child_contours and cv.contourArea(cnt) >= min_area:
+            assert cnt.shape[1] == 1
+            poly = Polygon( scaled(cnt[:, 0, :]) )
+
+            for c in cnt_children.get(idx, []):
+                if cv.contourArea(c) >= min_area:
+                    poly.addHole( scaled(c[:, 0, :]) )
+            polygons.append(poly)
+
+    return polygons
 
 
 def GrayscaleToTexture(filename, **kwargs):

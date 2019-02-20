@@ -10,28 +10,33 @@ import math
 import numpy as np
 
 from .AxiElement import AxiElement
-from .tools import pointInside, linesIntersection, lerp, distance, remap, transform, normalize, clamp, perpendicular, dot
+from .tools import lerp, distance, remap, transform, normalize, perpendicular, clamp, dot
 
 class Polyline(AxiElement):
     def __init__( self, points=None, **kwargs):
         AxiElement.__init__(self, **kwargs);
 
-        # TODO:
-        #   Polyline < > Polygon
-        #   resolve fill
-
-        if isinstance(points, Polyline):
-            points = points.points
-
         if points is None:
-            points = []
+            self.points = []
+        elif isinstance(points, Polyline):
+            self.points = points.points
+            self.translate = kwargs.pop('translate', points.translate)
+            self.scale = kwargs.pop('scale', points.scale)
+            self.rotate = kwargs.pop('rotate', points.rotate)
+            self.stroke_width = kwargs.pop('stroke_width', points.stroke_width)
+            self.head_width = kwargs.pop('head_width', points.head_width)
+            self.fill = kwargs.pop('fill', points.fill)
 
-        self.points = points
+            self.isClosed = kwargs.pop('isClosed', points.isClosed) 
+            self.anchor = kwargs.pop('anchor', points.anchor) 
+        else:
+            self.points = points
+            self.isClosed = kwargs.pop('isClosed', False) 
+            self.anchor = kwargs.pop('anchor', [0.0, 0.0]) 
+        
         self.normals = []
         self.tangents = []
         self.lengths = []
-        self.isClosed = kwargs.pop('isClosed', False) 
-        self.anchor = kwargs.pop('anchor', [0.0, 0.0]) 
         self._updateCache()
 
 
@@ -271,7 +276,7 @@ class Polyline(AxiElement):
 
         if not self.isClosed:
             if poly.size() > 0:
-                poly.points[-1] = self.points[-1];
+                poly.points[-1] = self.points[-1]
                 self.isClosed = False
             else:
                 self.isClosed = True
@@ -337,6 +342,8 @@ class Polyline(AxiElement):
 
 
     def getFillPath(self, **kwargs ):
+        # From FlatCam
+        # https://bitbucket.org/jpcgt/flatcam/src/46454c293a9b390c931b52eb6217ca47e13b0231/camlib.py?at=master&fileviewer=file-view-default#camlib.py-478
         tooldia = kwargs.pop('tooldia', self.head_width * 2.0 )
         overlap = kwargs.pop('overlap', 0.15 )
 
@@ -352,8 +359,6 @@ class Polyline(AxiElement):
         if len(self.points) < 3:
             return self
 
-        path = Path()
-
         polygon = geometry.Polygon( self.getPoints() )
 
          # Can only result in a Polygon or MultiPolygon
@@ -364,6 +369,7 @@ class Polyline(AxiElement):
             # into the FlatCAMStorage will fail.
             return None
 
+        path = Path()
         # current can be a MultiPolygon
         try:
             for p in current:
@@ -399,11 +405,6 @@ class Polyline(AxiElement):
                 break
 
         return path
-
-        # line = geometry.LineString( self.getPoints() )
-        # poly = line.buffer(offset)
-        
-        # return Polyline(poly.interiors)
         
 
     def getSimplify(self, tolerance):
@@ -471,5 +472,9 @@ class Polyline(AxiElement):
         else:
             path.append( self.getPoints() )
 
-        return Path(path)
+        path = Path(path)
+        if self.fill:
+            path.add( self.getFillPath() )
+
+        return path
 

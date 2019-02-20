@@ -14,6 +14,7 @@ from .Circle import Circle
 from .Rectangle import Rectangle
 from .Hexagon import Hexagon
 from .Polyline import Polyline
+from .Polygon import Polygon
 from .Text import Text
 from .Path import Path
 from .Texture import Texture
@@ -52,6 +53,7 @@ class Group(AxiElement):
 
 
     def add(self, element ):
+        element.parent = self
         self.elements.append(element)
         return element
 
@@ -76,8 +78,12 @@ class Group(AxiElement):
         return self.add( Hexagon( center, radius, **kwargs) )
 
 
-    def poly(self, points, **kwargs):
+    def polyline(self, points, **kwargs):
         return self.add( Polyline(points, **kwargs) )
+
+
+    def polygon(self, points, **kwargs):
+        return self.add( Polygone(points, **kwargs) )
 
 
     def path(self, path, **kwargs):
