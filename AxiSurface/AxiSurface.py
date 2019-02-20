@@ -43,9 +43,10 @@ class AxiSurface(Group):
         parseSVG( self, filename )
 
 
-    def toSVG( self, filename, sorted=False, **kwargs ):
+    def toSVG( self, filename, **kwargs ):
         scale = kwargs.pop('scale', 1.0)
         unit = kwargs.pop('unit', 'mm')
+        sort = kwargs.pop('sorted', False)
 
         svg_str = '<?xml version="1.0" encoding="utf-8" ?>\n<svg '
         svg_str += 'width="'+ str(self.width) + unit + '" '
@@ -53,7 +54,7 @@ class AxiSurface(Group):
         svg_str += 'viewBox="0,0,'+ str(self.width * scale) + ',' + str(self.height * scale) + '" '
         svg_str += 'baseProfile="tiny" version="1.2" xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" ><defs/>'
         
-        if sorted:
+        if sort:
             print("Sorting paths")
             svg_str += self.getPath().getSorted().getSVGElementString()
         else:
@@ -78,7 +79,7 @@ class AxiSurface(Group):
             file.write(gcode_str)
 
 
-    def render(self, scale=20, margin=1, line_width=0.35/25.4, show_bounds=True):
+    def render(self, **kwargs):
         try:
             import cairocffi as cairo
         except ImportError:
@@ -86,6 +87,13 @@ class AxiSurface(Group):
 
         if cairo is None:
             raise Exception('AxiSurface.render() requires cairo')
+
+        sort = kwargs.pop('sort', False)
+        scale = kwargs.pop('scale', 20)
+        margin = kwargs.pop('margin', 0)
+        line_width = kwargs.pop('line_width', 0.5/scale)
+        show_bounds = kwargs.pop('show_bounds', False)
+        debug = kwargs.pop('debug', False)
 
         margin *= scale
         width = int(scale * self.width + margin * 2)
@@ -107,9 +115,26 @@ class AxiSurface(Group):
         dc.set_line_width(line_width)
 
         path = self.getPath()
-        for points in path.path:
-            dc.move_to(*points[0])
-            for x, y in points:
+        # if sort:
+        #     print("Sorting paths")
+        #     path = self.getPath().getSorted()
+
+        lastPoint = [0.0, 0.0]
+        for points in path:
+            dc.set_source_rgb(0.5, 0.0, 0.0)
+            dc.set_line_width(1 / scale)
+            if debug:
+                dc.move_to(*lastPoint)
+                dc.line_to(*points[0])
+                dc.stroke()
+            else:
+                dc.move_to(*points[0])
+
+            dc.set_source_rgb(0, 0, 0)
+            dc.set_line_width(line_width)
+            for x, y in points:    
                 dc.line_to(x, y)
-        dc.stroke()
+                lastPoint = [x, y]
+            dc.stroke()
+        
         return surface

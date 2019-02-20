@@ -37,8 +37,9 @@ class AxiElement(object):
 
 
     def getPath(self):
-        print('getPath(): Function not declare')
-        return []
+        print('getPath(): Function not declare. Going with a simple convertion of the getPoints() to a Path')
+        from .Path import Path
+        return Path([ self.getPoints() ])
 
     @property
     def bounds(self):

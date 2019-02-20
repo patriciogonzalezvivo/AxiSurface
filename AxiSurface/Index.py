@@ -59,8 +59,7 @@ class Index(Bbox):
             points.extend(self.ring(i, j, r))
             r += 1
         points.extend(self.ring(i, j, r))
-        return min(points,
-            key=lambda p: (hypot(x - p[0], y - p[1]), p[1], p[0]))
+        return min(points, key=lambda p: (hypot(x - p[0], y - p[1]), p[1], p[0]))
 
 
     def ring(self, i, j, r):

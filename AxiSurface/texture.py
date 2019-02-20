@@ -142,15 +142,14 @@ class Texture(AxiElement):
             self.data = (x.copy(), y.copy())
             self.width = parent.width
             self.height = parent.height
-            self.translate = parent.translate
-            self.scale = parent.scale
-            self.rotate = parent.rotate
-            self.anchor = parent.anchor
+            self.translate = kwargs.pop('translate', parent.translate)
+            self.scale = kwargs.pop('scale', parent.scale) 
+            self.rotate = kwargs.pop('rotate', parent.rotate)
+            self.anchor = kwargs.pop('rotate', parent.anchor)
 
         else:
             x, y = parent
             self.data = (x.copy(), y.copy())
-
 
     def __add__(self, other):
         return self.add(other)

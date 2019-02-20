@@ -35,6 +35,24 @@ class Polyline(AxiElement):
         self._updateCache()
 
 
+    def __iter__(self):
+        self._index = 0
+        return self
+
+
+    def __next__(self):
+        if self._index < len(self.points):
+            result = self[ self._index ]
+            self._index += 1
+            return result
+        else:
+            raise StopIteration
+
+
+    def next(self):
+        return self.__next__()
+
+
     def __getitem__(self, index):
         if type(index) is int:
             # return self.points[ index ]
@@ -269,16 +287,7 @@ class Polyline(AxiElement):
         return self.getResampledBySpacing( perimeter / (count-1) )
 
 
-    def simplify(self, tolerance):
-        if len(self.points) < 2:
-            return
-
-        from shapely import geometry
-        line = geometry.LineString(points)
-        line = line.simplify(tolerance, preserve_topology=False)
-        
-
-    def getPolygonOffset(self, offset):
+    def getOffset(self, offset):
         if offset == 0 or (self.points) <= 2:
             return self
 
@@ -303,8 +312,129 @@ class Polyline(AxiElement):
             p = [self.points[i][0] + miter[0] * width,
                  self.points[i][1] + miter[1] * width]
             points.append( transform(p, rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.anchor) )
-        
         return Polyline(points)
+
+        
+    def getBuffer(self, offset):
+        if offset <= 0:
+            return self
+
+        try:
+            from shapely import geometry
+        except ImportError:
+            geometry = None
+
+        if geometry is None:
+            raise Exception('Polyline.getBuffer() requires Shapely')
+
+        if len(self.points) < 2:
+            return self
+
+        line = geometry.LineString( self.getPoints() )
+        poly = line.buffer(offset)
+
+        return Polyline( poly.exterior.coords )
+
+
+    def getFillPath(self, **kwargs ):
+        tooldia = kwargs.pop('tooldia', self.head_width * 2.0 )
+        overlap = kwargs.pop('overlap', 0.15 )
+
+        try:
+            from .Path import Path
+            from shapely import geometry
+        except ImportError:
+            geometry = None
+
+        if geometry is None:
+            raise Exception('Polyline.getFillPath() requires Shapely')
+
+        if len(self.points) < 3:
+            return self
+
+        path = Path()
+
+        polygon = geometry.Polygon( self.getPoints() )
+
+         # Can only result in a Polygon or MultiPolygon
+        # NOTE: The resulting polygon can be "empty".
+        current = polygon.buffer(-tooldia / 2.0)
+        if current.area == 0:
+            # Otherwise, trying to to insert current.exterior == None
+            # into the FlatCAMStorage will fail.
+            return None
+
+        # current can be a MultiPolygon
+        try:
+            for p in current:
+                path.add( Polyline( p.exterior.coords ) )
+                for i in p.interiors:
+                    path.add( Polyline( i.coords ) )
+
+        # Not a Multipolygon. Must be a Polygon
+        except TypeError:
+            path.add( Polyline( current.exterior.coords ) )
+            for i in current.interiors:
+                path.add( Polyline( i.coords ) )
+
+        while True:
+
+            # Can only result in a Polygon or MultiPolygon
+            current = current.buffer(-tooldia * (1 - overlap))
+            if current.area > 0:
+
+                # current can be a MultiPolygon
+                try:
+                    for p in current:
+                        path.add( Polyline( p.exterior.coords ) )
+                        for i in p.interiors:
+                            path.add( Polyline( i.coords ) )
+
+                # Not a Multipolygon. Must be a Polygon
+                except TypeError:
+                    path.add( Polyline( current.exterior.coords ) )
+                    for i in current.interiors:
+                        path.add( Polyline( i.coords ) )
+            else:
+                break
+
+        return path
+
+        # line = geometry.LineString( self.getPoints() )
+        # poly = line.buffer(offset)
+        
+        # return Polyline(poly.interiors)
+        
+
+    def getSimplify(self, tolerance):
+        try:
+            from shapely import geometry
+        except ImportError:
+            geometry = None
+
+        if geometry is None:
+            raise Exception('Polyline.getSimplify() requires Shapely')
+
+        if len(self.points) < 2:
+            return self
+
+        line = geometry.LineString(self.getPoints())
+        line = line.simplify(tolerance, preserve_topology=False)
+        return Polyline(line.coords )
+
+
+    def getConvexHull(self):
+        try:
+            from shapely import geometry
+        except ImportError:
+            geometry = None
+
+        if geometry is None:
+            raise Exception('Polyline.getConvexHull() requires Shapely')
+
+        polygon = geometry.Polygon( self.getPoints() )
+        # points = [z.tolist() for z in polygon.convex_hull.exterior.coords.xy]
+        return Polyline( polygon.convex_hull.exterior.coords )
 
 
     def getPoints(self):
@@ -328,13 +458,15 @@ class Polyline(AxiElement):
     def getPath(self):
         from .Path import Path
 
-        path = []
+        # TODO:
+        #      - Fix stroke_width and head_width on scale
 
+        path = []
         if self.stroke_width > self.head_width:
             r = (self.stroke_width * self.head_width) * 0.5
             r_target = -(self.stroke_width * self.head_width) * 0.5
             while r > r_target:
-                path.append( self.getPolygonOffset(r).getPoints() )
+                path.append( self.getOffset(r).getPoints() )
                 r = max(r - self.head_width, r_target)
         else:
             path.append( self.getPoints() )

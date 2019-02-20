@@ -26,6 +26,30 @@ class Group(AxiElement):
         self.elements = []
         self.subgroup = { } 
 
+    def __iter__(self):
+        self._index = 0
+        return self
+
+
+    def __next__(self):
+        if self._index < len(self.elements):
+            result = self[ self._index ]
+            self._index += 1
+            return result
+        else:
+            raise StopIteration
+
+
+    def next(self):
+        return self.__next__()
+
+
+    def __getitem__(self, index):
+        if type(index) is int:
+            return self.elements[index]
+        else:
+            return None
+
 
     def add(self, element ):
         self.elements.append(element)

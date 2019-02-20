@@ -130,7 +130,7 @@ def HeightmapToTexture(filename, **kwargs):
 def NormalmapToTexture(filename, **kwargs):
     total_faces = int(kwargs.pop('total_faces', 14))
     heightmap = kwargs.pop('heightmap', None)
-    camera_angle = float(kwargs.pop('camera_angle', 10.0))
+    camera_angle = float(kwargs.pop('camera_angle', 0.0))
 
     grayscale = kwargs.pop('grayscale', None)
     threshold = float(kwargs.pop('threshold', 0.5))
@@ -179,7 +179,7 @@ def NormalmapToTexture(filename, **kwargs):
     if texture_angle > 0:
         texture.turn(texture_angle)
 
-    texture = Texture()
+    result = Texture(**kwargs)
     for cut in range(total_faces):
         sub_surface = surface.copy()
 
@@ -190,10 +190,12 @@ def NormalmapToTexture(filename, **kwargs):
         angle_sub = cut * step_angle + 90 + texture_angle
         angle_sub = angle_sub + step_angle * 0.5
 
-        texture_sub = Texture( texture )
+        texture_sub = Texture( texture, **kwargs )
         texture_sub.turn(angle_sub)
-        texture_sub.project(sub_surface, camera_angle)
 
-        texture = texture + texture_sub
+        if camera_angle != 0.0:
+            texture_sub.project(sub_surface, camera_angle)
 
-    return texture
+        result.add( texture_sub )
+
+    return result

@@ -81,13 +81,16 @@ for t in range(int(MARGIN), int(WIDTH-MARGIN)):
     points.append( [t, math.sin(t * 0.1) * col_height*0.5] )
 
 poly = axi.poly(points, translate=[0.0, y + col_height])
-axi.poly( poly.getPolygonOffset(10.0), stroke_width=1.0 )
+axi.poly( poly.getOffset(10.0), stroke_width=1.0 )
 
 y += col_height * 2.
 
 for col in range(cols):
-    axi.text( "Hi", [x + col * col_width, y + col_height], scale=0.2, rotate=col*ang_step, stroke_width=col*0.25+0.2)
+    stroke = col*axi.head_width+axi.head_width
+    axi.text( "Hi", [x + col * col_width, y + col_height], scale=0.2, rotate=col*ang_step, stroke_width=stroke)
+    axi.text( "Hi", [x + col * col_width, y + col_height * 2.0], rotate=col*ang_step*0.5, scale=(scl_step+scl_step*col*2.0)*0.2 )
 
-axi.toSVG('elements.svg', sorted=True)
-axi.toGCODE('elements.gcode')
-axi.render( scale=20 ).write_to_png('elements.png')
+axi.toSVG('elements.svg')
+# axi.toGCODE('elements.gcode')
+axi.render( debug=True ).write_to_png('elements.png')
+axi.render( sort=True, debug=True ).write_to_png('elements_sorted.png')

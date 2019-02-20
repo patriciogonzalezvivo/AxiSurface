@@ -38,6 +38,32 @@ class Path(AxiElement):
         self._down_length = None
 
 
+    def __iter__(self):
+        self._index = 0
+        return self
+
+
+    def __next__(self):
+        if self._index < len(self.path):
+            result = self[ self._index ]
+            self._index += 1
+            return result
+        else:
+            raise StopIteration
+
+
+    def next(self):
+        return self.__next__()
+
+
+    def __getitem__(self, index):
+        from .Polyline import Polyline
+        if type(index) is int:
+            return Polyline( self.path[index] )
+        else:
+            return None
+
+
     @property
     def length(self):
         if self._length is None:
@@ -73,14 +99,33 @@ class Path(AxiElement):
 
 
     def add(self, other):
+        from .Polyline import Polyline
+
         if isinstance(other, Path):
             self.path.extend( other.path )
+        elif isinstance(other, Polyline):
+            self.path.append( other.getPoints() )
         else:
             self.path.extend( other.getPath() )
 
 
     def getPoints(self):
         return [(x, y) for points in self.path for x, y in points]
+
+
+    def getConvexHull(self):
+        try:
+            from .Polyline import Polyline
+            from shapely import geometry
+        except ImportError:
+            geometry = None
+
+        if geometry is None:
+            raise Exception('Polyline.getConvexHull() requires Shapely')
+
+        polygon = geometry.Polygon( self.getPoints() )
+        # points = [z.tolist() for z in polygon.convex_hull.exterior.coords.xy]
+        return Polyline( polygon.convex_hull.exterior.coords )
 
 
     def getTexture(self, width, height, **kwargs):
@@ -197,25 +242,17 @@ class Path(AxiElement):
         return self.getScaled(scale, scale).getCentered(width, height)
 
 
-    # def getScaledToFitWidth(self, width, padding=0):
-    #     return self.getScaledToFit(width, 1e9, padding)
-
-
-    # def getScaledToFitHeight(self, height, padding=0):
-    #     return self.getScaledToFit(1e9, height, padding)
-
-
-    # def getRotateAndScaleToFit(self, width, height, padding=0, step=1):
-    #     values = []
-    #     width -= padding * 2
-    #     height -= padding * 2
-    #     hull = Drawing([self.convex_hull])
-    #     for angle in range(0, 180, step):
-    #         d = hull.rotate(angle)
-    #         scale = min(width / d.width, height / d.height)
-    #         values.append((scale, angle))
-    #     scale, angle = max(values)
-    #     return self.getRotated(angle).getScaled(scale, scale).getCentered(width, height)
+    def getRotateAndScaleToFit(self, width, height, padding=0, step=1):
+        values = []
+        width -= padding * 2
+        height -= padding * 2
+        hull = self.getConvexHull()
+        for angle in range(0, 180, step):
+            d = hull.getRotated(angle)
+            scale = min(width / d.bounds.width, height / d.bounds.height)
+            values.append((scale, angle))
+        scale, angle = max(values)
+        return self.getRotated(angle).getScaled(scale, scale).getCentered(width, height)
 
 
     # def getCropped(self, width, height):
