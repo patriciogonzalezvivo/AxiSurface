@@ -53,6 +53,7 @@ class Line(AxiElement):
     def getPoints(self):
         return [self.start, self.end]
 
+
     def getPath(self):
         from .Path import Path
         
