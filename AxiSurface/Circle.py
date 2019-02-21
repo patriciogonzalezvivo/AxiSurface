@@ -100,7 +100,8 @@ class Circle(AxiElement):
         return Path(path)
 
 
-    def getPathString(self):
+    def getSVGElementString(self):
+        path_str = ''
 
         def path_gen(cx, cy, rx, ry):
             d = ''
@@ -145,4 +146,12 @@ class Circle(AxiElement):
 
         else:
             path_str += path_gen(cx, cy, rx, ry)
-        return path_str
+
+        svg_str = '<path '
+        if self.id != None:
+            svg_str += 'id="' + self.id + '" '
+        svg_str += 'd="' + path_str + '" '
+        svg_str += 'fill="none" stroke="black" stroke-width="'+str(self.head_width) + '" '
+        svg_str += '/>\n'
+        
+        return svg_str
