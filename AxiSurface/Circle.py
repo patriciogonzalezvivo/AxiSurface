@@ -10,7 +10,7 @@ import math
 import numpy as np
 
 from .AxiElement import AxiElement
-from .tools import polar2xy
+from .tools import polar2xy, remap
 
 class Circle(AxiElement):
     def __init__( self, center, radius, **kwargs ):
@@ -20,8 +20,13 @@ class Circle(AxiElement):
         self._radius = radius
 
         # Optative
+        resolution = radius
+        if isinstance(radius, list):
+            resolution = max(radius[0], radius[1])
+
+        resolution = remap(resolution, 1.0, 300.0, 12.0, 200.0)
         self.open_angle = kwargs.pop('open_angle', 0)
-        self.resolution = kwargs.pop('resolution', 36)
+        self.resolution = kwargs.pop('resolution', int(resolution))
 
 
     @property
@@ -61,7 +66,7 @@ class Circle(AxiElement):
         deg = 0.0
         deg = self.open_angle * 0.5
         step = 360.0/resolution
-        for i in range(int(resolution+1)):
+        for i in range(int(resolution)+1):
             if deg > 360 - self.open_angle * 0.5:
                 break
             a = math.radians(deg + self.rotate)
@@ -100,58 +105,58 @@ class Circle(AxiElement):
         return Path(path)
 
 
-    def getSVGElementString(self):
-        path_str = ''
+    # def getSVGElementString(self):
+    #     path_str = ''
 
-        def path_gen(cx, cy, rx, ry):
-            d = ''
-            if self.open_angle != 0:
-                posA = polar2xy([cx, cy], self.rotate + self.open_angle * 0.5, [rx, ry])
-                posB = polar2xy([cx, cy], self.rotate + 360 - self.open_angle * 0.5, [rx, ry])
-                args = {
-                    'x0':posA[0], 
-                    'y0':posA[1], 
-                    'xradius': rx, 
-                    'yradius': ry, 
-                    'ellipseRotation':0,
-                    'x1':posB[0], 
-                    'y1':posB[1]
-                }
+    #     def path_gen(cx, cy, rx, ry):
+    #         d = ''
+    #         if self.open_angle != 0:
+    #             posA = polar2xy([cx, cy], self.rotate + self.open_angle * 0.5, [rx, ry])
+    #             posB = polar2xy([cx, cy], self.rotate + 360 - self.open_angle * 0.5, [rx, ry])
+    #             args = {
+    #                 'x0':posA[0], 
+    #                 'y0':posA[1], 
+    #                 'xradius': rx, 
+    #                 'yradius': ry, 
+    #                 'ellipseRotation':0,
+    #                 'x1':posB[0], 
+    #                 'y1':posB[1]
+    #             }
 
-                d = "M %(x0)f,%(y0)f A %(xradius)f,%(yradius)f%(ellipseRotation)f 1,1 %(x1)f,%(y1)f"%args
-            else:
-                d = 'M' + str(cx - rx) + ',' + str(cy)
-                d += 'a' + str(rx) + ',' + str(ry) + ' 0 1,0 ' + str(2 * rx) + ',0'
-                d += 'a' + str(rx) + ',' + str(ry) + ' 0 1,0 ' + str(-2 * rx) + ',0'
-            return d
+    #             d = "M %(x0)f,%(y0)f A %(xradius)f,%(yradius)f%(ellipseRotation)f 1,1 %(x1)f,%(y1)f"%args
+    #         else:
+    #             d = 'M' + str(cx - rx) + ',' + str(cy)
+    #             d += 'a' + str(rx) + ',' + str(ry) + ' 0 1,0 ' + str(2 * rx) + ',0'
+    #             d += 'a' + str(rx) + ',' + str(ry) + ' 0 1,0 ' + str(-2 * rx) + ',0'
+    #         return d
 
-        cx, cy = self.center
-        rx, ry = self.radius
+    #     cx, cy = self.center
+    #     rx, ry = self.radius
 
-        path_str = ''
-        if self.stroke_width > self.head_width or self.fill:
-            rad_x = rx + (self.stroke_width * self.head_width) * 0.5
-            rad_y = ry + (self.stroke_width * self.head_width) * 0.5
-            rad_x_target = rx - (self.stroke_width * self.head_width) * 0.5
-            rad_y_target = ry - (self.stroke_width * self.head_width) * 0.5
+    #     path_str = ''
+    #     if self.stroke_width > self.head_width or self.fill:
+    #         rad_x = rx + (self.stroke_width * self.head_width) * 0.5
+    #         rad_y = ry + (self.stroke_width * self.head_width) * 0.5
+    #         rad_x_target = rx - (self.stroke_width * self.head_width) * 0.5
+    #         rad_y_target = ry - (self.stroke_width * self.head_width) * 0.5
 
-            if self.fill:
-                rad_x_target = 0.0
-                rad_y_target = 0.0
+    #         if self.fill:
+    #             rad_x_target = 0.0
+    #             rad_y_target = 0.0
 
-            while rad_x > rad_x_target or rad_y > rad_y_target:
-                path_str += path_gen(cx, cy, rad_x, rad_y)
-                rad_x = max(rad_x - self.head_width, rad_x_target)
-                rad_y = max(rad_y - self.head_width, rad_y_target)
+    #         while rad_x > rad_x_target or rad_y > rad_y_target:
+    #             path_str += path_gen(cx, cy, rad_x, rad_y)
+    #             rad_x = max(rad_x - self.head_width, rad_x_target)
+    #             rad_y = max(rad_y - self.head_width, rad_y_target)
 
-        else:
-            path_str += path_gen(cx, cy, rx, ry)
+    #     else:
+    #         path_str += path_gen(cx, cy, rx, ry)
 
-        svg_str = '<path '
-        if self.id != None:
-            svg_str += 'id="' + self.id + '" '
-        svg_str += 'd="' + path_str + '" '
-        svg_str += 'fill="none" stroke="black" stroke-width="'+str(self.head_width) + '" '
-        svg_str += '/>\n'
+    #     svg_str = '<path '
+    #     if self.id != None:
+    #         svg_str += 'id="' + self.id + '" '
+    #     svg_str += 'd="' + path_str + '" '
+    #     svg_str += 'fill="none" stroke="black" stroke-width="'+str(self.head_width) + '" '
+    #     svg_str += '/>\n'
         
-        return svg_str
+    #     return svg_str

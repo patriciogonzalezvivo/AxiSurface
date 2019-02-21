@@ -37,6 +37,7 @@ class Polyline(AxiElement):
         self.normals = []
         self.tangents = []
         self.lengths = []
+        self.holes = None
         self._updateCache()
 
 
@@ -121,7 +122,7 @@ class Polyline(AxiElement):
         N = len(self.points)
 
         # Check
-        if N < 2:
+        if N < 3:
             return self
 
         # Process
@@ -267,7 +268,7 @@ class Polyline(AxiElement):
         if spacing==0 or (self.points) == 0:
             return self
 
-        poly = Polyline()
+        poly = Polyline( stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width )
         totalLength = self.getPerimeter()
         f = 0.0
         while f < totalLength:
@@ -317,7 +318,7 @@ class Polyline(AxiElement):
             p = [self.points[i][0] + miter[0] * width,
                  self.points[i][1] + miter[1] * width]
             points.append( transform(p, rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.anchor) )
-        return Polyline(points)
+        return Polyline(points, stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width)
 
         
     def getBuffer(self, offset):
@@ -338,13 +339,29 @@ class Polyline(AxiElement):
         line = geometry.LineString( self.getPoints() )
         poly = line.buffer(offset)
 
-        return Polyline( poly.exterior.coords )
+        return Polyline( poly.exterior.coords, stroke_width=self.stroke_width, head_width=self.head_width )
+
+
+    def _toShapelyPolygon(self):
+        try:
+            from shapely import geometry
+        except ImportError:
+            geometry = None
+
+        if geometry is None:
+            raise Exception('This requires Shapely module')
+
+        holes=[]
+        if self.holes != None:            
+            for hole in self.holes:
+                holes.append( Polyline(hole) )
+        return geometry.Polygon( self.getPoints(), holes=holes )
 
 
     def getFillPath(self, **kwargs ):
         # From FlatCam
         # https://bitbucket.org/jpcgt/flatcam/src/46454c293a9b390c931b52eb6217ca47e13b0231/camlib.py?at=master&fileviewer=file-view-default#camlib.py-478
-        tooldia = kwargs.pop('tooldia', self.head_width * 2.0 )
+        tooldia = kwargs.pop('tooldia', self.head_width)
         overlap = kwargs.pop('overlap', 0.15 )
 
         try:
@@ -359,8 +376,8 @@ class Polyline(AxiElement):
         if len(self.points) < 3:
             return self
 
-        polygon = geometry.Polygon( self.getPoints() )
-
+        polygon = self._toShapelyPolygon()
+        
          # Can only result in a Polygon or MultiPolygon
         # NOTE: The resulting polygon can be "empty".
         current = polygon.buffer(-tooldia / 2.0)
@@ -369,7 +386,7 @@ class Polyline(AxiElement):
             # into the FlatCAMStorage will fail.
             return None
 
-        path = Path()
+        path = Path(stroke_width=self.stroke_width, head_width=self.head_width)
         # current can be a MultiPolygon
         try:
             for p in current:
@@ -404,10 +421,10 @@ class Polyline(AxiElement):
             else:
                 break
 
-        return path
+        return path.getSimplify().getSorted().getJoined(boundary=polygon)
         
 
-    def getSimplify(self, tolerance):
+    def getSimplify(self, tolerance = None):
         try:
             from shapely import geometry
         except ImportError:
@@ -419,9 +436,12 @@ class Polyline(AxiElement):
         if len(self.points) < 2:
             return self
 
+        if tolerance is None:
+            tolerance = self.head_width * 0.1
+
         line = geometry.LineString(self.getPoints())
         line = line.simplify(tolerance, preserve_topology=False)
-        return Polyline(line.coords )
+        return Polyline(line.coords, stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width)
 
 
     def getConvexHull(self):
@@ -433,7 +453,7 @@ class Polyline(AxiElement):
         if geometry is None:
             raise Exception('Polyline.getConvexHull() requires Shapely')
 
-        polygon = geometry.Polygon( self.getPoints() )
+        polygon = self._toShapelyPolygon()
         # points = [z.tolist() for z in polygon.convex_hull.exterior.coords.xy]
         return Polyline( polygon.convex_hull.exterior.coords )
 
@@ -475,6 +495,10 @@ class Polyline(AxiElement):
         path = Path(path)
         if self.fill:
             path.add( self.getFillPath() )
+
+        if self.holes != None:
+            for poly in self.holes:
+                path.add( poly.getPath() )
 
         return path
 

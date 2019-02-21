@@ -83,7 +83,7 @@ class Group(AxiElement):
 
 
     def polygon(self, points, **kwargs):
-        return self.add( Polygone(points, **kwargs) )
+        return self.add( Polygon(points, **kwargs) )
 
 
     def path(self, path, **kwargs):

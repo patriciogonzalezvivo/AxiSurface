@@ -24,10 +24,6 @@ class Path(AxiElement):
             self.path = []
         elif isinstance(path, Path):
             self.path = path.path
-            # self.translate = path.translate
-            # self.scale = path.scale
-            # self.rotate = path.rotate
-            # self.anchor = path.anchor
 
         elif isinstance(path, AxiElement):
             self.path = path.getPath()
@@ -59,7 +55,7 @@ class Path(AxiElement):
     def __getitem__(self, index):
         from .Polyline import Polyline
         if type(index) is int:
-            return Polyline( self.path[index] )
+            return Polyline( self.path[index], translate=self.translate, scale=self.scale, rotate=self.rotate, stroke_width=self.stroke_width, head_width=self.head_width )
         else:
             return None
 
@@ -105,8 +101,12 @@ class Path(AxiElement):
             self.path.extend( other.path )
         elif isinstance(other, Polyline):
             self.path.append( other.getPoints() )
-        else:
+        elif isinstance(other, AxiElement):
             self.path.extend( other.getPath() )
+        elif isinstance(other, list):
+            self.path.append( other )
+        else:
+            print("Error, don't know what to do with: ", other)
 
 
     def getPoints(self):
@@ -124,8 +124,7 @@ class Path(AxiElement):
             raise Exception('Polyline.getConvexHull() requires Shapely')
 
         polygon = geometry.Polygon( self.getPoints() )
-        # points = [z.tolist() for z in polygon.convex_hull.exterior.coords.xy]
-        return Polyline( polygon.convex_hull.exterior.coords )
+        return Polyline( polygon.convex_hull.exterior.coords, head_width=self.head_width, stroke_width=self.stroke_width )
 
 
     def getTexture(self, width, height, **kwargs):
@@ -168,29 +167,83 @@ class Path(AxiElement):
         path.remove(first)
         result = [first]
         points = []
+
         for path in path:
             x1, y1 = path[0]
             x2, y2 = path[-1]
             points.append((x1, y1, path, False))
+
             if reversable:
                 points.append((x2, y2, path, True))
+
         index = Index( chain=points )
+
         while index.size > 0:
             x, y, path, reverse = index.nearest(result[-1][-1])
             x1, y1 = path[0]
             x2, y2 = path[-1]
             index.remove((x1, y1, path, False))
+
             if reversable:
                 index.remove((x2, y2, path, True))
+
             if reverse:
                 result.append(list(reversed(path)))
             else:
                 result.append(path)
-        return Path(result)
+
+        return Path( result, head_width=self.head_width, stroke_width=self.stroke_width )
+
+
+    def getJoined(self, tolerance = None, boundary = None):
+        try:
+            from shapely import geometry
+        except ImportError:
+            geometry = None
+
+        if boundary != None and geometry is None:
+            print('Path.joined() will not work with boundary bacause needs Shapely')
+            boundary = None
+
+        if len(self.path) < 2:
+            return self
+
+        if tolerance is None:
+            tolerance = self.head_width
+
+        result = [list(self.path[0])]
+        for path in self.path[1:]:
+            x1, y1 = result[-1][-1]
+            x2, y2 = path[0]
+
+            join = False
+
+            if boundary != None:
+                walk_path = geometry.LineString( [result[-1][-1], path[0]] )
+                walk_cut = walk_path.buffer( self.head_width * 0.5 )
+                join = walk_cut.within(boundary) # and walk_path.length < max_walk
+            else:
+                join = math.hypot(x2 - x1, y2 - y1) <= tolerance
+
+            if join:
+                result[-1].extend(path)
+            else:
+                result.append(list(path))
+                
+        return Path(result, head_width=self.head_width, stroke_width=self.stroke_width )
+
+
+    def getSimplify(self, tolerance = None):
+        from .Polyline import Polyline
+
+        result = Path( head_width=self.head_width, stroke_width=self.stroke_width )
+        for points in self.path:
+            result.add( Polyline( points, head_width=self.head_width, stroke_width=self.stroke_width).getSimplify(tolerance) )
+        return result
 
 
     def getTransformed(self, func):
-        return Path([[func(x, y) for x, y in points] for points in self.path])
+        return Path([[func(x, y) for x, y in points] for points in self.path], head_width=self.head_width, stroke_width=self.stroke_width )
 
 
     def getTranslated(self, dx, dy):
@@ -208,8 +261,8 @@ class Path(AxiElement):
 
 
     def getRotated(self, angle):
-        c = cos(radians(angle))
-        s = sin(radians(angle))
+        c = math.cos(math.radians(angle))
+        s = math.sin(math.radians(angle))
         def func(x, y):
             return (x * c - y * s, y * c + x * s)
         return self.getTransformed(func)
@@ -253,21 +306,6 @@ class Path(AxiElement):
             values.append((scale, angle))
         scale, angle = max(values)
         return self.getRotated(angle).getScaled(scale, scale).getCentered(width, height)
-
-
-    # def getCropped(self, width, height):
-    #     e = 1e-8
-    #     paths = []
-    #     for path in self.path:
-    #         ok = True
-    #         for x, y in path:
-    #             if x < -e or y < -e or x > width + e or y > height + e:
-    #                 ok = False
-    #                 break
-    #         if ok:
-    #             path.append(path)
-
-    #     return Path(paths)
 
 
     def getSVGElementString(self):
