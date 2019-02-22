@@ -363,6 +363,7 @@ class Polyline(AxiElement):
         # https://bitbucket.org/jpcgt/flatcam/src/46454c293a9b390c931b52eb6217ca47e13b0231/camlib.py?at=master&fileviewer=file-view-default#camlib.py-478
         tooldia = kwargs.pop('tooldia', self.head_width)
         overlap = kwargs.pop('overlap', 0.15 )
+        optimize_lifts = kwargs.pop('optimize_lifts', False )
 
         try:
             from .Path import Path
@@ -421,7 +422,10 @@ class Polyline(AxiElement):
             else:
                 break
 
-        return path.getSimplify().getSorted().getJoined(boundary=polygon)
+        if optimize_lifts:
+            return path.getSimplify().getSorted().getJoined(boundary=polygon)
+        else:
+            return path.getSimplify().getSorted().getJoined()
         
 
     def getSimplify(self, tolerance = None):
