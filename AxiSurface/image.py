@@ -86,7 +86,7 @@ class Image(AxiElement):
             self.data = data.copy()
 
         else:
-            print('Unknown data type')
+            raise Exception('Unknown data type')
             return
 
         self.height, self.width = self.data.shape[:2]
@@ -102,13 +102,13 @@ class Image(AxiElement):
             elif other.type == "grayscale":
                 self.data -= other.data
             else:
-                print("Other is not a mask")
+                raise Exception("Other is not a mask")
 
         elif other is None:
             return self
 
         else:
-            print('Unknown data type')
+            raise Exception('Unknown data type')
 
         return self
 

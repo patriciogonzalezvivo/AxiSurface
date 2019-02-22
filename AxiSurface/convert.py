@@ -8,7 +8,6 @@ from __future__ import unicode_literals
 
 from collections import defaultdict
 
-
 from .Path import Path
 from .Polygon import Polygon
 from .Image import Image
@@ -47,7 +46,7 @@ def ImageContourToPath(filename, threshold=0.5, scale=1.0):
     return Path( path )
 
 
-def ImageThresholdToPolygons(filename, threshold=0.5, min_area=10.0, scale=1.0):
+def ImageThresholdToPolygons(filename, threshold=0.5, min_area=10.0, scale=1.0, rotate=0, translate=[0.0, 0.0]):
     try:
         import cv2 as cv
     except ImportError:
@@ -80,20 +79,20 @@ def ImageThresholdToPolygons(filename, threshold=0.5, min_area=10.0, scale=1.0):
             cnt_children[parent_idx].append(contours[idx])
     # create actual polygons filtering by area (removes artifacts)
 
-    def scaled(points):
+    def trans(points):
         result = []
         for point in points:
-            result.append( [point[0] * scale, point[1] * scale] )
+            result.append( transform([point[0], point[1]], translate=translate, scale=scale, rotate=rotate ))
         return result
 
     for idx, cnt in enumerate(contours):
         if idx not in child_contours and cv.contourArea(cnt) >= min_area:
             assert cnt.shape[1] == 1
-            poly = Polygon( scaled(cnt[:, 0, :]) )
+            poly = Polygon( trans(cnt[:, 0, :]) )
 
             for c in cnt_children.get(idx, []):
                 if cv.contourArea(c) >= min_area:
-                    poly.addHole( scaled(c[:, 0, :]) )
+                    poly.addHole( trans(c[:, 0, :]) )
             polygons.append(poly)
 
     return polygons

@@ -55,7 +55,6 @@ class AxiSurface(Group):
         svg_str += 'baseProfile="tiny" version="1.2" xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" ><defs/>'
         
         if sort:
-            print("Sorting paths")
             svg_str += self.getPath().getSorted().getSVGElementString()
         else:
             svg_str += self.getSVGElementString()
@@ -115,9 +114,6 @@ class AxiSurface(Group):
         dc.set_line_width(line_width)
 
         path = self.getPath()
-        # if sort:
-        #     print("Sorting paths")
-        #     path = self.getPath().getSorted()
 
         lastPoint = [0.0, 0.0]
         for points in path:

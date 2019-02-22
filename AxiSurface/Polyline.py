@@ -15,30 +15,30 @@ from .tools import lerp, distance, remap, transform, normalize, perpendicular, c
 class Polyline(AxiElement):
     def __init__( self, points=None, **kwargs):
         AxiElement.__init__(self, **kwargs);
-
-        if points is None:
-            self.points = []
-        elif isinstance(points, Polyline):
-            self.points = points.points
-            self.translate = kwargs.pop('translate', points.translate)
-            self.scale = kwargs.pop('scale', points.scale)
-            self.rotate = kwargs.pop('rotate', points.rotate)
-            self.stroke_width = kwargs.pop('stroke_width', points.stroke_width)
-            self.head_width = kwargs.pop('head_width', points.head_width)
-            self.fill = kwargs.pop('fill', points.fill)
-
-            self.isClosed = kwargs.pop('isClosed', points.isClosed) 
-            self.anchor = kwargs.pop('anchor', points.anchor) 
-        else:
-            self.points = points
-            self.isClosed = kwargs.pop('isClosed', False) 
-            self.anchor = kwargs.pop('anchor', [0.0, 0.0]) 
-        
+        self.points = []
         self.normals = []
         self.tangents = []
         self.lengths = []
         self.holes = None
-        self._updateCache()
+        self.isClosed = kwargs.pop('isClosed', False) 
+        self.anchor = kwargs.pop('anchor', [0.0, 0.0])
+
+        if points != None:            
+            if isinstance(points, Polyline):
+                self.points = points.points
+                self.translate = kwargs.pop('translate', points.translate)
+                self.scale = kwargs.pop('scale', points.scale)
+                self.rotate = kwargs.pop('rotate', points.rotate)
+                self.stroke_width = kwargs.pop('stroke_width', points.stroke_width)
+                self.head_width = kwargs.pop('head_width', points.head_width)
+                self.fill = kwargs.pop('fill', points.fill)
+
+                self.isClosed = kwargs.pop('isClosed', points.isClosed) 
+                self.anchor = kwargs.pop('anchor', points.anchor) 
+            else:
+                self.points = points
+        
+            self._updateCache()
 
 
     def __iter__(self):
@@ -122,7 +122,7 @@ class Polyline(AxiElement):
         N = len(self.points)
 
         # Check
-        if N < 3:
+        if N < 2:
             return self
 
         # Process
@@ -339,7 +339,7 @@ class Polyline(AxiElement):
         line = geometry.LineString( self.getPoints() )
         poly = line.buffer(offset)
 
-        return Polyline( poly.exterior.coords, stroke_width=self.stroke_width, head_width=self.head_width )
+        return Polyline( list(poly.exterior.coords), stroke_width=self.stroke_width, head_width=self.head_width )
 
 
     def _toShapelyPolygon(self):
@@ -384,21 +384,21 @@ class Polyline(AxiElement):
         if current.area == 0:
             # Otherwise, trying to to insert current.exterior == None
             # into the FlatCAMStorage will fail.
-            return None
+            return Path()
 
         path = Path(stroke_width=self.stroke_width, head_width=self.head_width)
         # current can be a MultiPolygon
         try:
             for p in current:
-                path.add( Polyline( p.exterior.coords ) )
+                path.add( Polyline( list(p.exterior.coords) ) )
                 for i in p.interiors:
                     path.add( Polyline( i.coords ) )
 
         # Not a Multipolygon. Must be a Polygon
         except TypeError:
-            path.add( Polyline( current.exterior.coords ) )
+            path.add( Polyline( list(current.exterior.coords) ) )
             for i in current.interiors:
-                path.add( Polyline( i.coords ) )
+                path.add( Polyline( list(i.coords) ) )
 
         while True:
 
@@ -409,15 +409,15 @@ class Polyline(AxiElement):
                 # current can be a MultiPolygon
                 try:
                     for p in current:
-                        path.add( Polyline( p.exterior.coords ) )
+                        path.add( Polyline( list(p.exterior.coords) ) )
                         for i in p.interiors:
-                            path.add( Polyline( i.coords ) )
+                            path.add( Polyline( list(i.coords) ) )
 
                 # Not a Multipolygon. Must be a Polygon
                 except TypeError:
-                    path.add( Polyline( current.exterior.coords ) )
+                    path.add( Polyline( list(current.exterior.coords) ) )
                     for i in current.interiors:
-                        path.add( Polyline( i.coords ) )
+                        path.add( Polyline( list(i.coords) ) )
             else:
                 break
 
@@ -441,7 +441,10 @@ class Polyline(AxiElement):
 
         line = geometry.LineString(self.getPoints())
         line = line.simplify(tolerance, preserve_topology=False)
-        return Polyline(line.coords, stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width)
+        if line.length > 0:
+            return Polyline( list(line.coords), stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width)
+        else:
+            return Polyline()
 
 
     def getConvexHull(self):
@@ -455,7 +458,7 @@ class Polyline(AxiElement):
 
         polygon = self._toShapelyPolygon()
         # points = [z.tolist() for z in polygon.convex_hull.exterior.coords.xy]
-        return Polyline( polygon.convex_hull.exterior.coords )
+        return Polyline( list(polygon.convex_hull.exterior.coords) )
 
 
     def getPoints(self):

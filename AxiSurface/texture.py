@@ -279,7 +279,7 @@ class Texture(AxiElement):
                 self.data = (x, y + Image.data * 0.0)
 
             else:
-                print("Texture: Masking Image is not a mask but a", element.type)
+                raise Exception("Texture: Masking Image is not a mask but a", element.type)
 
 
     def getPoints(self):

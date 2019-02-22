@@ -100,13 +100,15 @@ class Path(AxiElement):
         if isinstance(other, Path):
             self.path.extend( other.path )
         elif isinstance(other, Polyline):
-            self.path.append( other.getPoints() )
+            points  = other.getPoints() 
+            if len(points) > 1: 
+                self.path.append( points )
         elif isinstance(other, AxiElement):
             self.path.extend( other.getPath() )
         elif isinstance(other, list):
             self.path.append( other )
         else:
-            print("Error, don't know what to do with: ", other)
+            raise Exception("Error, don't know what to do with: ", other)
 
 
     def getPoints(self):
@@ -161,6 +163,9 @@ class Path(AxiElement):
 
 
     def getSorted(self, reversable=True):
+        if len(self.path) < 2:
+            return self
+
         path = self.path[:]
 
         first = path[0]
@@ -175,6 +180,9 @@ class Path(AxiElement):
 
             if reversable:
                 points.append((x2, y2, path, True))
+
+        if len(points) <= 2:
+            return self
 
         index = Index( chain=points )
 
@@ -238,7 +246,8 @@ class Path(AxiElement):
 
         result = Path( head_width=self.head_width, stroke_width=self.stroke_width )
         for points in self.path:
-            result.add( Polyline( points, head_width=self.head_width, stroke_width=self.stroke_width).getSimplify(tolerance) )
+            if len(points) > 1:
+                result.add( Polyline( points, head_width=self.head_width, stroke_width=self.stroke_width).getSimplify(tolerance) )
         return result
 
 
