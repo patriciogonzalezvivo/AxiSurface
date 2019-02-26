@@ -29,8 +29,16 @@ class Index(Bbox):
     
 
     def normalize(self, x, y):
-        px = (x - self.min_x) / (self.max_x - self.min_x)
-        py = (y - self.min_y) / (self.max_y - self.min_y)
+        if self.width == 0.0:
+            px = 0.0
+        else:
+            px = (x - self.min_x) / self.width
+
+        if self.height == 0.0:
+            py = 0.0
+        else:
+            py = (y - self.min_y) / self.height
+            
         i = int(px * self.n)
         j = int(py * self.n)
         return (i, j)

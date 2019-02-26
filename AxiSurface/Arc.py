@@ -222,7 +222,7 @@ class Arc(AxiElement):
     def getPoints(self, **kwargs):
         rx, ry = self.radius
         resolution = max(rx, ry)
-        resolution = int(remap(resolution, 1.0, 180.0, 12.0, 180.0))
+        resolution = int(remap(resolution, 0.0, 180.0, 12.0, 180.0))
         resolution = kwargs.pop('resolution', resolution)
 
         points = []
