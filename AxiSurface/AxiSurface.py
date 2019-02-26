@@ -125,6 +125,7 @@ class AxiSurface(Group):
         line_width = kwargs.pop('line_width', 0.5/scale)
         show_bounds = kwargs.pop('show_bounds', False)
         debug = kwargs.pop('debug', False)
+        optimize = kwargs.pop('optimize', False)
 
         margin *= scale
         width = int(scale * self.width + margin * 2)
@@ -146,6 +147,9 @@ class AxiSurface(Group):
         dc.set_line_width(line_width)
 
         path = self.getPath()
+        
+        if optimize:
+            path = path.getSimplify().getSorted()
 
         lastPoint = [0.0, 0.0]
         for points in path:
