@@ -18,15 +18,7 @@ class Circle(AxiElement):
 
         self._center = np.array(center)
         self._radius = radius
-
-        # Optative
-        resolution = radius
-        if isinstance(radius, list):
-            resolution = max(radius[0], radius[1])
-
-        resolution = remap(resolution, 1.0, 300.0, 12.0, 200.0)
         self.open_angle = kwargs.pop('open_angle', 0)
-        self.resolution = kwargs.pop('resolution', int(resolution))
 
 
     @property
@@ -57,22 +49,31 @@ class Circle(AxiElement):
         return dist < self.radius
 
 
-    def getPoints(self, **kwargs):
+    def getPointPct(self, t):
+        if t > 1.0 or t < 0.0:
+            raise Exception("Circle Point Pct out of range")
+
         rx, ry = self.radius
         cx, cy = self.center
-        resolution = kwargs.pop('resolution', self.resolution)
+        start_angle = self.open_angle * 0.5
+        end_angle = 360.0 - self.open_angle * 0.5
+        
+        angle = start_angle * (1.0 - t) + end_angle * t
+        angle = math.radians(angle + self.rotate)
+        return [ cx + math.cos(angle) * rx, cy + math.sin(angle) * ry ]
+
+
+    def getPoints(self, **kwargs):
+        rx, ry = self.radius
+        
+        resolution = max(rx, ry)
+        resolution = int(remap(resolution, 1.0, 180.0, 36.0, 180.0))
+        resolution = kwargs.pop('resolution', resolution)
         
         points = []
-        deg = 0.0
-        deg = self.open_angle * 0.5
-        step = 360.0/resolution
-        for i in range(int(resolution)+1):
-            if deg > 360 - self.open_angle * 0.5:
-                break
-            a = math.radians(deg + self.rotate)
-            points.append([ cx + math.cos(a) * rx,
-                            cy + math.sin(a) * ry ])
-            deg += step
+        step = 1.0/float(resolution)
+        for i in range(int(resolution+1)):
+            points.append(self.getPointPct( float(i) * step ))
 
         return points
 
@@ -95,7 +96,7 @@ class Circle(AxiElement):
                 rad_y_target = 0.0
 
             while rad_x > rad_x_target or rad_y > rad_y_target:
-                path.append( Circle([cx, cy],[rad_x, rad_y], fill=self.fill, open_angle=self.open_angle, rotate=self.rotate).getPoints() )
+                path.append( Circle([cx, cy],[rad_x, rad_y], open_angle=self.open_angle, rotate=self.rotate).getPoints() )
                 rad_x = max(rad_x - self.head_width, rad_x_target)
                 rad_y = max(rad_y - self.head_width, rad_y_target)
 

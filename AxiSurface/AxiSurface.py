@@ -46,7 +46,9 @@ class AxiSurface(Group):
     def toSVG( self, filename, **kwargs ):
         scale = kwargs.pop('scale', 1.0)
         unit = kwargs.pop('unit', 'mm')
-        sort = kwargs.pop('sorted', False)
+        optimize = kwargs.pop('optimize', False)
+        flip_x = kwargs.pop('flip_x', False)
+        flip_y = kwargs.pop('flip_y', False)
 
         svg_str = '<?xml version="1.0" encoding="utf-8" ?>\n<svg '
         svg_str += 'width="'+ str(self.width) + unit + '" '
@@ -54,8 +56,22 @@ class AxiSurface(Group):
         svg_str += 'viewBox="0,0,'+ str(self.width * scale) + ',' + str(self.height * scale) + '" '
         svg_str += 'baseProfile="tiny" version="1.2" xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" ><defs/>'
         
-        if sort:
-            svg_str += self.getPath().getSorted().getSVGElementString()
+        
+        if optimize:
+            path = self.getPath()
+            path = path.getSimplify().getSorted()
+
+            if flip_x:
+                def flip_onX(x, y):
+                    return (self.width - x, y)
+                path = path.getTransformed(flip_onX)
+
+            if flip_y:
+                def flip_onY(x, y):
+                    return (x, self.height - y)
+                path = path.getTransformed(flip_onY)
+
+            svg_str += path.getSVGElementString()
         else:
             svg_str += self.getSVGElementString()
 
@@ -66,9 +82,25 @@ class AxiSurface(Group):
 
 
     def toGCODE(self, filename, **kwargs ):
+        flip_x = kwargs.pop('flip_x', False)
+        flip_y = kwargs.pop('flip_y', False)
+
         gcode_str = 'M3\n'
         
-        gcode_str += self.getPath().getSorted().getGCodeString(**kwargs)
+        path = self.getPath().getSimplify().getSorted()
+
+        if flip_x:
+            def flip_onX(x, y):
+                return (self.width - x, y)
+            path = path.getTransformed(flip_onX)
+
+        if flip_y:
+            def flip_onY(x, y):
+                return (x, self.height - y)
+            path = path.getTransformed(flip_onY)
+
+        path = path.getTranslated(-self.width*0.5, -self.height*0.5)
+        gcode_str += path.getGCodeString(**kwargs)
 
         gcode_str += "G0 Z10\n"
         gcode_str += "G0 X0 Y0\n"
@@ -78,14 +110,14 @@ class AxiSurface(Group):
             file.write(gcode_str)
 
 
-    def render(self, **kwargs):
+    def toPNG(self, filename,  **kwargs):
         try:
             import cairocffi as cairo
         except ImportError:
             cairo = None
 
         if cairo is None:
-            raise Exception('AxiSurface.render() requires cairo')
+            raise Exception('AxiSurface.toPNG() requires cairo')
 
         sort = kwargs.pop('sort', False)
         scale = kwargs.pop('scale', 20)
@@ -132,5 +164,5 @@ class AxiSurface(Group):
                 dc.line_to(x, y)
                 lastPoint = [x, y]
             dc.stroke()
-        
-        return surface
+
+        surface.write_to_png(filename)

@@ -50,24 +50,16 @@ class Polygon(Polyline):
                     self.addHole(hole)
                 
             # Close it manually 
-            if self.points[0][0] != self.points[-1][0] or self.points[0][1] != self.points[-1][1]:
-                self.points.append(self.points[0])
-            self.isClosed = False
-
-            self._updateCache()
+            self.setClose(True)
 
 
     def addHole(self, points):
         if len(points) > 2:
             if isinstance(points, Polyline):
+                points.setClose(True)
                 self.holes.append( points )
             else:
-                self.holes.append( Polyline(points) )
-            
-            # Must be close
-            if self.holes[-1][0][0] != self.holes[-1][-1][0] or self.holes[-1][0][1] != self.holes[-1][-1][1]:
-                self.holes[-1].points.append( self.holes[-1].points[0] )
-            self.holes[-1].isClosed = False
+                self.holes.append( Polyline(points, close=True) )
         else:
             print("Polygon.addHole(): Not enough points for a hole", points)
 

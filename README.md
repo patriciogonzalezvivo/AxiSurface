@@ -38,4 +38,6 @@ Special thanks to:
 
  * [Paul Butler great](https://paulbutler.org/) for [Surface Projection tutorial](https://bitaesthetics.com/posts/surface-projection.html) and [PenKit]() https://github.com/paulgb/penkit/) both of witch I took some code in (`shading.py`).
 
- * [Michael Fogleman](https://www.michaelfogleman.com/) [Axi](https://github.com/fogleman/axi) repo
+ * [Michael Fogleman](https://www.michaelfogleman.com/): for [Axi](https://github.com/fogleman/axi)
+
+ * [Mat Handy](https://github.com/mathandy): for [SVGPathTools](https://github.com/mathandy/svgpathtools/)

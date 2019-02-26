@@ -20,25 +20,25 @@ class Polyline(AxiElement):
         self.tangents = []
         self.lengths = []
         self.holes = None
-        self.isClosed = kwargs.pop('isClosed', False) 
+        self.dirty = True
         self.anchor = kwargs.pop('anchor', [0.0, 0.0])
 
         if points != None:            
             if isinstance(points, Polyline):
                 self.points = points.points
+                self.dirty = points.dirty
+                self.close = kwargs.pop('close', points.close)
+
                 self.translate = kwargs.pop('translate', points.translate)
                 self.scale = kwargs.pop('scale', points.scale)
                 self.rotate = kwargs.pop('rotate', points.rotate)
                 self.stroke_width = kwargs.pop('stroke_width', points.stroke_width)
                 self.head_width = kwargs.pop('head_width', points.head_width)
                 self.fill = kwargs.pop('fill', points.fill)
-
-                self.isClosed = kwargs.pop('isClosed', points.isClosed) 
                 self.anchor = kwargs.pop('anchor', points.anchor) 
             else:
                 self.points = points
-        
-            self._updateCache()
+                self.close = kwargs.pop('close', False)
 
 
     def __iter__(self):
@@ -141,8 +141,7 @@ class Polyline(AxiElement):
         self.normals.append(normal)
         self.tangents.append(tangent)
 
-        if self.isClosed:
-            self.lengths.append(length)
+        self.dirty = False
 
 
     def size(self):
@@ -151,15 +150,27 @@ class Polyline(AxiElement):
 
     def lineTo( self, pos ):
         self.points.append( pos )
-        self._updateCache()
+        self.dirty = True
 
 
     def setClose(self, close):
-        self.isClosed = close
-        self._updateCache()
+        if self.points[0][0] == self.points[-1][0] and self.points[0][1] == self.points[-1][1]:
+            if not close:
+                # If it's closed and shouldn't be delete the last one
+                del self.points[-1]
+                self.dirty = True
+        else:
+            if close:
+                # If it's not closed and need to be close
+                self.points.append( self.points[0] )
+                self.dirty = True
+        self.close = close 
 
 
     def getPerimeter(self):
+        if self.dirty:
+            self._updateCache()
+
         if len(self.lengths) < 1:
             return 0
         return self.lengths[-1]
@@ -169,7 +180,8 @@ class Polyline(AxiElement):
         totalLength = self.getPerimeter()
         length = max(min(length, totalLength), 0)
     
-        lastPointIndex =  (len(self.points) - 1, len(self.points))[self.isClosed]
+        # lastPointIndex = (len(self.points) - 1, len(self.points))[self.isClosed]
+        lastPointIndex = len(self.points) - 1
 
         i1 = max(min(int(math.floor(length / totalLength * lastPointIndex)), len(self.lengths)-2), 0) # start approximation here
         leftLimit = 0
@@ -208,10 +220,10 @@ class Polyline(AxiElement):
             return 0
     
         if index < 0: 
-            return  (0, int(index + len(self.points)) % int(len(self.points) - 1) )[self.isClosed]
+            return  (0, int(index + len(self.points)) % int(len(self.points) - 1) )[self.close]
 
         if index > len(self.points)-1:
-            return  (len(self.points) - 1, int(index) % len(self.points))[self.isClosed]
+            return  (len(self.points) - 1, int(index) % len(self.points))[self.close]
 
         return int(index)
 
@@ -233,6 +245,9 @@ class Polyline(AxiElement):
     def getNormalAtIndex(self, index):
         if self.points.size() < 2:
             return self
+
+        if self.dirty:
+            self._updateCache()
 
         if self.isTranformed:
             return transform(p, self.normals[ self.getWrappedIndex(index) ], rotate=self.rotate )
@@ -268,19 +283,19 @@ class Polyline(AxiElement):
         if spacing==0 or (self.points) == 0:
             return self
 
-        poly = Polyline( stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width )
+        poly = Polyline( stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width, close=self.close )
         totalLength = self.getPerimeter()
         f = 0.0
         while f < totalLength:
             poly.lineTo( self.getPointAtLength(f) )
             f += spacing
 
-        if not self.isClosed:
-            if poly.size() > 0:
-                poly.points[-1] = self.points[-1]
-                self.isClosed = False
-            else:
-                self.isClosed = True
+        # if not self.isClosed:
+        #     if poly.size() > 0:
+        #         poly.points[-1] = self.points[-1]
+        #         self.isClosed = False
+        #     else:
+        #         self.isClosed = True
         
         return poly
 
@@ -297,10 +312,13 @@ class Polyline(AxiElement):
         if offset == 0 or (self.points) <= 2:
             return self
 
+        if self.dirty:
+            self._updateCache()
+
         points = []
 
         if self.size() < 2:
-            return Polyline(points)
+            return Polyline(points, stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width, close=self.close)
 
         for i in range(self.size()):
             width = offset
@@ -318,28 +336,7 @@ class Polyline(AxiElement):
             p = [self.points[i][0] + miter[0] * width,
                  self.points[i][1] + miter[1] * width]
             points.append( transform(p, rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.anchor) )
-        return Polyline(points, stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width)
-
-        
-    def getBuffer(self, offset):
-        if offset <= 0:
-            return self
-
-        try:
-            from shapely import geometry
-        except ImportError:
-            geometry = None
-
-        if geometry is None:
-            raise Exception('Polyline.getBuffer() requires Shapely')
-
-        if len(self.points) < 2:
-            return self
-
-        line = geometry.LineString( self.getPoints() )
-        poly = line.buffer(offset)
-
-        return Polyline( list(poly.exterior.coords), stroke_width=self.stroke_width, head_width=self.head_width )
+        return Polyline(points, stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width, close=self.close)
 
 
     def _toShapelyPolygon(self):
@@ -349,37 +346,75 @@ class Polyline(AxiElement):
             geometry = None
 
         if geometry is None:
-            raise Exception('This requires Shapely module')
+            raise Exception('To convert a Polyline to a Shapely Polygon requires shapely. Try: pip install shapely')
 
         holes=[]
         if self.holes != None:            
             for hole in self.holes:
-                holes.append( Polyline(hole) )
+                holes.append( Polyline(hole, close=True) )
         return geometry.Polygon( self.getPoints(), holes=holes )
 
 
+    def _toShapelyLineString(self):
+        try:
+            from shapely import geometry
+        except ImportError:
+            geometry = None
+
+        if geometry is None:
+            raise Exception('To convert a Polyline to a Shapely LineString requires shapely. Try: pip install shapely')
+
+        return geometry.LineString(self.getPoints())
+
+
+    def getBuffer(self, offset):
+        if offset <= 0:
+            return self
+
+        if len(self.points) < 2:
+            return self
+
+        poly = self._toShapelyLineString().buffer(offset)
+        return Polyline( list(poly.exterior.coords), stroke_width=self.stroke_width, head_width=self.head_width, close=self.close )
+
+
+    def getSimplify(self, tolerance = None):
+        if len(self.points) < 2:
+            return self
+
+        if tolerance is None:
+            tolerance = self.head_width * 0.1
+
+        line = self._toShapelyLineString().simplify(tolerance, preserve_topology=False)
+        if line.length > 0:
+            return Polyline( list(line.coords), stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width)
+        else:
+            return Polyline()
+
+
+    def getConvexHull(self):
+        if len(self.points) < 3:
+            return Polyline()
+
+        polygon = self._toShapelyPolygon()
+        return Polyline( list(polygon.convex_hull.exterior.coords) )
+
+
     def getFillPath(self, **kwargs ):
+        from .Path import Path
+
         # From FlatCam
         # https://bitbucket.org/jpcgt/flatcam/src/46454c293a9b390c931b52eb6217ca47e13b0231/camlib.py?at=master&fileviewer=file-view-default#camlib.py-478
         tooldia = kwargs.pop('tooldia', self.head_width)
         overlap = kwargs.pop('overlap', 0.15 )
         optimize_lifts = kwargs.pop('optimize_lifts', False )
 
-        try:
-            from .Path import Path
-            from shapely import geometry
-        except ImportError:
-            geometry = None
-
-        if geometry is None:
-            raise Exception('Polyline.getFillPath() requires Shapely')
-
         if len(self.points) < 3:
             return self
 
         polygon = self._toShapelyPolygon()
         
-         # Can only result in a Polygon or MultiPolygon
+        # Can only result in a Polygon or MultiPolygon
         # NOTE: The resulting polygon can be "empty".
         current = polygon.buffer(-tooldia / 2.0)
         if current.area == 0:
@@ -426,43 +461,62 @@ class Polyline(AxiElement):
             return path.getSimplify().getSorted().getJoined(boundary=polygon)
         else:
             return path.getSimplify().getSorted().getJoined()
-        
-
-    def getSimplify(self, tolerance = None):
-        try:
-            from shapely import geometry
-        except ImportError:
-            geometry = None
-
-        if geometry is None:
-            raise Exception('Polyline.getSimplify() requires Shapely')
-
-        if len(self.points) < 2:
-            return self
-
-        if tolerance is None:
-            tolerance = self.head_width * 0.1
-
-        line = geometry.LineString(self.getPoints())
-        line = line.simplify(tolerance, preserve_topology=False)
-        if line.length > 0:
-            return Polyline( list(line.coords), stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width)
-        else:
-            return Polyline()
 
 
-    def getConvexHull(self):
-        try:
-            from shapely import geometry
-        except ImportError:
-            geometry = None
+    def getCroppedPath(self, bounds=None, **kwargs ):
+        x1 = kwargs.pop('x', 0.0)
+        y1 = kwargs.pop('y', 0.0)
+        x2 = x1 + kwargs.pop('width', 297.0)
+        y2 = y2 + kwargs.pop('height', 420.0)
 
-        if geometry is None:
-            raise Exception('Polyline.getConvexHull() requires Shapely')
+        if bounds != None:
+            from Bbox import Bbox
+            if isinstance(bounds, Bbox):
+                x1 = bounds.min_x
+                y1 = bounds.min_y
+                x2 = bounds.max_x
+                y2 = bounds.max_y
 
-        polygon = self._toShapelyPolygon()
-        # points = [z.tolist() for z in polygon.convex_hull.exterior.coords.xy]
-        return Polyline( list(polygon.convex_hull.exterior.coords) )
+        def crop_interpolate(x1, y1, x2, y2, ax, ay, bx, by):
+            dx = bx - ax
+            dy = by - ay
+            t1 = (x1 - ax) / dx if dx else -1
+            t2 = (y1 - ay) / dy if dy else -1
+            t3 = (x2 - ax) / dx if dx else -1
+            t4 = (y2 - ay) / dy if dy else -1
+            ts = [t1, t2, t3, t4]
+            ts = [t for t in ts if t >= 0 and t <= 1]
+            t = min(ts)
+            x = ax + (bx - ax) * t
+            y = ay + (by - ay) * t
+            return (x, y)
+
+        points = self.getPoints()
+        e = 1e-9
+        result = []
+        buf = []
+        previous_point = None
+        previous_inside = False
+        for x, y in points:
+            inside = x >= x1 - e and y >= y1 - e and x <= x2 + e and y <= y2 + e
+            if inside:
+                if not previous_inside and previous_point:
+                    px, py = previous_point
+                    ix, iy = crop_interpolate(x1, y1, x2, y2, x, y, px, py)
+                    buf.append([ix, iy])
+                buf.append([x, y])
+            else:
+                if previous_inside and previous_point:
+                    px, py = previous_point
+                    ix, iy = crop_interpolate(x1, y1, x2, y2, x, y, px, py)
+                    buf.append([ix, iy])
+                    result.append(buf)
+                    buf = []
+            previous_point = [x, y]
+            previous_inside = inside
+        if buf:
+            result.append(buf)
+        return Path(result, head_width=self.head_width, stroke_width=self.stroke_width)
 
 
     def getPoints(self):
@@ -470,17 +524,9 @@ class Polyline(AxiElement):
             points = []
             for p in self.points:
                 points.append( transform(p, rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.anchor) )
-
-            if self.isClosed:
-                points.append( transform(self.points[0], rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.anchor) )
             return points
         else:
-            if self.isClosed:
-                points = self.points[:]
-                points.append( self.points[0] )
-                return points
-            else:
-                return self.points
+            return self.points
 
 
     def getPath(self):
@@ -508,4 +554,3 @@ class Polyline(AxiElement):
                 path.add( poly.getPath() )
 
         return path
-
