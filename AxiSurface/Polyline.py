@@ -503,11 +503,6 @@ class Polyline(AxiElement):
         return indices
 
 
-    def getSplitedPath(self, other, **kwargs):
-        
-
-
-
     def getCroppedPath(self, bounds=None, **kwargs ):
         x1 = kwargs.pop('x', 0.0)
         y1 = kwargs.pop('y', 0.0)

@@ -50,8 +50,8 @@ class Line(AxiElement):
         return linesIntersection(self.start, self.end, line.start, line.end )
 
 
-        def _toShapelyGeom(self):
-        return _toShapelyPolygon(self)
+    def _toShapelyGeom(self):
+        return self._toShapelyLineString()
 
     def _toShapelyLineString(self):
         try:
