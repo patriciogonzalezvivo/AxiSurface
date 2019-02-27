@@ -238,6 +238,7 @@ def pointInside( pos, points ):
 
 # https://github.com/openframeworks/openFrameworks/blob/master/libs/openFrameworks/math/ofMath.h#L435
 def linesIntersection(line1Start, line1End, line2Start, line2End):
+    intersection = [0.0, 0.0]
     diffLA = np.array(line1End) - np.array(line1Start)
     compareA = diffLA[0] * line1Start[1] - diffLA[1] * line1Start[0]
     if ( ( diffLA[0]*line2Start[1] - diffLA[1]*line2Start[0] ) < compareA ) ^ ( ( diffLA[0]*line2End[1] - diffLA[1]*line2End[0] ) < compareA ):

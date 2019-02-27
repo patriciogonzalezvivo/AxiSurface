@@ -34,6 +34,10 @@ class Path(AxiElement):
         self._down_length = None
 
 
+    def __len__(self):
+        return len(self.path)
+
+
     def __iter__(self):
         self._index = 0
         return self
@@ -109,6 +113,12 @@ class Path(AxiElement):
             self.path.append( other )
         else:
             raise Exception("Error, don't know what to do with: ", other)
+
+    # def substract(self, other):
+    #     from .Polyline import Polyline
+    #     from .Polygon import Polygon
+
+    #     # if isinstance(other, Polygon):
 
 
     def getPoints(self):

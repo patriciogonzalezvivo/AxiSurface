@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 
 import math
 from .Polyline import Polyline
+from .tools import pointInside
 
 class Polygon(Polyline):
     def __init__( self, points=None, holes=None, **kwargs):
@@ -62,4 +63,16 @@ class Polygon(Polyline):
                 self.holes.append( Polyline(points, close=True) )
         else:
             print("Polygon.addHole(): Not enough points for a hole", points)
+
+    
+    def inside( self, pos ):
+        if pointInside( pos, self.getPoints() ):
+            in_hole = 0
+            for hole in self.holes:
+                if hole.inside(pos):
+                    in_hole += 1
+            if in_hole == 0:
+                return True
+
+        return False
 

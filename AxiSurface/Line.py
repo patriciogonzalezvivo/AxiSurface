@@ -50,6 +50,21 @@ class Line(AxiElement):
         return linesIntersection(self.start, self.end, line.start, line.end )
 
 
+        def _toShapelyGeom(self):
+        return _toShapelyPolygon(self)
+
+    def _toShapelyLineString(self):
+        try:
+            from shapely import geometry
+        except ImportError:
+            geometry = None
+
+        if geometry is None:
+            raise Exception('To convert a Polyline to a Shapely LineString requires shapely. Try: pip install shapely')
+
+        return geometry.LineString([self.start, self.end])
+
+
     def getPoints(self):
         return [self.start, self.end]
 

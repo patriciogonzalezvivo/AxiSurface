@@ -262,6 +262,11 @@ class Texture(AxiElement):
     def mask(self, element, width=None, height=None):
         x, y = self.data
 
+        if width == None:
+            width = self.width
+        if height == None:
+            height = self.height
+
         from .Polyline import Polyline
         if isinstance(element, Polyline):
             N = x.shape[0]
@@ -280,6 +285,36 @@ class Texture(AxiElement):
 
             else:
                 raise Exception("Texture: Masking Image is not a mask but a", element.type)
+
+
+    def substract(self, element, width=None, height=None):
+        x, y = self.data
+
+        if width == None:
+            width = self.width
+        if height == None:
+            height = self.height
+
+
+
+        from .Polyline import Polyline
+        if isinstance(element, Polyline):
+            N = x.shape[0]
+            z = np.zeros(N)
+            for i in range(N):
+                if np.isnan(x[i]) or np.isnan(y[i]):
+                    continue
+                pos = [x[i] * width, y[i] * height]
+                if element.inside(pos):
+                    z[i] = np.nan
+            self.data = (x, y + z)
+
+        # elif isinstance(element, Image):
+        #     if element.type == "mask":
+        #         self.data = (x, y + Image.data * 0.0)
+
+        #     else:
+        #         raise Exception("Texture: Masking Image is not a mask but a", element.type)
 
 
     def getPoints(self):

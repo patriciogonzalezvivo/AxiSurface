@@ -10,7 +10,7 @@ import math
 import numpy as np
 
 from .AxiElement import AxiElement
-from .tools import lerp, distance, remap, transform, normalize, perpendicular, clamp, dot
+from .tools import lerp, distance, remap, transform, normalize, perpendicular, clamp, dot, linesIntersection
 
 class Polyline(AxiElement):
     def __init__( self, points=None, **kwargs):
@@ -39,6 +39,10 @@ class Polyline(AxiElement):
             else:
                 self.points = points
                 self.close = kwargs.pop('close', False)
+
+
+    def __len__(self):
+        return len(self.points)
 
 
     def __iter__(self):
@@ -339,6 +343,13 @@ class Polyline(AxiElement):
         return Polyline(points, stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width, close=self.close)
 
 
+    def _toShapelyGeom(self):
+        if self.close:
+            return self._toShapelyPolygon()
+        else:
+            return self._toShapelyLineString()
+
+
     def _toShapelyPolygon(self):
         try:
             from shapely import geometry
@@ -461,6 +472,40 @@ class Polyline(AxiElement):
             return path.getSimplify().getSorted().getJoined(boundary=polygon)
         else:
             return path.getSimplify().getSorted().getJoined()
+
+
+    def getIntersections(self, other):
+        indices = []
+
+        from .Line import Line
+
+        if isinstance(other, Line):
+            points = self.getPoints()
+            prev_point = points[0]
+            index = 0
+            for point in points[1:]:
+                intersection = linesIntersection(prev_point, point, other.start, other.end)
+                if intersection:
+                    pct = distance(prev_point, intersection) / distance(prev_point, point)
+                    indices.append( index + pct )
+                prev_point = point
+                index += 1.0
+        elif isinstance(other, Polyline):
+            points = other.getPoints()
+            other_prev_point = points[0]
+            for other_point in points[1:]:
+                indices.extend( self.getIntersections(Line(other_prev_point, other_point)) )
+                other_prev_point = other_point
+
+        # TODO:
+        #      - Intersections w Arcs, Circles, Rects, Hexagons and Polygons w Holes
+
+        return indices
+
+
+    def getSplitedPath(self, other, **kwargs):
+        
+
 
 
     def getCroppedPath(self, bounds=None, **kwargs ):
