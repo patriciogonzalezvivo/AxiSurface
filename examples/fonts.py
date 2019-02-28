@@ -20,15 +20,18 @@ fonts_names = ['ASTROLOGY', 'CURSIVE', 'CYRILC_1', 'CYRILLIC', 'FUTURAL', 'FUTUR
 axi = AxiSurface()
 
 def charRow(y, font_index):
-    x = MARGIN
-    axi.text( fonts_names[font_index], [WIDTH*0.1, y + 5], scale=0.15)
+    axi.text( fonts_names[font_index], [WIDTH*0.1, y + 5], scale=0.1, stroke_width=2.0)
     y += 10
+    str_line = ""
     for i in range(32, 128):
         if i == 91:
-            x = MARGIN * 2.0
+            axi.text(str_line, [WIDTH*0.5,y], scale=0.15, font=fonts[font_index])
             y += 5
-        t = axi.text( chr(i), [x,y], scale=0.1, font=fonts[font_index])
-        x += t.getWidth() * 2.0
+            str_line = ""
+
+        str_line += chr(i)
+    axi.text(str_line, [WIDTH*0.5,y], scale=0.15, font=fonts[font_index])
+    
     
 
 y = MARGIN

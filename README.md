@@ -1,6 +1,22 @@
 # AxiSurface
 
-Simple Python 2/3 module to make line SVG images for plotting
+Python 2/3 module to make 100% vector line compositions and export them as SVG or G-Code files. Made and tested for AxiDrawer plotter and SnapMaker CNC
+
+Special thanks to:
+
+ * [Michael Fogleman](https://www.michaelfogleman.com/): for [Axi](https://github.com/fogleman/axi) witch mostly of the `Path.py` class is based on
+
+ * [Paul Butler great](https://paulbutler.org/) for [Surface Projection tutorial](https://bitaesthetics.com/posts/surface-projection.html) witch `Texture.py` is based on
+
+ * [Mat Handy](https://github.com/mathandy): for [SVGPathTools](https://github.com/mathandy/svgpathtools/) witch `Arc.py` is based on
+
+ * [Evil Mad Scientist](https://www.evilmadscientist.com/) for the great Axidrawer
+
+
+![](example/elements.png)
+![](example/polyline.png)
+![](example/image.png)
+
 
 ## Install
 
@@ -29,15 +45,3 @@ Or use the Makefile by:
 ```bash
 make install
 ```
-
-# Acknowledgement
-
-Special thanks to:
-
- * [Evil Mad Scientist](https://www.evilmadscientist.com/) for the great Axidrawer and the Paths of the Hershey Fonts in (`hersheydata.py`)
-
- * [Paul Butler great](https://paulbutler.org/) for [Surface Projection tutorial](https://bitaesthetics.com/posts/surface-projection.html) and [PenKit]() https://github.com/paulgb/penkit/) both of witch I took some code in (`shading.py`).
-
- * [Michael Fogleman](https://www.michaelfogleman.com/): for [Axi](https://github.com/fogleman/axi)
-
- * [Mat Handy](https://github.com/mathandy): for [SVGPathTools](https://github.com/mathandy/svgpathtools/)
