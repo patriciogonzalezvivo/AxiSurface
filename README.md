@@ -13,9 +13,9 @@ Special thanks to:
  * [Evil Mad Scientist](https://www.evilmadscientist.com/) for the great Axidrawer
 
 
-![](example/elements.png)
-![](example/polyline.png)
-![](example/image.png)
+![](examples/elements.png)
+![](examples/polyline.png)
+![](examples/image.png)
 
 
 ## Install
