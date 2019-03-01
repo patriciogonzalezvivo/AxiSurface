@@ -83,23 +83,27 @@ class AxiSurface(Group):
 
     def toGCODE(self, filename, **kwargs ):
         flip_x = kwargs.pop('flip_x', False)
-        flip_y = kwargs.pop('flip_y', False)
+        flip_y = kwargs.pop('flip_y', True)
+        auto_center = kwargs.pop('auto_center', True)
 
         gcode_str = 'M3\n'
         
         path = self.getPath().getSimplify().getSorted()
 
+        if auto_center:
+            path = path.getCentered(self.width, self.height)
+            path = path.getTranslated(-self.width*0.5, -self.height*0.5)
+
         if flip_x:
             def flip_onX(x, y):
-                return (self.width - x, y)
+                return (-x, y)
             path = path.getTransformed(flip_onX)
 
         if flip_y:
             def flip_onY(x, y):
-                return (x, self.height - y)
+                return (x, -y)
             path = path.getTransformed(flip_onY)
 
-        path = path.getTranslated(-self.width*0.5, -self.height*0.5)
         gcode_str += path.getGCodeString(**kwargs)
 
         gcode_str += "G0 Z10\n"

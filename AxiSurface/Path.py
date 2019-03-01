@@ -356,7 +356,7 @@ class Path(AxiElement):
 
     def getGCodeString(self, **kwargs):
         head_up_height = kwargs.pop('head_up_height', 3)
-        head_down_height = kwargs.pop('head_down_height', 1)
+        head_down_height = kwargs.pop('head_down_height', -0.5)
         head_up_speed = kwargs.pop('head_up_speed', 800)
         head_down_speed = kwargs.pop('head_down_speed', 500)
         move_speed = kwargs.pop('move_speed', 300)
