@@ -37,10 +37,19 @@ class AxiElement(object):
         return []
 
 
+    def getBuffer(self, offset):
+        if offset <= 0:
+            import copy
+            return copy.copy(self)
+            
+        return Polyline( self.getPoints(), stroke_width=self.stroke_width, head_width=self.head_width ).getBuffer(offset)
+
+
     def getPath(self):
         # raise Exception('getPath(): Function not declare. Going with a simple convertion of the getPoints() to a Path')
         from .Path import Path
         return Path([ self.getPoints() ])
+
 
     @property
     def bounds(self):

@@ -384,7 +384,7 @@ class Path(AxiElement):
                 p = point[:]
                 if transformed:
                     p = transform(p, translate=self.translate, scale=self.scale, rotate=self.rotate)
-                gcode_str += "G1 X%0.1f Y%0.1f\n" % (p[0], p[1])
+                gcode_str += "G1 X%0.1f Y%0.1f" % (p[0], p[1])
 
                 if first:
                     gcode_str += " F" + str(move_speed)

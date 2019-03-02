@@ -71,6 +71,14 @@ class Rectangle(AxiElement):
         return points
 
 
+    def getBuffer(self, offset):
+        if offset <= 0:
+            import copy
+            return copy.copy(self)
+
+        return Rectangle( self.center, [self.radius[0] * 2.0 + offset, self.radius[1] * 2.0 + offset], stroke_width=self.stroke_width, head_width=self.head_width )
+
+
     def getPath(self):
         from .Path import Path
         

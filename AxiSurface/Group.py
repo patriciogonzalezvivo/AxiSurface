@@ -111,13 +111,40 @@ class Group(AxiElement):
         return points
 
 
-    def getPath(self):
+    def getPath(self, **kwargs):
+        import copy
+
         path = Path()
         for el in self.elements:
             if isinstance(el, Path ):
                 path.add( el )
             else:
-                path.add( el.getPath() )
+                if len(kwargs.items()) > 0:
+                    tmp = copy.copy(el)
+                    for key in kwargs:
+                        tmp.__dict__[key] = kwargs[key]
+                        print(key, tmp.__dict__[key])
+                    path.add( tmp.getPath() )
+                else:
+                    path.add( el.getPath() )
+        return path
+
+
+    def getBufferPath(self, offset, **kwargs):
+        import copy
+
+        path = Path()
+        for el in self.elements:
+            if isinstance(el, Path ):
+                path.add( el )
+            else:
+
+                tmp = el.getBuffer(offset)
+                for key in kwargs:
+                    tmp.__dict__[key] = kwargs[key]
+                    print(key, tmp.__dict__[key])
+                path.add( tmp.getPath() )
+
         return path
 
 

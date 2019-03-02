@@ -104,6 +104,10 @@ class Text(AxiElement):
         return points
 
 
+    def getBuffer(self, offset):
+        return copy.copy(self)
+
+
     def getPath(self):
         path = Path()
         polys = self.getPolylines()

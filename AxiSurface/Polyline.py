@@ -416,8 +416,9 @@ class Polyline(AxiElement):
 
         # From FlatCam
         # https://bitbucket.org/jpcgt/flatcam/src/46454c293a9b390c931b52eb6217ca47e13b0231/camlib.py?at=master&fileviewer=file-view-default#camlib.py-478
-        tooldia = kwargs.pop('tooldia', self.head_width)
+        head_width = kwargs.pop('head_width', self.head_width)
         overlap = kwargs.pop('overlap', 0.15 )
+        offset = kwargs.pop('offset', 0.0 )
         optimize_lifts = kwargs.pop('optimize_lifts', False )
 
         if len(self.points) < 3:
@@ -427,13 +428,13 @@ class Polyline(AxiElement):
         
         # Can only result in a Polygon or MultiPolygon
         # NOTE: The resulting polygon can be "empty".
-        current = polygon.buffer(-tooldia / 2.0)
+        current = polygon.buffer(-head_width / 2.0 - offset)
         if current.area == 0:
             # Otherwise, trying to to insert current.exterior == None
             # into the FlatCAMStorage will fail.
             return Path()
 
-        path = Path(stroke_width=self.stroke_width, head_width=self.head_width)
+        path = Path(stroke_width=self.stroke_width, head_width=head_width)
         # current can be a MultiPolygon
         try:
             for p in current:
@@ -450,7 +451,7 @@ class Polyline(AxiElement):
         while True:
 
             # Can only result in a Polygon or MultiPolygon
-            current = current.buffer(-tooldia * (1 - overlap))
+            current = current.buffer(-head_width * (1 - overlap))
             if current.area > 0:
 
                 # current can be a MultiPolygon
