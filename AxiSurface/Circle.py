@@ -86,7 +86,7 @@ class Circle(AxiElement):
         return Circle( self.center, [self.radius[0] + offset, self.radius[1] + offset], stroke_width=self.stroke_width, head_width=self.head_width )
 
 
-    def getPath(self):
+    def getStrokePath(self, **kwargs):
         from .Path import Path
         
         cx, cy = self.center
@@ -99,9 +99,30 @@ class Circle(AxiElement):
             rad_x_target = rx - (self.stroke_width * self.head_width) * 0.5
             rad_y_target = ry - (self.stroke_width * self.head_width) * 0.5
 
-            if self.fill:
-                rad_x_target = 0.0
-                rad_y_target = 0.0
+            while rad_x > rad_x_target or rad_y > rad_y_target:
+                path.append( Circle([cx, cy],[rad_x, rad_y], open_angle=self.open_angle, rotate=self.rotate).getPoints() )
+                rad_x = max(rad_x - self.head_width, rad_x_target)
+                rad_y = max(rad_y - self.head_width, rad_y_target)
+
+        else:
+            path.append(self.getPoints())
+
+        return Path(path)
+
+
+    def getFillPath(self, **kwargs):
+        from .Path import Path
+        
+        cx, cy = self.center
+        rx, ry = self.radius
+
+        path = []
+        if self.stroke_width > self.head_width or self.fill:
+            rad_x = rx - (self.stroke_width * self.head_width) * 0.5
+            rad_y = ry - (self.stroke_width * self.head_width) * 0.5
+
+            rad_x_target = 0.0
+            rad_y_target = 0.0
 
             while rad_x > rad_x_target or rad_y > rad_y_target:
                 path.append( Circle([cx, cy],[rad_x, rad_y], open_angle=self.open_angle, rotate=self.rotate).getPoints() )
@@ -112,6 +133,34 @@ class Circle(AxiElement):
             path.append(self.getPoints())
 
         return Path(path)
+
+
+    # def getPath(self, **kwargs):
+    #     from .Path import Path
+        
+    #     cx, cy = self.center
+    #     rx, ry = self.radius
+
+    #     path = []
+    #     if self.stroke_width > self.head_width or self.fill:
+    #         rad_x = rx + (self.stroke_width * self.head_width) * 0.5
+    #         rad_y = ry + (self.stroke_width * self.head_width) * 0.5
+    #         rad_x_target = rx - (self.stroke_width * self.head_width) * 0.5
+    #         rad_y_target = ry - (self.stroke_width * self.head_width) * 0.5
+
+    #         if self.fill:
+    #             rad_x_target = 0.0
+    #             rad_y_target = 0.0
+
+    #         while rad_x > rad_x_target or rad_y > rad_y_target:
+    #             path.append( Circle([cx, cy],[rad_x, rad_y], open_angle=self.open_angle, rotate=self.rotate).getPoints() )
+    #             rad_x = max(rad_x - self.head_width, rad_x_target)
+    #             rad_y = max(rad_y - self.head_width, rad_y_target)
+
+    #     else:
+    #         path.append(self.getPoints())
+
+    #     return Path(path)
 
 
     # def getSVGElementString(self):

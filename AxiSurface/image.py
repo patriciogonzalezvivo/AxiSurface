@@ -9,8 +9,6 @@ from __future__ import unicode_literals
 import numpy as np
 from PIL import Image as PILImage
 
-from .AxiElement import AxiElement
-
 def normalise(im):
     """Normalize an image matrix from 0 - 255 to 0.0 - 1.0f range at 64bit  
     """
@@ -63,7 +61,7 @@ def load_normalmap(filename):
     return load_image_rgb(filename) * 2.0 - 1.0
 
 
-class Image(AxiElement):
+class Image(object):
     def __init__( self, data, type='grayscale' ):
         self.filename = "nan"
         self.type = type

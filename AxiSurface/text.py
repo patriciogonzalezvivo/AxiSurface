@@ -104,16 +104,50 @@ class Text(AxiElement):
         return points
 
 
+    def _toShapelyGeom(self):
+        try:
+            from shapely import geometry
+        except ImportError:
+            geometry = None
+
+        if geometry is None:
+            raise Exception('To convert a Text to a Shapely MultiPolygon requires shapely. Try: pip install shapely')
+
+        polys = self.getPolylines( stroke_width=self.head_width )
+        polygons = []
+        for poly in polys:
+            polygons.append( poly._toShapelyLineString() )
+
+        return geometry.MultiPolygons( polygons )
+
+
     def getBuffer(self, offset):
-        return copy.copy(self)
+        if offset <= 0.0:
+            return copy.copy(self)
 
+        from .Polygon import Polygon
 
-    def getPath(self):
+        polys = self.getPolylines( stroke_width=self.head_width )
+        polygons = []
+        for poly in polys:
+            polygons.append( poly._toShapelyLineString().buffer(offset) )
+
+        from shapely.ops import cascaded_union
+
+        buf = cascaded_union(polygons)
         path = Path()
-        polys = self.getPolylines()
+        for ring in buf:
+            path.add( Polygon( list(ring.exterior.coords) ) )
+
+        return path
+        
+
+    def getStrokePath(self, **kwargs):
+        path = Path()
+        polys = self.getPolylines(**kwargs)
 
         for poly in polys:
-            path.add( poly.getPath() )
+            path.add( poly.getStrokePath(**kwargs) )
 
         return path
 

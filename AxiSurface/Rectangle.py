@@ -79,7 +79,7 @@ class Rectangle(AxiElement):
         return Rectangle( self.center, [self.radius[0] * 2.0 + offset, self.radius[1] * 2.0 + offset], stroke_width=self.stroke_width, head_width=self.head_width )
 
 
-    def getPath(self):
+    def getStrokePath(self, **kwargs):
         from .Path import Path
         
         cx, cy = self.center
@@ -92,9 +92,29 @@ class Rectangle(AxiElement):
             width_target = rx * 2.0 - (self.stroke_width * self.head_width)
             height_target = ry * 2.0 - (self.stroke_width * self.head_width)
 
-            if self.fill:
-                width_target = 0.0
-                height_target = 0.0
+            while width > width_target or height > height_target:
+                path.append( Rectangle([cx, cy], [width, height], fill=self.fill, rotate=self.rotate).getPoints() )
+                width = max(width - self.head_width * 2.0, width_target)
+                height = max(height - self.head_width * 2.0, height_target)
+
+        else:
+            path.append( self.getPoints() )
+        return Path(path)
+
+    
+    def getFillPath(self, **kwargs):
+        from .Path import Path
+        
+        cx, cy = self.center
+        rx, ry = self.radius 
+
+        path = []
+        if self.stroke_width > self.head_width or self.fill:
+            width = rx * 2.0 - (self.stroke_width * self.head_width)
+            height = ry * 2.0 - (self.stroke_width * self.head_width)
+
+            width_target = 0.0
+            height_target = 0.0
 
             while width > width_target or height > height_target:
                 path.append( Rectangle([cx, cy], [width, height], fill=self.fill, rotate=self.rotate).getPoints() )

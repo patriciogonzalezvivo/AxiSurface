@@ -233,6 +233,22 @@ class Arc(AxiElement):
         return points
 
 
+    def _toShapelyGeom(self):
+        try:
+            from shapely import geometry
+        except ImportError:
+            geometry = None
+
+        if geometry is None:
+            raise Exception('To convert an Arc to a Shapely LineString requires shapely. Try: pip install shapely')
+
+        return geometry.LineString( self.getPoints() )
+
+
+    def getStrokePath(self, **kwargs):
+        from .Path import Path
+        return Polyline(self.getPoints(**kwargs), stroke_width=self.stroke_width, head_width=self.head_width).getStrokePath(**kwargs)
+
     # def getSVGElementString(self):
     #     rx = self.radius[0]
     #     ry = self.radius[1]

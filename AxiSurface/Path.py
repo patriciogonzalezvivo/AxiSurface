@@ -16,9 +16,11 @@ from .tools import path_length, transform
 # Mostly rom Axi by Michael Fogleman
 # https://github.com/fogleman/axi/blob/master/axi/spatial.py
 
-class Path(AxiElement):
+class Path(object):
     def __init__(self, path=None, **kwargs):
-        AxiElement.__init__(self, **kwargs);
+        # AxiElement.__init__(self, **kwargs);
+        self.head_width = kwargs.pop('head_width', 0.2)
+        self.id = kwargs.pop('id', None)
 
         if path is None:
             self.path = []
@@ -59,7 +61,7 @@ class Path(AxiElement):
     def __getitem__(self, index):
         from .Polyline import Polyline
         if type(index) is int:
-            return Polyline( self.path[index], translate=self.translate, scale=self.scale, rotate=self.rotate, stroke_width=self.stroke_width, head_width=self.head_width )
+            return Polyline( self.path[index], translate=self.translate, scale=self.scale, rotate=self.rotate, head_width=self.head_width )
         else:
             return None
 
@@ -136,7 +138,7 @@ class Path(AxiElement):
             raise Exception('Polyline.getConvexHull() requires Shapely')
 
         polygon = geometry.Polygon( self.getPoints() )
-        return Polyline( polygon.convex_hull.exterior.coords, head_width=self.head_width, stroke_width=self.stroke_width )
+        return Polyline( polygon.convex_hull.exterior.coords, head_width=self.head_width )
 
 
     def getTexture(self, width, height, **kwargs):
@@ -210,7 +212,7 @@ class Path(AxiElement):
             else:
                 result.append(path)
 
-        return Path( result, head_width=self.head_width, stroke_width=self.stroke_width )
+        return Path( result, head_width=self.head_width )
 
 
     def getJoined(self, tolerance = None, boundary = None):
@@ -248,21 +250,21 @@ class Path(AxiElement):
             else:
                 result.append(list(path))
                 
-        return Path(result, head_width=self.head_width, stroke_width=self.stroke_width )
+        return Path(result)
 
 
     def getSimplify(self, tolerance = None):
         from .Polyline import Polyline
 
-        result = Path( head_width=self.head_width, stroke_width=self.stroke_width )
+        result = Path()
         for points in self.path:
             if len(points) > 1:
-                result.add( Polyline( points, head_width=self.head_width, stroke_width=self.stroke_width).getSimplify(tolerance) )
+                result.add( Polyline( points ).getSimplify(tolerance) )
         return result
 
 
     def getTransformed(self, func):
-        return Path([[func(x, y) for x, y in points] for points in self.path], head_width=self.head_width, stroke_width=self.stroke_width )
+        return Path([[func(x, y) for x, y in points] for points in self.path])
 
 
     def getTranslated(self, dx, dy):
@@ -330,19 +332,22 @@ class Path(AxiElement):
     def getSVGElementString(self):
         path_str = ''
 
-        if self.isTranformed:
-            for points in self.path:
-                first = True
-                for point in points:
-                    p = transform(point, translate=self.translate, scale=self.scale, rotate=self.rotate)
-                    if first:
-                        first = False
-                        path_str += 'M%0.1f %0.1f' % (p[0], p[1])
-                    else:
-                        path_str += 'L%0.1f %0.1f' % (p[0], p[1])
-        else:
-            for points in self.path:
-                path_str += 'M' + ' L'.join('{0} {1}'.format(x,y) for x,y in points)
+        for points in self.path:
+            path_str += 'M' + ' L'.join('{0} {1}'.format(x,y) for x,y in points)
+
+        # if self.isTranformed:
+        #     for points in self.path:
+        #         first = True
+        #         for point in points:
+        #             p = transform(point, translate=self.translate, scale=self.scale, rotate=self.rotate)
+        #             if first:
+        #                 first = False
+        #                 path_str += 'M%0.1f %0.1f' % (p[0], p[1])
+        #             else:
+        #                 path_str += 'L%0.1f %0.1f' % (p[0], p[1])
+        # else:
+        #     for points in self.path:
+        #         path_str += 'M' + ' L'.join('{0} {1}'.format(x,y) for x,y in points)
 
         svg_str = '<path '
         if self.id != None:

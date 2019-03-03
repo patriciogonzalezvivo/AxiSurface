@@ -411,7 +411,26 @@ class Polyline(AxiElement):
         return Polyline( list(polygon.convex_hull.exterior.coords) )
 
 
-    def getFillPath(self, **kwargs ):
+    def getStrokePath(self, **kwargs):
+        from .Path import Path
+
+        # TODO:
+        #      - Fix stroke_width and head_width on scale
+
+        path = []
+        if self.stroke_width > self.head_width:
+            r = (self.stroke_width * self.head_width) * 0.5
+            r_target = -(self.stroke_width * self.head_width) * 0.5
+            while r > r_target:
+                path.append( self.getOffset(r).getPoints() )
+                r = max(r - self.head_width, r_target)
+        else:
+            path.append( self.getPoints() )
+
+        return Path(path)
+
+
+    def getFillPath(self, **kwargs):
         from .Path import Path
 
         # From FlatCam
@@ -570,28 +589,11 @@ class Polyline(AxiElement):
             return self.points
 
 
-    def getPath(self):
-        from .Path import Path
-
-        # TODO:
-        #      - Fix stroke_width and head_width on scale
-
-        path = []
-        if self.stroke_width > self.head_width:
-            r = (self.stroke_width * self.head_width) * 0.5
-            r_target = -(self.stroke_width * self.head_width) * 0.5
-            while r > r_target:
-                path.append( self.getOffset(r).getPoints() )
-                r = max(r - self.head_width, r_target)
-        else:
-            path.append( self.getPoints() )
-
-        path = Path(path)
-        if self.fill:
-            path.add( self.getFillPath() )
+    def getPath(self, **kwargs):
+        path = AxiElement.getPath(self, **kwargs)
 
         if self.holes != None:
             for poly in self.holes:
-                path.add( poly.getPath() )
+                path.add( poly.getPath(**kwargs) )
 
         return path

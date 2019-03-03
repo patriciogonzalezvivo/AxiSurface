@@ -69,7 +69,19 @@ class Line(AxiElement):
         return [self.start, self.end]
 
 
-    def getPath(self):
+    def _toShapelyGeom(self):
+        try:
+            from shapely import geometry
+        except ImportError:
+            geometry = None
+
+        if geometry is None:
+            raise Exception('To convert a Line to a Shapely LineString requires shapely. Try: pip install shapely')
+
+        return geometry.LineString( self.getPoints() )
+
+
+    def getStrokePath(self, **kwargs):
         from .Path import Path
         
         path = []

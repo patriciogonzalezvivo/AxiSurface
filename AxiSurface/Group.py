@@ -130,24 +130,6 @@ class Group(AxiElement):
         return path
 
 
-    def getBufferPath(self, offset, **kwargs):
-        import copy
-
-        path = Path()
-        for el in self.elements:
-            if isinstance(el, Path ):
-                path.add( el )
-            else:
-
-                tmp = el.getBuffer(offset)
-                for key in kwargs:
-                    tmp.__dict__[key] = kwargs[key]
-                    print(key, tmp.__dict__[key])
-                path.add( tmp.getPath() )
-
-        return path
-
-
     def getSVGElementString(self):
         svg_str = '<g '
         if self.id != None:
