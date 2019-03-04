@@ -31,7 +31,7 @@ def dot(v1, v2):
 
 
 def length(v):
-    return sqrt(sum(n * n for n in v))
+    return math.sqrt(sum(n * n for n in v))
 
 
 def distance(A, B):

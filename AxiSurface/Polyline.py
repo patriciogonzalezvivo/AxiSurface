@@ -327,18 +327,21 @@ class Polyline(AxiElement):
         for i in range(self.size()):
             width = offset
 
-            miter = self.normals[i]
+            norm = normalize(self.normals[i])
 
             # TODO:
             #       FIX MITER
             #       Refs: https://github.com/tangrams/tangram/blob/master/src/builders/polylines.js
             if i != 0:
-                prevN = self.normals[i-1]
-                scale = math.sqrt(2.0 / (1.0 + dot(miter, prevN) ))
+                prevN = normalize(self.normals[i-1])
+                mitter = 2.0 / (1.0 + dot(norm, prevN) )
+                try:
+                    scale = math.sqrt(mitter)
+                except ValueError:
+                    raise Exception("SQRT out of domain", norm, prevN, mitter)
                 width *= scale
 
-            p = [self.points[i][0] + miter[0] * width,
-                 self.points[i][1] + miter[1] * width]
+            p = [self.points[i][0] + norm[0] * width, self.points[i][1] + norm[1] * width]
             points.append( transform(p, rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.anchor) )
         return Polyline(points, stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width, close=self.close)
 

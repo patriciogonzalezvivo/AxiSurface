@@ -10,7 +10,7 @@ import math
 import numpy as np
 
 from .AxiElement import AxiElement
-from .tools import polar2xy, remap
+from .tools import polar2xy, remap, distance, pointInside
 
 class Circle(AxiElement):
     def __init__( self, center, radius, **kwargs ):
@@ -45,8 +45,12 @@ class Circle(AxiElement):
 
 
     def inside( self, pos ):
-        dist = math.hypot(pos[0]-self.center[0], pos[1]-self.center[1])
-        return dist < self.radius
+        if self.radius[0] == self.radius[1] and self.open_angle == 0:
+            dist = distance(pos, self.center)
+            return dist < self.radius[0]
+        else:
+            return pointInside( pos, self.getPoints() )
+
 
 
     def getPointPct(self, t):

@@ -52,6 +52,8 @@ class AxiElement(object):
 
 
     def getBuffer(self, offset):
+        from .Polyline import Polyline
+        
         if offset <= 0:
             import copy
             return copy.copy(self)

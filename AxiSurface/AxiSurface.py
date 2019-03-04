@@ -38,6 +38,15 @@ class AxiSurface(Group):
             self.width = float(size)
             self.height = float(size)
 
+    @property
+    def size(self):
+        return [self.width, self.height]
+
+
+    @property
+    def center(self):
+        return [self.width * 0.5, self.height * 0.5]
+        
 
     def fromSVG( self, filename ):
         parseSVG( self, filename )

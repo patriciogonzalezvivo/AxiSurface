@@ -116,12 +116,6 @@ class Path(object):
         else:
             raise Exception("Error, don't know what to do with: ", other)
 
-    # def substract(self, other):
-    #     from .Polyline import Polyline
-    #     from .Polygon import Polygon
-
-    #     # if isinstance(other, Polygon):
-
 
     def getPoints(self):
         return [(x, y) for points in self.path for x, y in points]
