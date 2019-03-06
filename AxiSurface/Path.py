@@ -16,11 +16,11 @@ from .tools import path_length, transform
 # Mostly rom Axi by Michael Fogleman
 # https://github.com/fogleman/axi/blob/master/axi/spatial.py
 
-class Path(object):
+class Path(AxiElement):
     def __init__(self, path=None, **kwargs):
-        # AxiElement.__init__(self, **kwargs);
-        self.head_width = kwargs.pop('head_width', 0.2)
-        self.id = kwargs.pop('id', None)
+        AxiElement.__init__(self, **kwargs);
+        # self.head_width = kwargs.pop('head_width', 0.2)
+        # self.id = kwargs.pop('id', None)
 
         if path is None:
             self.path = []

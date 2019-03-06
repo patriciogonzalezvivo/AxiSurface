@@ -90,6 +90,16 @@ class AxiSurface(Group):
             file.write(svg_str)
 
 
+    def getGCODEHeader(self, **kwargs):
+        return 'M3\n'
+
+    def getGCODEFooter(self, **kwargs):
+        gcode_str = "G0 Z10\n"
+        gcode_str += "G0 X0 Y0\n"
+        gcode_str += "M5\n"
+        return gcode_str
+
+
     def toGCODE(self, filename, **kwargs ):
         flip_x = kwargs.pop('flip_x', False)
         flip_y = kwargs.pop('flip_y', True)
@@ -97,9 +107,9 @@ class AxiSurface(Group):
         depth = kwargs.pop('depth', -1.0)
         depth_step = kwargs.pop('depth_step', -0.2)
         head_width = kwargs.pop('head_width', self.head_width)
-        head_width_at_depth = kwargs.pop('head_width_at_depth', head_width)
+        # head_width_at_depth = kwargs.pop('head_width_at_depth', head_width)
 
-        gcode_str = 'M3\n'
+        gcode_str = self.getGCODEHeader()
 
         # Initial shallow and precise pass
         path = self.getPath().getSimplify().getSorted()
@@ -119,55 +129,11 @@ class AxiSurface(Group):
             path = path.getTransformed(flip_onY)
 
         z = depth_step
-        if head_width == head_width_at_depth: 
-
-            # If the HEAD is a cylinder no worries
-            while z > depth:
-                gcode_str += path.getGCodeString(head_down_height=z, **kwargs)
-                z += depth_step
-        
-        else:
-
-            # if the HEAD is a cone we need to interpolate the radius and recalculate all filling paths
-
-            # Detail contour
+        while z > depth:
             gcode_str += path.getGCodeString(head_down_height=z, **kwargs)
             z += depth_step
-  
-            while z > depth:
-                print('Z:',z)
 
-                ## interpolate head width
-                head = remap(z, depth_step, depth, head_width, head_width_at_depth)  
-
-                fill_paths = Path() 
-                for el in self.elements:
-                    if el.fill:
-                        if isinstance(el, Polyline):
-                            path = el.getFillPath(offset=head-head_width, head_width=head).getSimplify().getSorted()
-
-                            # if auto_center:
-                            #     path = path.getCentered(self.width, self.height)
-                            #     path = path.getTranslated(-self.width*0.5, -self.height*0.5)
-
-                            if flip_x:
-                                def flip_onX(x, y):
-                                    return (-x, y)
-                                path = path.getTransformed(flip_onX)
-
-                            if flip_y:
-                                def flip_onY(x, y):
-                                    return (x, -y)
-                                path = path.getTransformed(flip_onY)
-
-                            fill_paths.add( path )
-                
-                gcode_str += fill_paths.getGCodeString(head_down_height=z, **kwargs)
-                z += depth_step
-
-        gcode_str += "G0 Z10\n"
-        gcode_str += "G0 X0 Y0\n"
-        gcode_str += "M5\n"
+        gcode_str += self.getGCODEFooter()
 
         with open(filename, "w") as file:
             file.write(gcode_str)
