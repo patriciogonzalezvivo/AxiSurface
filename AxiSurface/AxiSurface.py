@@ -11,7 +11,7 @@ from .Image import *
 from .Texture import *
 from .Polyline import Polyline
 
-from .parser import parseSVG
+from .tools import dom2dict
 
 class AxiSurface(Group):
     def __init__(self, size='A3', **kwargs):
@@ -49,7 +49,26 @@ class AxiSurface(Group):
         
 
     def fromSVG( self, filename ):
-        parseSVG( self, filename )
+        # TODO:
+        #  - Add CubicBezier, QuadraticBezier support
+        #  - Resolve nested and element transformations
+        #  - Parse correctly the SVG
+
+        from xml.dom.minidom import parse
+        doc = parse(filename)
+        doc.nodeValue
+
+        svg = doc.getElementsByTagName('svg')[0]
+        svg_att = dom2dict(svg) 
+        viewBox = svg_att['viewBox'].split()
+        width = float(viewBox[2])
+        height = float(viewBox[3])
+
+        scale = 'scale(' + str((1.0/width) * self.width) + ',' + str((1.0/height) * self.height) + ')'
+        stroke_width = max(width/self.width, height/self.height ) * 0.2
+
+        root_group = self.group( filename, fill=True )
+        root_group.parseSVGNode( svg )
 
 
     def toSVG( self, filename, **kwargs ):
@@ -64,7 +83,6 @@ class AxiSurface(Group):
         svg_str += 'height="' + str(self.height) + unit + '" '
         svg_str += 'viewBox="0,0,'+ str(self.width * scale) + ',' + str(self.height * scale) + '" '
         svg_str += 'baseProfile="tiny" version="1.2" xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" ><defs/>'
-        
         
         if optimize:
             path = self.getPath()
@@ -92,6 +110,7 @@ class AxiSurface(Group):
 
     def getGCODEHeader(self, **kwargs):
         return 'M3\n'
+
 
     def getGCODEFooter(self, **kwargs):
         gcode_str = "G0 Z10\n"

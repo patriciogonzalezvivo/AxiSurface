@@ -19,6 +19,8 @@ from .Text import Text
 from .Path import Path
 from .Texture import Texture
 
+from .tools import dom2dict
+
 class Group(AxiElement):
     def __init__( self, id="Untitle", **kwargs ):
         AxiElement.__init__(self, **kwargs);
@@ -98,8 +100,8 @@ class Group(AxiElement):
         return self.add( Texture(texture, **kwargs) )
 
 
-    def group(self, group_id):
-        g = Group(group_id)
+    def group(self, group_id, **kwargs):
+        g = Group(group_id, **kwargs)
         self.subgroup[group_id] = g
         return self.add( g )
 
@@ -128,6 +130,41 @@ class Group(AxiElement):
                 else:
                     path.add( el.getPath() )
         return path
+
+
+    def parseSVGNode(self, node):
+        att = dom2dict(node)
+
+        # if 'transform' in att:
+        #     matrix = parse_transform(att['transform'])
+    
+        self.id = att.pop('id', self.id)
+        self.fill = att.pop('fill', self.fill)
+        self.stroke_width = att.pop('stroke_width', self.stroke_width)
+            
+        for el in node.childNodes:
+            if el.nodeName == "metadata":
+                continue
+
+            elif el.nodeName == "#text":
+                continue
+
+            elif el.nodeName == "g":
+                sub_group = self.group("sub_group")
+                sub_group.parseSVGNode( el )
+
+            elif el.nodeName == "path":
+                el_att = dom2dict(el)
+                # print(el_att)
+
+                id = el_att.pop('id', self.id + "_sub")
+                fill = el_att.pop('fill', self.fill )
+                stroke_width = el_att.pop('stroke-width', self.stroke_width)
+                self.path( el_att['d'], id=id, fill=fill, stroke_width=stroke_width)
+
+                # parent.add( svgwrite.path.Path( d=el_att['d'], stroke_width=calcStrokeWidth(transform_str)) )
+            else:
+                print(el.nodeName + " is no to be implemented")
 
 
     def getSVGElementString(self):

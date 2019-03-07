@@ -10,6 +10,8 @@ from .AxiElement import AxiElement
 from .Line import Line
 from .Rectangle import Rectangle
 
+from .CubicBezier import CubicBezier
+
 from .Arc import Arc
 from .Circle import Circle
 

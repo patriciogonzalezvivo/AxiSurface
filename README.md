@@ -6,7 +6,7 @@ Special thanks to:
 
  * [Michael Fogleman](https://www.michaelfogleman.com/): for [Axi](https://github.com/fogleman/axi) witch mostly of the `Path.py` class is based on
 
- * [Paul Butler great](https://paulbutler.org/) for [Surface Projection tutorial](https://bitaesthetics.com/posts/surface-projection.html) witch `Texture.py` is based on
+ * [Paul Butler](https://paulbutler.org/) for [Surface Projection tutorial](https://bitaesthetics.com/posts/surface-projection.html) witch `Texture.py` is based on
 
  * [Mat Handy](https://github.com/mathandy): for [SVGPathTools](https://github.com/mathandy/svgpathtools/) witch `Arc.py` is based on
 

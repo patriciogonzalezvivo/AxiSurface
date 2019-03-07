@@ -22,6 +22,7 @@ class Polyline(AxiElement):
         self.holes = None
         self.dirty = True
         self.anchor = kwargs.pop('anchor', [0.0, 0.0])
+        self.close = False
 
         if points != None:            
             if isinstance(points, Polyline):
@@ -38,7 +39,7 @@ class Polyline(AxiElement):
                 self.anchor = kwargs.pop('anchor', points.anchor) 
             else:
                 self.points = points
-                self.close = kwargs.pop('close', False)
+                self.close = kwargs.pop('close', self.close)
 
 
     def __len__(self):
@@ -82,9 +83,15 @@ class Polyline(AxiElement):
             return normal, tangent
 
         if index == 0:
-            normal = perpendicular(self.points[0], self.points[1])
+            try:
+                normal = perpendicular(self.points[0], self.points[1])
+            except TypeError:
+                print(">> perp p0 and p1 ", self.points[0], self.points[1], 'from', self.points)
         elif index == self.size():
-            normal = perpendicular(self.points[-2], self.points[-1])
+            try:
+                normal = perpendicular(self.points[-2], self.points[-1])
+            except TypeError:
+                print(">> perp p-2 and p-1", self.points[-2], self.points[-1], 'from', self.points)
         else:
             i1 = self.getWrappedIndex( index - 1 )
             i2 = self.getWrappedIndex( index     )
@@ -155,6 +162,24 @@ class Polyline(AxiElement):
     def lineTo( self, pos ):
         self.points.append( pos )
         self.dirty = True
+
+        
+    def arcTo( self, pos, radius, **kwargs ):
+        if self.size > 0:
+            from .Arc import Arc
+            self.points.extend( Arc(self.points[-1], pos, radius, **kwargs ).getPoints()[1:] )
+            self.dirty = True
+        else:
+            print('Arc needs a starting point')
+
+
+    def cubicBezierTo( self, control1, control2, end, **kwargs ):
+        if self.size > 0:
+            from .CubicBezier import CubicBezier
+            self.points.extend( CubicBezier(self.points[-1], control1, control2, end, **kwargs ).getPoints()[1:] )
+            self.dirty = True
+        else:
+            print('cubicBezier needs a starting point')
 
 
     def setClose(self, close):

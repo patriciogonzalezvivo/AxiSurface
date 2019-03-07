@@ -29,6 +29,11 @@ class Path(AxiElement):
 
         elif isinstance(path, AxiElement):
             self.path = path.getPath()
+
+        elif isinstance(path, basestring):
+            self.path = []
+            self.setFromString(path) #, **kwargs)
+
         else:
             self.path = path
 
@@ -115,6 +120,209 @@ class Path(AxiElement):
             self.path.append( other )
         else:
             raise Exception("Error, don't know what to do with: ", other)
+
+
+    def setFromString(self, path_string, **kwargs):
+
+        # From Andy Port 
+        # https://github.com/mathandy/svgpathtools/blob/master/svgpathtools/parser.py#L35
+
+        import re
+        COMMANDS = set('MmZzLlHhVvCcSsQqTtAa')
+        UPPERCASE = set('MZLHVCSQTA')
+
+        COMMAND_RE = re.compile("([MmZzLlHhVvCcSsQqTtAa])")
+        FLOAT_RE = re.compile("[-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?")
+
+        def tokenize_path(pathdef):
+            for x in COMMAND_RE.split(pathdef):
+                if x in COMMANDS:
+                    yield x
+                for token in FLOAT_RE.findall(x):
+                    yield token
+
+        # In the SVG specs, initial movetos are absolute, even if
+        # specified as 'm'. This is the default behavior here as well.
+        # But if you pass in a current_pos variable, the initial moveto
+        # will be relative to that current_pos. This is useful.
+
+        elements = list(tokenize_path(path_string))
+
+        # Reverse for easy use of .pop()
+        elements.reverse()
+
+        start_pos = None
+        command = None
+        last_control = []
+
+        from .Polyline import Polyline
+        poly = Polyline(fill=self.fill, stroke_width=self.stroke_width)
+
+        while elements:
+            if elements[-1] in COMMANDS:
+                # New command.
+                last_command = command  # Used by S and T
+                command = elements.pop()
+                absolute = command in UPPERCASE
+                command = command.upper()
+            else:
+                # If this element starts with numbers, it is an implicit command
+                # and we don't change the command. Check that it's allowed:
+                if command is None:
+                    raise ValueError("Unallowed implicit command in %s, position %s" % (
+                        pathdef, len(path_string.split()) - len(elements)))
+
+            if command == 'M':
+                # Moveto command.
+                pos = np.array([float(elements.pop()), float(elements.pop())])
+                if absolute:
+                    current_pos = pos
+                else:
+                    current_pos += pos
+
+                # when M is called, reset start_pos
+
+                if poly.size() > 0:
+                    self.add( poly.getPath() )
+                    poly = Polyline(fill=self.fill, stroke_width=self.stroke_width)
+
+                # This behavior of Z is defined in svg spec:
+                # http://www.w3.org/TR/SVG/paths.html#PathDataClosePathCommand
+                start_pos = current_pos
+
+                # Implicit moveto commands are treated as lineto commands.
+                # So we set command to lineto here, in case there are
+                # further implicit commands after this moveto.
+                command = 'L'
+                poly.lineTo( current_pos )
+
+            elif command == 'Z':
+                # Close path
+                # if not (current_pos.all() == start_pos.all()):
+                #     poly.lineTo( start_pos )
+
+                poly.setClose( True )
+                poly = poly.getSimplify()
+                self.add( poly.getPath() )
+                poly = Polyline(fill=self.fill, stroke_width=self.stroke_width)
+
+                current_pos = start_pos
+                command = None
+
+            elif command == 'L':
+                pos = np.array([float(elements.pop()), float(elements.pop())])
+                if not absolute:
+                    pos += current_pos
+
+                poly.lineTo( pos )
+                current_pos = pos
+
+            elif command == 'H':
+                pos = np.array([float(elements.pop()), current_pos[1]])
+                if not absolute:
+                    pos += np.array([ current_pos[0], 0 ])
+                poly.lineTo( pos )
+                current_pos = pos
+
+            elif command == 'V':
+                pos = np.array([current_pos[0], float(elements.pop())])
+                if not absolute:
+                    pos += np.array([ 0, current_pos[1] ])
+                poly.lineTo( pos )
+                current_pos = pos
+
+            elif command == 'C':
+                control1 = np.array([float(elements.pop()), float(elements.pop())])
+                control2 = np.array([float(elements.pop()), float(elements.pop())])
+                end = np.array([float(elements.pop()), float(elements.pop())])
+
+                if not absolute:
+                    control1 += current_pos
+                    control2 += current_pos
+                    end += current_pos
+
+                poly.cubicBezierTo( control1, control2, end )
+                current_pos = end
+                last_control = control2[:]
+
+            elif command == 'S':
+                # Smooth curve. First control point is the "reflection" of
+                # the second control point in the previous path.
+
+                if last_command not in 'CS':
+                    # If there is no previous command or if the previous command
+                    # was not an C, c, S or s, assume the first control point is
+                    # coincident with the current point.
+                    control1 = current_pos
+                else:
+                    # The first control point is assumed to be the reflection of
+                    # the second control point on the previous command relative
+                    # to the current point.
+                    control1 = current_pos + current_pos - last_control
+
+                control2 = np.array([float(elements.pop()), float(elements.pop())])
+                end = np.array([float(elements.pop()), float(elements.pop())])
+
+                if not absolute:
+                    control2 += current_pos
+                    end += current_pos
+
+                poly.cubicBezierTo( control1, control2, end )
+                current_pos = end
+                last_control = control2
+
+            # elif command == 'Q':
+            #     control = float(elements.pop()) + float(elements.pop()) * 1j
+            #     end = float(elements.pop()) + float(elements.pop()) * 1j
+
+            #     if not absolute:
+            #         control += current_pos
+            #         end += current_pos
+
+            #     segments.append(QuadraticBezier(current_pos, control, end))
+            #     current_pos = end
+
+            # elif command == 'T':
+            #     # Smooth curve. Control point is the "reflection" of
+            #     # the second control point in the previous path.
+
+            #     if last_command not in 'QT':
+            #         # If there is no previous command or if the previous command
+            #         # was not an Q, q, T or t, assume the first control point is
+            #         # coincident with the current point.
+            #         control = current_pos
+            #     else:
+            #         # The control point is assumed to be the reflection of
+            #         # the control point on the previous command relative
+            #         # to the current point.
+            #         control = current_pos + current_pos - segments[-1].control
+
+            #     end = float(elements.pop()) + float(elements.pop()) * 1j
+
+            #     if not absolute:
+            #         end += current_pos
+
+            #     segments.append(QuadraticBezier(current_pos, control, end))
+            #     current_pos = end
+
+            elif command == 'A':
+                radius = np.array([float(elements.pop()), float(elements.pop())])
+                rotation = float(elements.pop())
+                arc = float(elements.pop())
+                sweep = float(elements.pop())
+                end = np.array([float(elements.pop()), float(elements.pop())])
+
+                if not absolute:
+                    end += current_pos
+
+                poly.arcTo( end, radius, large_arc=arc, sweep=sweep, rotate=rotation )
+                current_pos = end
+            else:
+                print('Command', command, 'in not implemented' )
+
+        if poly.size() > 0:
+            poly = poly.getSimplify()
+            self.add( poly.getPath() )
 
 
     def getPoints(self):
@@ -326,22 +534,25 @@ class Path(AxiElement):
     def getSVGElementString(self):
         path_str = ''
 
-        for points in self.path:
-            path_str += 'M' + ' L'.join('{0} {1}'.format(x,y) for x,y in points)
+        if len(self.path) == 0:
+            return path_str
 
-        # if self.isTranformed:
-        #     for points in self.path:
-        #         first = True
-        #         for point in points:
-        #             p = transform(point, translate=self.translate, scale=self.scale, rotate=self.rotate)
-        #             if first:
-        #                 first = False
-        #                 path_str += 'M%0.1f %0.1f' % (p[0], p[1])
-        #             else:
-        #                 path_str += 'L%0.1f %0.1f' % (p[0], p[1])
-        # else:
-        #     for points in self.path:
-        #         path_str += 'M' + ' L'.join('{0} {1}'.format(x,y) for x,y in points)
+        # for points in self.path:
+        #     path_str += 'M' + ' L'.join('{0} {1}'.format(x,y) for x,y in points)
+
+        if self.isTranformed:
+            for points in self.path:
+                first = True
+                for point in points:
+                    p = transform(point, translate=self.translate, scale=self.scale, rotate=self.rotate)
+                    if first:
+                        first = False
+                        path_str += 'M%0.1f %0.1f' % (p[0], p[1])
+                    else:
+                        path_str += 'L%0.1f %0.1f' % (p[0], p[1])
+        else:
+            for points in self.path:
+                path_str += 'M' + ' L'.join('{0} {1}'.format(x,y) for x,y in points)
 
         svg_str = '<path '
         if self.id != None:

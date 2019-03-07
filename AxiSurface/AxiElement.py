@@ -9,7 +9,7 @@ from __future__ import unicode_literals
 import numpy as np
 
 from .Bbox import Bbox
-from .tools import pointInside
+from .tools import pointInside, hex2fill
 
 class AxiElement(object):
     def __init__(self, **kwargs):
@@ -17,7 +17,18 @@ class AxiElement(object):
         self.id = kwargs.pop('id', None)
 
         self.stroke_width = kwargs.pop('stroke_width', self.head_width)
+        self.stroke_width = kwargs.pop('stroke-width', self.stroke_width)
+        if isinstance(self.stroke_width, basestring):
+            self.stroke_width = float(self.stroke_width)
+
         self.fill = kwargs.pop('fill', False)
+        if isinstance(self.fill, basestring):
+            if self.fill.lower() == "none":
+                self.fill = False
+            else:
+                self.fill = hex2fill(self.fill)
+
+        print(self.fill)
 
         self.translate = kwargs.pop('translate', np.array([0, 0]) )
         self.rotate = kwargs.pop('rotate', 0.0)
@@ -28,6 +39,16 @@ class AxiElement(object):
     @property
     def isTranformed(self):
         return self.translate[0] != 0.0 or self.translate[1] != 0.0 or self.scale != 1.0 or self.rotate != 0.0
+
+
+    @property
+    def bounds(self):
+        return Bbox( points=self.getPoints() )
+
+
+    @property
+    def center(self):
+        return bounds.center
 
 
     def inside( self, pos ):
@@ -80,11 +101,6 @@ class AxiElement(object):
             path.add( self.getFillPath(**kwargs) )
 
         return path
-
-
-    @property
-    def bounds(self):
-        return Bbox( points=self.getPoints() )
 
 
     def getSVGElementString(self):

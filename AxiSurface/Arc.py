@@ -30,11 +30,6 @@ class Arc(AxiElement):
 
 
     @property
-    def center(self):
-        return  self.start + (self.end - self.start) * 0.5
-
-
-    @property
     def radius(self):
         if isinstance(self._radius, tuple) or isinstance(self._radius, list):
             rx = self._radius[0]
