@@ -162,7 +162,6 @@ class Group(AxiElement):
                 stroke_width = el_att.pop('stroke-width', self.stroke_width)
                 self.path( el_att['d'], id=id, fill=fill, stroke_width=stroke_width)
 
-                # parent.add( svgwrite.path.Path( d=el_att['d'], stroke_width=calcStrokeWidth(transform_str)) )
             else:
                 print(el.nodeName + " is no to be implemented")
 

@@ -28,8 +28,6 @@ class AxiElement(object):
             else:
                 self.fill = hex2fill(self.fill)
 
-        print(self.fill)
-
         self.translate = kwargs.pop('translate', np.array([0, 0]) )
         self.rotate = kwargs.pop('rotate', 0.0)
         self.scale = kwargs.pop('scale', 1.0)

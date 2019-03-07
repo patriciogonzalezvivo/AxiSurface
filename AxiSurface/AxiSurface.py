@@ -67,7 +67,7 @@ class AxiSurface(Group):
         scale = 'scale(' + str((1.0/width) * self.width) + ',' + str((1.0/height) * self.height) + ')'
         stroke_width = max(width/self.width, height/self.height ) * 0.2
 
-        root_group = self.group( filename, fill=True )
+        root_group = self.group( filename )
         root_group.parseSVGNode( svg )
 
 

@@ -1,7 +1,5 @@
 # outer __init__.py
 
-from svgwrite import cm, mm
-
 # Surface Class
 from .AxiSurface import AxiSurface
 from .AxiElement import AxiElement

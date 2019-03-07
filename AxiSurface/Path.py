@@ -32,7 +32,7 @@ class Path(AxiElement):
 
         elif isinstance(path, basestring):
             self.path = []
-            self.setFromString(path) #, **kwargs)
+            self.setFromString(path)
 
         else:
             self.path = path

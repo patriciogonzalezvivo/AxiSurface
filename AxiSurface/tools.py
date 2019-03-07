@@ -362,6 +362,7 @@ def hex2rgb(value):
     lv = len(value)
     return tuple(int(value[i:i+lv//3], 16) for i in range(0, lv, lv//3))
 
+
 def rgb2gray(rgb):
     # print(rgb)
     r, g, b = rgb[0], rgb[1], rgb[2]
@@ -369,8 +370,10 @@ def rgb2gray(rgb):
 
     return gray
 
+
 def hex2gray(value):
     return rgb2gray(hex2rgb(value))
+
 
 def hex2fill(value):
     value = hex2gray(value)
