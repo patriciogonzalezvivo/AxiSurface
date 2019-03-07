@@ -239,3 +239,52 @@ class Texture(AxiElement):
 
         return Path(path)
 
+
+    def getGCodeString(self, surface, **kwargs):
+        head_up_height = kwargs.pop('head_up_height', 3)
+        depth = kwargs.pop('depth', -0.5)
+        head_up_speed = kwargs.pop('head_up_speed', 800)
+        head_down_speed = kwargs.pop('head_down_speed', 500)
+        move_speed = kwargs.pop('move_speed', 300)
+
+        width = kwargs.pop('width', self.width)
+        height = kwargs.pop('height', self.height)
+        threshold = kwargs.pop('threshold', 0.5)
+
+        transformed = self.isTranformed
+
+        gcode_str = ''
+        gcode_str += "G0 Z%0.1f F" % (head_up_height) + str(head_up_speed) + "\n"
+        
+        # Map the texture to get the Zs
+        if isinstance(surface, Image):
+            if surface.type == "grayscale":
+                Z = self._map(surface.data.T)
+
+            elif surface.type == "mask":
+                return self.mask(surface)
+        else:
+            Z = self._map(surface.T)
+
+        # Extract the Xs and Ys from the texture
+        X, Y = self.data
+
+        draw = False
+        for x, y, z in zip( *(X * width, Y * height, Z) ):
+            if (np.isnan(x) or np.isnan(y)) or z < threshold:
+                if draw:
+                    draw = False
+
+                    gcode_str += "G0 Z%0.1f F" % (head_up_height) + str(head_up_speed) + "\n"
+            else:
+                if not draw:
+                    draw = True
+
+                if transformed:
+                    x, y = transform( [x,y], rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.center)
+                gcode_str += "G0 X%0.1f Y%0.1f\n" % (x, y)
+                gcode_str += "G1 Z%0.1f F" % (depth * z) + str(head_down_speed) +"\n"
+
+                
+
+        return gcode_str

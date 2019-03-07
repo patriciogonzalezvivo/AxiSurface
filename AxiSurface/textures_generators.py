@@ -12,7 +12,7 @@ import numpy as np
 # This code is adapted from Paul Butler great Surface Projection tutorial
 # https://bitaesthetics.com/posts/surface-projection.html and PenKit https://github.com/paulgb/penkit/
 
-def stripes_texture(num_lines=10, resolution=50, offset=0):
+def stripes_texture(num_lines=10, resolution=50, offset=0, zigzag=False):
     x_min = 0.0
     x_max = 1.0
     y_min = 0.0
@@ -36,6 +36,14 @@ def stripes_texture(num_lines=10, resolution=50, offset=0):
         np.hstack( [np.linspace(x_min, x_max, resolution), np.nan] ),
         np.linspace(y_min, y_max, num_lines),
     )
+
+    if zigzag:
+        line = 0
+        for each in x:
+            if line%2 == 1:
+                # each = np.flipud(each)
+                x[line] = np.flipud(each)
+            line += 1
     
     # For coordinates where the x value is nan, set the y value to nan
     # as well. nan coordinates represent breaks in the path, indicating

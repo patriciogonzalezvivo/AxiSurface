@@ -7,6 +7,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from collections import defaultdict
+from .textures_generators import *
 
 from .Path import Path
 from .Polygon import Polygon
@@ -166,7 +167,7 @@ def HeightmapToTexture(filename, **kwargs):
 
     # Create texture
     if texture is None:
-        texture_resolution = kwargs.pop('texture_resolution', min(gradientmap.width, gradientmap.height) * 0.5)
+        texture_resolution = kwargs.pop('texture_resolution', min(heightmap.width, heightmap.height) * 0.5)
         texture_presicion = float(kwargs.pop('texture_presicion', 1.0))
         texture_offset = float(kwargs.pop('texture_offset', 0.0)) 
         texture = Texture( stripes_texture(num_lines=texture_resolution, resolution=min(heightmap.width, heightmap.height) * texture_presicion, offset=texture_offset), **kwargs )
