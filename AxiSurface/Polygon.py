@@ -17,7 +17,6 @@ class Polygon(Polyline):
         self.points = []
 
         if points != None:
-            
             if isinstance(points, Polyline):
                 self.points = points.points
 
@@ -41,9 +40,12 @@ class Polygon(Polyline):
                 self.fill = kwargs.pop('fill', points.fill)
 
                 self.anchor = kwargs.pop('anchor', points.anchor) 
+
+            elif isinstance(points, basestring):
+                self.setFromString(points)
+                
             else:
                 self.points = points
-
                 self.anchor = kwargs.pop('anchor', [0.0, 0.0]) 
 
             if holes != None:

@@ -151,7 +151,8 @@ class Path(AxiElement):
         # Reverse for easy use of .pop()
         elements.reverse()
 
-        start_pos = None
+        current_pos = np.array([0.0, 0.0])
+        start_pos = np.array([0.0, 0.0])
         command = None
         last_control = []
 
@@ -467,28 +468,6 @@ class Path(AxiElement):
 
     def getTransformed(self, func):
         return Path([[func(x, y) for x, y in points] for points in self.path])
-
-
-    def getTranslated(self, dx, dy):
-        def func(x, y):
-            return (x + dx, y + dy)
-        return self.getTransformed(func)
-
-
-    def getScaled(self, sx, sy=None):
-        if sy is None:
-            sy = sx
-        def func(x, y):
-            return (x * sx, y * sy)
-        return self.getTransformed(func)
-
-
-    def getRotated(self, angle):
-        c = math.cos(math.radians(angle))
-        s = math.sin(math.radians(angle))
-        def func(x, y):
-            return (x * c - y * s, y * c + x * s)
-        return self.getTransformed(func)
 
 
     def getMoved(self, x, y, ax, ay):

@@ -1,6 +1,6 @@
 # AxiSurface
 
-Python 2/3 module to make 100% vector line compositions and export them as SVG or G-Code files. Made and tested for AxiDrawer plotter and SnapMaker CNC
+Python module to make 100% vector line compositions and export them as SVG or G-Code files. Made and tested for AxiDrawer plotter and SnapMaker CNC
 
 Special thanks to:
 

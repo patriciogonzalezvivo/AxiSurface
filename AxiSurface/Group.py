@@ -19,7 +19,7 @@ from .Text import Text
 from .Path import Path
 from .Texture import Texture
 
-from .tools import dom2dict
+from .tools import dom2dict, parse_transform
 
 class Group(AxiElement):
     def __init__( self, id="Untitle", **kwargs ):
@@ -27,7 +27,7 @@ class Group(AxiElement):
 
         self.id = id
         self.elements = []
-        self.subgroup = { } 
+        self.subgroups = { } 
 
     def __iter__(self):
         self._index = 0
@@ -57,6 +57,8 @@ class Group(AxiElement):
     def add(self, element ):
         element.parent = self
         self.elements.append(element)
+        if isinstance(element, Group):
+            self.subgroups[element.id] = element
         return element
 
 
@@ -102,8 +104,18 @@ class Group(AxiElement):
 
     def group(self, group_id, **kwargs):
         g = Group(group_id, **kwargs)
-        self.subgroup[group_id] = g
+        self.subgroups[group_id] = g
         return self.add( g )
+
+
+    def getTransformed(self, func):
+        new_group = Group(self.id, fill=self.fill, stroke_width=self.stroke_width, head_width=self.head_width)
+
+        for el in self.elements:
+            new_el = el.getTransformed(func)
+            new_group.add( new_el )
+
+        return new_group
 
 
     def getPoints(self):
@@ -134,10 +146,7 @@ class Group(AxiElement):
 
     def parseSVGNode(self, node):
         att = dom2dict(node)
-
-        # if 'transform' in att:
-        #     matrix = parse_transform(att['transform'])
-    
+            
         self.id = att.pop('id', self.id)
         self.fill = att.pop('fill', self.fill)
         self.stroke_width = att.pop('stroke_width', self.stroke_width)
@@ -150,17 +159,57 @@ class Group(AxiElement):
                 continue
 
             elif el.nodeName == "g":
-                sub_group = self.group("sub_group")
+                el_att = dom2dict(el)
+
+                sub_group = Group()
                 sub_group.parseSVGNode( el )
+
+                if 'transform' in el_att:
+                    sub_group = parse_transform(sub_group, el_att['transform'])
+
+                self.add(sub_group)
+
+
+            elif el.nodeName == "polyline":
+                el_att = dom2dict(el)
+
+                polyline = Polyline(el_att['points'], 
+                                id=el_att.pop('id', self.id + "_sub"), 
+                                fill=el_att.pop('fill', self.fill), 
+                                stroke_width=el_att.pop('stroke-width', self.stroke_width) )
+
+                if 'transform' in el_att:
+                    polyline = parse_transform(polyline, el_att['transform'])
+
+                self.add( polyline )
+
+
+            elif el.nodeName == "polygon":
+                el_att = dom2dict(el)
+
+                polygon = Polygon( el_att['points'], 
+                                id=el_att.pop('id', self.id + "_sub"), 
+                                fill=el_att.pop('fill', self.fill), 
+                                stroke_width=el_att.pop('stroke-width', self.stroke_width) )
+
+                if 'transform' in el_att:
+                    polygon = parse_transform(polygon, el_att['transform'])
+
+                self.add( polygon )
+
 
             elif el.nodeName == "path":
                 el_att = dom2dict(el)
-                # print(el_att)
 
-                id = el_att.pop('id', self.id + "_sub")
-                fill = el_att.pop('fill', self.fill )
-                stroke_width = el_att.pop('stroke-width', self.stroke_width)
-                self.path( el_att['d'], id=id, fill=fill, stroke_width=stroke_width)
+                path = Path(el_att['d'], 
+                            id=el_att.pop('id', self.id + "_sub"), 
+                            fill=el_att.pop('fill', self.fill), 
+                            stroke_width=el_att.pop('stroke-width', self.stroke_width) )
+
+                if 'transform' in el_att:
+                    path = parse_transform(path, el_att['transform'])
+
+                self.add( path )
 
             else:
                 print(el.nodeName + " is no to be implemented")

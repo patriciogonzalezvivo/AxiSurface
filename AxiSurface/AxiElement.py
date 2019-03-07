@@ -6,6 +6,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import math
 import numpy as np
 
 from .Bbox import Bbox
@@ -78,6 +79,32 @@ class AxiElement(object):
             return copy.copy(self)
             
         return Polyline( self.getPoints(), stroke_width=self.stroke_width, head_width=self.head_width ).getBuffer(offset)
+
+
+    def getTransformed(self, func):
+        raise Exception('Not implemented for', type(self))
+
+
+    def getTranslated(self, dx, dy):
+        def func(x, y):
+            return (x + dx, y + dy)
+        return self.getTransformed(func)
+
+
+    def getScaled(self, sx, sy=None):
+        if sy is None:
+            sy = sx
+        def func(x, y):
+            return (x * sx, y * sy)
+        return self.getTransformed(func)
+
+
+    def getRotated(self, angle):
+        c = math.cos(math.radians(angle))
+        s = math.sin(math.radians(angle))
+        def func(x, y):
+            return (x * c - y * s, y * c + x * s)
+        return self.getTransformed(func)
 
 
     def getStrokePath(self, **kwargs ):

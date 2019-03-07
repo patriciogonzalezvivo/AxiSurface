@@ -22,7 +22,7 @@ class Polyline(AxiElement):
         self.holes = None
         self.dirty = True
         self.anchor = kwargs.pop('anchor', [0.0, 0.0])
-        self.close = False
+        self.close = kwargs.pop('close', False)
 
         if points != None:            
             if isinstance(points, Polyline):
@@ -37,9 +37,12 @@ class Polyline(AxiElement):
                 self.head_width = kwargs.pop('head_width', points.head_width)
                 self.fill = kwargs.pop('fill', points.fill)
                 self.anchor = kwargs.pop('anchor', points.anchor) 
+
+            elif isinstance(points, basestring):
+                self.setFromString(points)
+                
             else:
                 self.points = points
-                self.close = kwargs.pop('close', self.close)
 
 
     def __len__(self):
@@ -157,6 +160,12 @@ class Polyline(AxiElement):
 
     def size(self):
         return len(self.points)
+
+
+    def setFromString(self, data):
+        data = data.split(' ')
+        for x, y in zip(data[0::2], data[1::2]):
+            self.points.append( [float(x), float(y)] )
 
 
     def lineTo( self, pos ):
@@ -605,6 +614,10 @@ class Polyline(AxiElement):
         if buf:
             result.append(buf)
         return Path(result, head_width=self.head_width, stroke_width=self.stroke_width)
+
+
+    def getTransformed(self, func):
+        return Polyline([func(x, y) for x, y in self.getPoints()])
 
 
     def getPoints(self):

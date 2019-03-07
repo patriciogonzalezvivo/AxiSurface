@@ -332,20 +332,51 @@ def _parse_transform_substr(transform_substr):
     return transform
 
 
-def parse_transform(transform_str):
+def parse_transform(el, transform_str):
     """Converts a valid SVG transformation string into a 3x3 matrix.
     If the string is empty or null, this returns a 3x3 identity matrix"""
     if not transform_str:
         return np.identity(3)
-    elif not isinstance(transform_str, str):
+    elif not isinstance(transform_str, basestring):
         raise TypeError('Must provide a string to parse')
 
-    total_transform = np.identity(3)
-    transform_substrs = transform_str.split(')')[:-1]  # Skip the last element, because it should be empty
-    for substr in transform_substrs:
-        total_transform = total_transform.dot(_parse_transform_substr(substr))
+    transform_substrs = transform_str.split(')')[:-1]
+    for transform_substr in transform_substrs:
 
-    return total_transform
+        type_str, value_str = transform_substr.split('(')
+        value_str = value_str.replace(',', ' ')
+        values = list(map(float, filter(None, value_str.split(' '))))
+
+        if 'translate' in transform_substr:
+            x_translate = float(values[0])
+            y_translate = float(values[1])
+            el = el.getTranslated(x_translate, y_translate)
+
+        elif 'scale' in transform_substr:
+            x_scale = float(values[0])
+            y_scale = float(values[1]) if (len(values) > 1) else x_scale
+            el = el.getScaled(x_scale, y_scale)
+
+        elif 'rotate' in transform_substr:
+            deg = float(values[0])
+            el = el.getRotated(deg)
+
+        # elif 'skewX' in transform_substr:
+        #     if not _check_num_parsed_values(values, [1]):
+        #         return transform
+
+        #     transform[0, 1] = np.tan(values[0] * np.pi / 180.0)
+
+        # elif 'skewY' in transform_substr:
+        #     if not _check_num_parsed_values(values, [1]):
+        #         return transform
+
+        #     transform[1, 0] = np.tan(values[0] * np.pi / 180.0)
+        else:
+            # Return an identity matrix if the type of transform is unknown, and warn the user
+            warnings.warn('Unknown SVG transform type: {0}'.format(type_str))
+
+    return el
 
 
 #  COLOR
