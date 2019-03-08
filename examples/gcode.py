@@ -9,7 +9,7 @@ from __future__ import unicode_literals
 from AxiSurface import *
 
 # Depth
-img = Image('logo.png')
+img = Image('lucy_depth.png')
 area_size = [70, 70]
 
 axi = AxiSurface(area_size)
@@ -23,4 +23,4 @@ for polygon in polygons:
     axi.add( polygon )
 
 # axi.path( path )
-axi.toGCODE('logo.gcode', depth=-2., depth_step=-0.3) #, head_width_at_depth=0.5, auto_center=False)
+axi.toGCODE('lucy.gcode', depth=-2., depth_step=-0.3) #, head_width_at_depth=0.5, auto_center=False)
