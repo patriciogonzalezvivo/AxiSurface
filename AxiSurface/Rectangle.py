@@ -36,15 +36,24 @@ class Rectangle(AxiElement):
 
 
     @property
-    def radius(self):
-        rx, ry = 1.0, 1.0
-
+    def width(self):
         if isinstance(self.size, tuple) or isinstance(self.size, list):
-            rx = self.size[0] * 0.5
-            ry = self.size[1] * 0.5
+            return self.size[0]
         else:
-            rx = self.size * 0.5
-            ry = self.size * 0.5
+            return self.size
+
+    @property
+    def height(self):
+        if isinstance(self.size, tuple) or isinstance(self.size, list):
+            return self.size[1]
+        else:
+            return self.size
+
+
+    @property
+    def radius(self):
+        rx = self.width * 0.5
+        ry = self.height * 0.5
 
         rx = math.sqrt( rx * rx + ry * ry )
         ry = rx
@@ -63,14 +72,13 @@ class Rectangle(AxiElement):
         cx, cy = self.center
         rx, ry = self.radius
 
-        x = self.size[0] * 0.5
-        y = self.size[1] * 0.5
+        x = self.width * 0.5
+        y = self.height * 0.5
 
         coorners = [ [1.0,1.0], [1.0,-1.0], [-1.0,-1.0], [-1.0,1.0] ]
 
         points = []
         for i in range(0, 4):
-            # a = math.radians( self.rotate + 90.0 * i - 45.0 )
             a = math.atan2( y * coorners[i][1], x * coorners[i][0] )
             points.append( [cx + rx * math.cos(a), cy + ry * math.sin(a)] )
         return points
@@ -83,7 +91,7 @@ class Rectangle(AxiElement):
 
 
     def getOffset(self, offset):
-        return Rectangle( self.center, [self.radius[0] * 2.0 + offset, self.radius[1] * 2.0 + offset], stroke_width=self.stroke_width, head_width=self.head_width )
+        return Rectangle( self.center, size=[self.width + offset, self.height + offset], stroke_width=self.stroke_width, head_width=self.head_width )
 
 
     def getBuffer(self, offset):
@@ -98,14 +106,13 @@ class Rectangle(AxiElement):
         from .Path import Path
         
         cx, cy = self.center
-        rx, ry = self.radius 
 
         path = []
         if self.stroke_width > self.head_width or self.fill:
-            width = rx * 2.0 + (self.stroke_width * self.head_width)
-            height = ry * 2.0 + (self.stroke_width * self.head_width)
-            width_target = rx * 2.0 - (self.stroke_width * self.head_width)
-            height_target = ry * 2.0 - (self.stroke_width * self.head_width)
+            width = self.width + (self.stroke_width * self.head_width)
+            height = self.height + (self.stroke_width * self.head_width)
+            width_target = self.width - (self.stroke_width * self.head_width)
+            height_target = self.height - (self.stroke_width * self.head_width)
 
             while width > width_target or height > height_target:
                 path.append( Rectangle([cx, cy], [width, height], fill=self.fill, rotate=self.rotate).getPoints() )
@@ -125,8 +132,8 @@ class Rectangle(AxiElement):
 
         path = []
         if self.stroke_width > self.head_width or self.fill:
-            width = rx * 2.0 - (self.stroke_width * self.head_width)
-            height = ry * 2.0 - (self.stroke_width * self.head_width)
+            width = self.width - (self.stroke_width * self.head_width)
+            height = self.height - (self.stroke_width * self.head_width)
 
             width_target = 0.0
             height_target = 0.0

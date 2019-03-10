@@ -17,6 +17,8 @@ class Line(AxiElement):
         self._start = np.array(start)
         self._end = np.array(end)
 
+        self.resolution = int(kwargs.pop('resolution', 2))
+
 
     @property
     def center(self):
@@ -66,8 +68,29 @@ class Line(AxiElement):
         return geometry.LineString([self.start, self.end])
 
 
+    def getPointPct(self, t):
+        if t <= 0.0:
+            return self.start
+        if t >= 1.0:
+            return self.end
+
+        return self.start + (self.end - self.start) * t
+
+
     def getPoints(self):
-        return [self.start, self.end]
+        self.resolution == max(self.resolution, 2)
+
+        if self.resolution == 2:
+            return [self.start, self.end]
+        else:
+            points = []
+
+            step = (self.end - self.start) / float(self.resolution-1)
+
+            for i in range(0, self.resolution ):
+                points.append( self.start + step * float(i))
+
+        return points
 
 
     def _toShapelyGeom(self):
@@ -88,15 +111,16 @@ class Line(AxiElement):
         path = []
         A = self.start
         B = self.end
+
         if self.stroke_width > self.head_width:
             passes = self.stroke_width / self.head_width
             perp = perpendicular(A, B)
             perp_step = perp * self.head_width
             for i in range(int(-passes/2), int(passes/2) ):
-                path.append([ [ A[0] + perp_step[0] * i, A[1] + perp_step[1] * i ], 
-                              [ B[0] + perp_step[0] * i, B[1] + perp_step[1] * i ] ])
+
+                path.append( Line(A + perp_step * i, B + perp_step * i, resolution=self.resolution, head_width=self.head_width ).getPoints() )
         else:
-            path.append([A, B])
+            path.append( self.getPoints() )
 
         return Path(path)
 

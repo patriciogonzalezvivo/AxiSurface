@@ -547,6 +547,7 @@ class Polyline(AxiElement):
                     indices.append( index + pct )
                 prev_point = point
                 index += 1.0
+
         elif isinstance(other, Polyline):
             points = other.getPoints()
             other_prev_point = points[0]

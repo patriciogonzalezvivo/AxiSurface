@@ -28,6 +28,9 @@ class Arc(AxiElement):
         self.sweep = kwargs.pop('sweep', False)
         self.autoscale_radius = kwargs.pop('autoscale_radius', True)
 
+        self.resolution = max(self.radius[0], self.radius[1])
+        self.resolution = int(remap(self.resolution, 0.0, 180.0, 12.0, 180.0))
+
 
     @property
     def radius(self):
@@ -250,6 +253,7 @@ class Arc(AxiElement):
 
         return theta, delta
 
+
     def getPointPct(self, t):
         if t <= 0.0:
             return self.start
@@ -274,10 +278,7 @@ class Arc(AxiElement):
 
 
     def getPoints(self, **kwargs):
-        rx, ry = self.radius
-        resolution = max(rx, ry)
-        resolution = int(remap(resolution, 0.0, 180.0, 12.0, 180.0))
-        resolution = kwargs.pop('resolution', resolution)
+        resolution = kwargs.pop('resolution', self.resolution)
 
         points = []
         step = 1.0/float(resolution)
