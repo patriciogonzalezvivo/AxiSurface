@@ -48,7 +48,7 @@ class Arc(AxiElement):
         rx = max(rx, 0.001)
         ry = max(ry, 0.001)
 
-        return [rx, ry]
+        return np.array([rx, ry])
 
     
     @property
@@ -68,6 +68,65 @@ class Arc(AxiElement):
             end = transform(end, translate=self.translate, rotate=self.rotate, scale=self.scale, anchor=center)
         return end
 
+
+    @property
+    def center(self):
+        return  self.start + (self.end - self.start) * 0.5
+
+
+    # @property
+    # def bounds(self):
+    #     """returns a bounding box for the segment in the form
+    #     (xmin, xmax, ymin, ymax)."""
+    #     # a(t) = radians(self.theta + self.delta*t)
+    #     #      = (2*pi/360)*(self.theta + self.delta*t)
+    #     # x'=0: ~~~~~~~~~
+    #     # -rx*cos(phi)*sin(a(t)) = ry*sin(phi)*cos(a(t))
+    #     # -(rx/ry)*cot(phi)*tan(a(t)) = 1
+    #     # a(t) = arctan(-(ry/rx)tan(phi)) + pi*k === atan_x
+    #     # y'=0: ~~~~~~~~~~
+    #     # rx*sin(phi)*sin(a(t)) = ry*cos(phi)*cos(a(t))
+    #     # (rx/ry)*tan(phi)*tan(a(t)) = 1
+    #     # a(t) = arctan((ry/rx)*cot(phi))
+    #     # atanres = arctan((ry/rx)*cot(phi)) === atan_y
+    #     # ~~~~~~~~
+    #     # (2*pi/360)*(self.theta + self.delta*t) = atanres + pi*k
+    #     # Therfore, for both x' and y', we have...
+    #     # t = ((atan_{x/y} + pi*k)*(360/(2*pi)) - self.theta)/self.delta
+    #     # for all k s.t. 0 < t < 1
+
+    #     if math.cos(self.phi) == 0:
+    #         atan_x = math.pi/2
+    #         atan_y = 0
+    #     elif math.sin(self.phi) == 0:
+    #         atan_x = 0
+    #         atan_y = math.pi/2
+    #     else:
+    #         rx, ry = self.radius
+    #         atan_x = math.atan(-(ry/rx)*math.tan(self.phi))
+    #         atan_y = math.atan((ry/rx)/math.tan(self.phi))
+
+    #     def angle_inv(ang, k):  # inverse of angle from Arc.derivative()
+    #         return ((ang + pi*k)*(360/(2*pi)) - self.theta)/self.delta
+
+    #     xtrema = [self.start[0], self.end[0]]
+    #     ytrema = [self.start[1], self.end[1]]
+
+    #     for k in range(-4, 5):
+    #         tx = angle_inv(atan_x, k)
+    #         ty = angle_inv(atan_y, k)
+    #         if 0 <= tx <= 1:
+    #             xtrema.append(self.getPointPct(tx)[0])
+    #         if 0 <= ty <= 1:
+    #             ytrema.append(self.getPointPct(ty)[1])
+    #     xmin = max(xtrema)
+
+    #     bbox = Bbox()
+    #     bbox.min_x = min(xtrema)
+    #     bbox.max_x = max(xtrema)
+    #     bbox.min_y = min(ytrema)
+    #     bbox.max_x = max(ytrema)
+    #     return bbox
 
     @property
     def length(self):

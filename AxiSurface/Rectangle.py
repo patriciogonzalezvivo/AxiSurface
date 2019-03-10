@@ -21,7 +21,9 @@ class Rectangle(AxiElement):
 
 
     def inside( self, pos ):
-        if (pos[0] > self.center[0] - self.size[0] * 0.5) and (pos[0] < self.center[0] + self.size[0] * 0.5):
+        if self.isTranformed:
+            return AxiElement.inside(self, pos, self.getPoints() )
+        elif (pos[0] > self.center[0] - self.size[0] * 0.5) and (pos[0] < self.center[0] + self.size[0] * 0.5):
             if (pos[1] > self.center[1] - self.size[1] * 0.5) and (pos[1] < self.center[1] + self.size[1] * 0.5):
                 return True
 
@@ -44,6 +46,9 @@ class Rectangle(AxiElement):
             rx = self.size * 0.5
             ry = self.size * 0.5
 
+        rx = math.sqrt( rx * rx + ry * ry )
+        ry = rx
+
         if isinstance(self.scale, tuple) or isinstance(self.scale, list):
             rx *= self.scale[0]
             ry *= self.scale[1]
@@ -58,9 +63,15 @@ class Rectangle(AxiElement):
         cx, cy = self.center
         rx, ry = self.radius
 
+        x = self.size[0] * 0.5
+        y = self.size[1] * 0.5
+
+        coorners = [ [1.0,1.0], [1.0,-1.0], [-1.0,-1.0], [-1.0,1.0] ]
+
         points = []
         for i in range(0, 4):
-            a = math.radians( self.rotate + 90.0 * i - 45.0 )
+            # a = math.radians( self.rotate + 90.0 * i - 45.0 )
+            a = math.atan2( y * coorners[i][1], x * coorners[i][0] )
             points.append( [cx + rx * math.cos(a), cy + ry * math.sin(a)] )
         return points
 
@@ -71,12 +82,16 @@ class Rectangle(AxiElement):
         return points
 
 
+    def getOffset(self, offset):
+        return Rectangle( self.center, [self.radius[0] * 2.0 + offset, self.radius[1] * 2.0 + offset], stroke_width=self.stroke_width, head_width=self.head_width )
+
+
     def getBuffer(self, offset):
         if offset <= 0:
             import copy
             return copy.copy(self)
 
-        return Rectangle( self.center, [self.radius[0] * 2.0 + offset, self.radius[1] * 2.0 + offset], stroke_width=self.stroke_width, head_width=self.head_width )
+        return self.getOffset(offset)
 
 
     def getStrokePath(self, **kwargs):

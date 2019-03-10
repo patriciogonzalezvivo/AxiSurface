@@ -53,6 +53,7 @@ class Line(AxiElement):
     def _toShapelyGeom(self):
         return self._toShapelyLineString()
 
+
     def _toShapelyLineString(self):
         try:
             from shapely import geometry
