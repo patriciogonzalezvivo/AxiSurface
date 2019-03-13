@@ -97,7 +97,8 @@ class Texture(AxiElement):
             input texture.
         """
         x, y = self.data
-        surface_h, surface_w = surface.shape
+        # surface_h, surface_w = surface.shape
+        surface_w, surface_h = surface.shape
 
         # First, we convert the points along the texture into integers within
         # the bounds of the surface's index. The clipping here will also convert
@@ -108,7 +109,10 @@ class Texture(AxiElement):
         # Grab z-values along the texture path. Note that this will include values
         # for every point, even if it is nan or had to be clipped to within the
         # bounds of the surface, so we have to fix that next.
-        surface_z = surface[surface_x, surface_y]
+        try:
+            surface_z = surface[surface_x, surface_y]
+        except IndexError:
+            print(surface_x, surface_y, surface_w, surface_h)
 
         # # Set z-values that are either out of bounds or nan in the texture to nan
         # # in the output.

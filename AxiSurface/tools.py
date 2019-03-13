@@ -56,7 +56,7 @@ def rotate(xy, deg, anchor=[0, 0]):
     qx = anchor[0] + cos_rad * x + sin_rad * y
     qy = anchor[1] + -sin_rad * x + cos_rad * y
 
-    return [qx, qy]
+    return np.array([qx, qy])
 
 
 def clamp(value, min_value, max_value):
@@ -151,8 +151,8 @@ def polar2xy(center, angle, radius):
     else:
         rx = radius
         ry = radius
-    return [center[0] + rx * math.cos(a), 
-            center[1] + ry * math.sin(a) ]
+    return np.array([   center[0] + rx * math.cos(a), 
+                        center[1] + ry * math.sin(a)    ])
 
 
 def xy2polar(center, pos):
