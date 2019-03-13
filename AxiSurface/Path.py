@@ -466,6 +466,16 @@ class Path(AxiElement):
         return result
 
 
+    def getResampledBySpacing(self, spacing):
+        from .Polyline import Polyline
+
+        result = Path()
+        for points in self.path:
+            if len(points) > 1:
+                result.add( Polyline( points ).getResampledBySpacing(spacing) )
+        return result
+
+
     def getTransformed(self, func):
         return Path([[func(x, y) for x, y in points] for points in self.path])
 

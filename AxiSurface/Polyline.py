@@ -475,6 +475,7 @@ class Polyline(AxiElement):
         head_width = kwargs.pop('head_width', self.head_width)
         overlap = kwargs.pop('overlap', 0.15 )
         offset = kwargs.pop('offset', 0.0 )
+        simplify = kwargs.pop('simplify', True )
         optimize_lifts = kwargs.pop('optimize_lifts', False )
 
         if len(self.points) < 3:
@@ -490,7 +491,7 @@ class Polyline(AxiElement):
             # into the FlatCAMStorage will fail.
             return Path()
 
-        path = Path(stroke_width=self.stroke_width, head_width=head_width)
+        path = Path(head_width=head_width)
         # current can be a MultiPolygon
         try:
             for p in current:
@@ -525,10 +526,13 @@ class Polyline(AxiElement):
             else:
                 break
 
-        if optimize_lifts:
-            return path.getSimplify().getSorted().getJoined(boundary=polygon)
+        if simplify:
+            if optimize_lifts:
+                return path.getSimplify().getSorted().getJoined(boundary=polygon)
+            else:
+                return path.getSimplify().getSorted().getJoined()
         else:
-            return path.getSimplify().getSorted().getJoined()
+            return path
 
 
     def getIntersections(self, other):
