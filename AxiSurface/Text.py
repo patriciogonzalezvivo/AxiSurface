@@ -22,6 +22,7 @@ class Text(AxiElement):
         self.font =  kwargs.pop('font', FUTURAL)
         self.spacing =  kwargs.pop('spacing', 0)
         self.extra =  kwargs.pop('extra', 0)
+        self.auto_flip = kwargs.pop('auto_flip', False )
 
 
     @property
@@ -50,11 +51,19 @@ class Text(AxiElement):
 
 
     def getPolylines(self, **kwargs):
+        rotate = kwargs.pop('rotate', self.rotate )
+        stroke_width = kwargs.pop('stroke_width', self.stroke_width )
+        
+        if self.auto_flip:
+            if rotate >= 90 and rotate < 270:
+                rotate += 180
+            elif rotate < -90 and rotate > -270:
+                rotate += 180
+
         # Based on hershey implementation by Michael Fogleman https://github.com/fogleman/axi/blob/master/axi/hershey.py
         result = []
 
         bbox = Bbox()
-
         x = 0
         for ch in self.text:
             index = ord(ch) - 32
@@ -73,25 +82,16 @@ class Text(AxiElement):
             if index == 0:
                 x += self.extra
 
-        toCenter = transform(bbox.center, rotate=self.rotate, scale=self.scale)
-        stroke_width = kwargs.pop('stroke_width', self.stroke_width )
-
+        toCenter = transform(bbox.center, rotate=rotate, scale=self.scale)
         translate = [ self.center[0] - toCenter[0], self.center[1] - toCenter[1] ]
 
         polys = []
         for line in result:
             points = []
             for point in line.points:
-                points.append( transform(point, translate=translate, rotate=self.rotate, scale=self.scale) )
+                points.append( transform(point, translate=translate, rotate=rotate, scale=self.scale) )
             polys.append( Polyline(points, stroke_width=stroke_width) )
-            # result[i].translate = translate
-            # result[i].scale = self.scale
-            # result[i].rotate = self.rotate
-            # result[i].origin = bbox.center
-            # result[i].stroke_width = stroke_width
 
-        len(polys)
-       
         return polys
 
 
