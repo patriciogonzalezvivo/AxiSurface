@@ -30,6 +30,18 @@ class AxiSurface(Group):
         elif size == 'A3_landscape':
             self.width = 420.0
             self.height = 297.0
+        elif size == 'V2':
+            self.width = 218.0
+            self.height = 300.0
+        elif size == 'V2_landscape':
+            self.width = 300.0
+            self.height = 218.0
+        elif size == 'V3':
+            self.width = 297.0
+            self.height = 430.0
+        elif size == 'V3_landscape':
+            self.width = 430.0
+            self.height = 297.0
         elif isinstance(size, tuple) or isinstance(size, list):
             if len(size) == 2:
                 self.width = size[0]

@@ -136,8 +136,23 @@ class Text(AxiElement):
 
         buf = cascaded_union(polygons)
         path = Path()
-        for ring in buf:
-            path.add( Polygon( list(ring.exterior.coords) ) )
+        
+        try:
+            for ring in buf:
+                polygon = Polygon( list(ring.exterior.coords) )
+                for i in ring.interiors:
+                    polygon.addHole( list(i.coords) )
+                path.add( polygon )
+
+        # Not a Multipolygon. Must be a Polygon
+        except TypeError:
+            polygon = Polygon( list(buf.exterior.coords) )
+            
+            for i in buf.interiors:
+                polygon.addHole( list(i.coords) )
+
+            path.add( polygon )
+            
 
         return path
         

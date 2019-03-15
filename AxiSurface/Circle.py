@@ -19,6 +19,7 @@ class Circle(AxiElement):
         self._center = np.array(center)
         self._radius = radius
         self.open_angle = kwargs.pop('open_angle', 0)
+        self.open_centered = kwargs.pop('open_centered', False)
 
 
     @property
@@ -59,8 +60,13 @@ class Circle(AxiElement):
 
         rx, ry = self.radius
         cx, cy = self.center
-        start_angle = self.open_angle * 0.5
-        end_angle = 360.0 - self.open_angle * 0.5
+
+        if self.open_centered:
+            start_angle = self.open_angle * 0.5
+            end_angle = 360.0 - self.open_angle * 0.5
+        else:
+            start_angle = 0.0
+            end_angle = 360.0 - self.open_angle
         
         angle = start_angle * (1.0 - t) + end_angle * t
         angle = math.radians(angle + self.rotate)

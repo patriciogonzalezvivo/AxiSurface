@@ -53,6 +53,15 @@ class Texture(AxiElement):
         if isinstance(other, Texture):
             x1, y1 = self.data
             x2, y2 = other.data
+            
+            if other.width != self.width:
+                x2 = x2 * other.width
+                x2 = x2 / self.width
+
+            if other.height != self.height:
+                y2 = y2 * other.height
+                y2 = y2 / self.height
+
             self.data = (np.concatenate([x1, x2]), np.concatenate([y1, y2]))
             return self
 
@@ -218,7 +227,7 @@ class Texture(AxiElement):
         return pts
 
 
-    def getPath(self):
+    def getPath(self, **kwargs):
         from .Path import Path
 
         X, Y = self.data
@@ -241,7 +250,14 @@ class Texture(AxiElement):
         if draw and len(pts) > 0:
             path.append( pts[:] )
 
-        return Path(path)
+
+        path = Path(path)
+
+        optimize = kwargs.pop('optimize', False)
+        if optimize:
+            path = path.getSimplify().getSorted()
+
+        return path
 
 
     def getGCodeString(self, surface, **kwargs):

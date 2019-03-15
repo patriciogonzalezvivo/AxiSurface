@@ -451,6 +451,8 @@ class Polyline(AxiElement):
     def getStrokePath(self, **kwargs):
         from .Path import Path
 
+        simplify = kwargs.pop('simplify', True )
+
         # TODO:
         #      - Fix stroke_width and head_width on scale
 
@@ -476,6 +478,8 @@ class Polyline(AxiElement):
         overlap = kwargs.pop('overlap', 0.15 )
         offset = kwargs.pop('offset', 0.0 )
         simplify = kwargs.pop('simplify', True )
+        sort_them = kwargs.pop('sort', True )
+        join_them = kwargs.pop('join', True )
         optimize_lifts = kwargs.pop('optimize_lifts', False )
 
         if len(self.points) < 3:
@@ -527,12 +531,18 @@ class Polyline(AxiElement):
                 break
 
         if simplify:
+            path = path.getSimplify()
+        
+        if sort_them:
+            path = path.getSorted()
+
+        if join_them:
             if optimize_lifts:
-                return path.getSimplify().getSorted().getJoined(boundary=polygon)
+                path = path.getJoined(boundary=polygon)
             else:
-                return path.getSimplify().getSorted().getJoined()
-        else:
-            return path
+                path = path.getJoined()
+        
+        return path
 
 
     def getIntersections(self, other):
@@ -566,13 +576,15 @@ class Polyline(AxiElement):
 
 
     def getCroppedPath(self, bounds=None, **kwargs ):
+        from .Path import Path
+
         x1 = kwargs.pop('x', 0.0)
         y1 = kwargs.pop('y', 0.0)
         x2 = x1 + kwargs.pop('width', 297.0)
-        y2 = y2 + kwargs.pop('height', 420.0)
+        y2 = y1 + kwargs.pop('height', 420.0)
 
         if bounds != None:
-            from Bbox import Bbox
+            from .Bbox import Bbox
             if isinstance(bounds, Bbox):
                 x1 = bounds.min_x
                 y1 = bounds.min_y

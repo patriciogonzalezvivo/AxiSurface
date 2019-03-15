@@ -301,7 +301,7 @@ class Arc(AxiElement):
 
 
     def getStrokePath(self, **kwargs):
-        from .Path import Path
+        from .Polyline import Polyline
         return Polyline(self.getPoints(**kwargs), stroke_width=self.stroke_width, head_width=self.head_width).getStrokePath(**kwargs)
 
     # def getSVGElementString(self):
