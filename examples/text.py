@@ -9,7 +9,6 @@ from __future__ import unicode_literals
 from AxiSurface import *
 
 axi = AxiSurface()
-
 text = Text(text='Hello World !!', center=[axi.width*0.5, axi.height*0.5] )
 axi.add( text )
 axi.add( text.getBuffer(5) )

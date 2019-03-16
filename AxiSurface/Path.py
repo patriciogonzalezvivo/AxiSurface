@@ -171,7 +171,7 @@ class Path(AxiElement):
                 # and we don't change the command. Check that it's allowed:
                 if command is None:
                     raise ValueError("Unallowed implicit command in %s, position %s" % (
-                        pathdef, len(path_string.split()) - len(elements)))
+                        path_string, len(path_string.split()) - len(elements)))
 
             if command == 'M':
                 # Moveto command.
