@@ -230,3 +230,77 @@ class AxiSurface(Group):
             dc.stroke()
 
         surface.write_to_png(filename)
+
+    def toMesh(self, **kwargs):
+        try:
+            from Meshes import Mesh
+        except ImportError:
+            Mesh = None
+
+        if Mesh is None:
+            raise Exception('AxiSurface.toMesh() requires Meshes')
+
+        optimize = kwargs.pop('optimize', False)
+        flip_x = kwargs.pop('flip_x', False)
+        flip_y = kwargs.pop('flip_y', True)
+        auto_center = kwargs.pop('auto_center', True)
+        color = kwargs.pop('color', None)
+        depth = kwargs.pop('depth', 0.0)
+
+        # depth = kwargs.pop('depth', -1.0)
+        # depth_step = kwargs.pop('depth_step', -0.2)
+        # head_width = kwargs.pop('head_width', self.head_width)
+
+        mesh = Mesh("Mesh")
+
+        path = self.getPath()
+
+        if optimize:
+            path = path.getSimplify().getSorted()
+
+        if auto_center:
+            path = path.getCentered(self.width, self.height)
+            path = path.getTranslated(-self.width*0.5, -self.height*0.5)
+
+        if flip_x:
+            def flip_onX(x, y):
+                return (-x, y)
+            path = path.getTransformed(flip_onX)
+
+        if flip_y:
+            def flip_onY(x, y):
+                return (x, -y)
+            path = path.getTransformed(flip_onY)
+
+        lastIndex = 0
+        for points in path:
+            # dc.set_source_rgb(0.5, 0.0, 0.0)
+            # dc.set_line_width(1 / scale)
+            # if debug:
+            #     dc.move_to(*lastPoint)
+            #     dc.line_to(*points[0])
+            #     dc.stroke()
+            # else:
+            #     dc.move_to(*points[0])
+
+            # dc.set_source_rgb(0, 0, 0)
+            # dc.set_line_width(line_width)
+            # for x, y in points:    
+            #     dc.line_to(x, y)
+            #     lastPoint = [x, y]
+            # dc.stroke()
+
+            section = 0
+            for x, y in points:
+                mesh.addVertex( [x, y, depth] )
+
+                if section > 0:
+                    mesh.addEdge(lastIndex-1, lastIndex)
+
+                lastIndex += 1
+                section +=1
+
+        return mesh
+
+
+        

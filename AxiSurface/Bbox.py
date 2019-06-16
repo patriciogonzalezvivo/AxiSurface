@@ -13,25 +13,25 @@ class Bbox(object):
         self.min_x, self.min_y = float("inf"), float("inf")
         self.max_x, self.max_y = float("-inf"), float("-inf")
 
-        if kwargs.has_key('x'):
+        if 'x' in kwargs:
             self.min_x = kwargs['x'] 
-            if kwargs.has_key('width'):
+            if 'width' in kwargs:
                 self.max_x = self.min_x + kwargs['width']
         else:
-            if kwargs.has_key('width'):
+            if 'width' in kwargs:
                 self.min_x = 0
                 self.max_x = kwargs['width']
 
-        if kwargs.has_key('y'):
+        if 'y' in kwargs:
             self.min_y = kwargs['y'] 
-            if kwargs.has_key('height'):
+            if 'height' in kwargs:
                 self.max_y = self.min_y + kwargs['height']
         else:
-            if kwargs.has_key('height'):
+            if 'height' in kwargs:
                 self.min_y = 0
                 self.max_y = kwargs['height']
 
-        if kwargs.has_key('points'):
+        if 'points' in kwargs:
             self.setFromPoints( kwargs['points'] )
 
 

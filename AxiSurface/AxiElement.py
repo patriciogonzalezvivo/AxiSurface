@@ -6,6 +6,11 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+try:
+    basestring
+except NameError:
+    basestring = str
+
 import math
 import numpy as np
 

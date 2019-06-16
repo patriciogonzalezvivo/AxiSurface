@@ -6,11 +6,17 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+try:
+    basestring
+except NameError:
+    basestring = str
+    
 import math
 import numpy as np
 
 from .AxiElement import AxiElement
 from .tools import lerp, distance, remap, transform, normalize, perpendicular, clamp, dot, linesIntersection
+
 
 class Polyline(AxiElement):
     def __init__( self, points=None, **kwargs):
