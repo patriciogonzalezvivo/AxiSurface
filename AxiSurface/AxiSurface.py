@@ -247,10 +247,6 @@ class AxiSurface(Group):
         color = kwargs.pop('color', None)
         depth = kwargs.pop('depth', 0.0)
 
-        # depth = kwargs.pop('depth', -1.0)
-        # depth_step = kwargs.pop('depth_step', -0.2)
-        # head_width = kwargs.pop('head_width', self.head_width)
-
         mesh = Mesh("Mesh")
 
         path = self.getPath()
@@ -274,22 +270,6 @@ class AxiSurface(Group):
 
         lastIndex = 0
         for points in path:
-            # dc.set_source_rgb(0.5, 0.0, 0.0)
-            # dc.set_line_width(1 / scale)
-            # if debug:
-            #     dc.move_to(*lastPoint)
-            #     dc.line_to(*points[0])
-            #     dc.stroke()
-            # else:
-            #     dc.move_to(*points[0])
-
-            # dc.set_source_rgb(0, 0, 0)
-            # dc.set_line_width(line_width)
-            # for x, y in points:    
-            #     dc.line_to(x, y)
-            #     lastPoint = [x, y]
-            # dc.stroke()
-
             section = 0
             for x, y in points:
                 mesh.addVertex( [x, y, depth] )
@@ -301,6 +281,66 @@ class AxiSurface(Group):
                 section +=1
 
         return mesh
+
+    def toBlenderCurve(self, **kwargs):
+        try:
+            import bpy
+        except ImportError:
+            bpy = None
+
+        if bpy is None:
+            raise Exception('AxiSurface.toBlenderCurve() requires Blender enviroment')
+
+        optimize = kwargs.pop('optimize', False)
+        flip_x = kwargs.pop('flip_x', False)
+        flip_y = kwargs.pop('flip_y', True)
+        auto_center = kwargs.pop('auto_center', True)
+        color = kwargs.pop('color', None)
+        depth = kwargs.pop('depth', 0.0)
+        type = kwargs.pop('type', 'POLY')
+
+        path = self.getPath()
+
+        if optimize:
+            path = path.getSimplify().getSorted()
+
+        if auto_center:
+            path = path.getCentered(self.width, self.height)
+            path = path.getTranslated(-self.width*0.5, -self.height*0.5)
+
+        if flip_x:
+            def flip_onX(x, y):
+                return (-x, y)
+            path = path.getTransformed(flip_onX)
+
+        if flip_y:
+            def flip_onY(x, y):
+                return (x, -y)
+            path = path.getTransformed(flip_onY)
+
+        curvedata = bpy.data.curves.new(name="path", type='CURVE')  
+        curvedata.dimensions = '3D'  
+    
+        objectdata = bpy.data.objects.new("AxiSurface", curvedata)  
+        objectdata.location = (0,0,0)
+    
+        scene = bpy.context.scene   
+        scene.collection.objects.link(objectdata)
+        
+        for points in path:
+            polyline = curvedata.splines.new(type)  # POLY | NURBS
+            polyline.points.add(len(points)-1)  
+            for num in range(len(points)):
+                coord = [0.0, 0.0, 0.0, 1.0]
+
+                for i in range(min(len(points[num]), 4)):
+                    coord[i] = points[num][i]
+                
+                polyline.points[num].co = (coord[0], coord[1], coord[2], coord[3])
+    
+            polyline.order_u = len(polyline.points)-1
+            polyline.use_endpoint_u = True
+
 
 
         
