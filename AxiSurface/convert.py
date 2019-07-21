@@ -42,6 +42,10 @@ def ImageContourToPath(filename, threshold=0.5, scale=1.0):
         for point in contour:
             # points.append( (point[0][0] * scale[0], point[0][1] * scale[1]) )
             points.append( (point[0][0] * scale, point[0][1] * scale) )
+        
+        # if len(points) > 2:
+        #     points.append( points[0] )
+            
         path.append( points )
 
     return Path( path )

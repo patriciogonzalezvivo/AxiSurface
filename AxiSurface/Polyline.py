@@ -644,13 +644,19 @@ class Polyline(AxiElement):
 
 
     def getPoints(self):
+        points = []
+
         if self.isTranformed:
-            points = []
             for p in self.points:
                 points.append( transform(p, rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.anchor) )
-            return points
         else:
-            return self.points
+            points = self.points
+
+        if len(points) > 2 and self.close:
+            if points[0][0] != points[-1][0] and points[0][1] != points[-1][1]:
+                points.append( points[0] )
+
+        return points
 
 
     def getPath(self, **kwargs):

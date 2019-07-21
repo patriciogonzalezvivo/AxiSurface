@@ -471,13 +471,13 @@ class Path(AxiElement):
         return result
 
 
-    def getResampledBySpacing(self, spacing):
+    def getResampledBySpacing(self, spacing, **kwargs):
         from .Polyline import Polyline
 
         result = Path()
         for points in self.path:
             if len(points) > 1:
-                result.add( Polyline( points ).getResampledBySpacing(spacing) )
+                result.add( Polyline( points, **kwargs ).getResampledBySpacing(spacing) )
         return result
 
 
