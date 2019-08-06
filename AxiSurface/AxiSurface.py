@@ -120,17 +120,6 @@ class AxiSurface(Group):
             file.write(svg_str)
 
 
-    def getGCODEHeader(self, **kwargs):
-        return 'M3\n'
-
-
-    def getGCODEFooter(self, **kwargs):
-        gcode_str = "G0 Z10\n"
-        gcode_str += "G0 X0 Y0\n"
-        gcode_str += "M5\n"
-        return gcode_str
-
-
     def toGCODE(self, filename, **kwargs ):
         flip_x = kwargs.pop('flip_x', False)
         flip_y = kwargs.pop('flip_y', True)
@@ -140,7 +129,16 @@ class AxiSurface(Group):
         head_width = kwargs.pop('head_width', self.head_width)
         # head_width_at_depth = kwargs.pop('head_width_at_depth', head_width)
 
-        gcode_str = self.getGCODEHeader()
+        def getGCODEHeader(self, **kwargs):
+            return 'M3\n'
+
+        def getGCODEFooter(self, **kwargs):
+            gcode_str = "G0 Z10\n"
+            gcode_str += "G0 X0 Y0\n"
+            gcode_str += "M5\n"
+            return gcode_str
+
+        gcode_str = getGCODEHeader()
 
         # Initial shallow and precise pass
         path = self.getPath().getSimplify().getSorted()
@@ -164,7 +162,7 @@ class AxiSurface(Group):
             gcode_str += path.getGCodeString(head_down_height=z, **kwargs)
             z += depth_step
 
-        gcode_str += self.getGCODEFooter()
+        gcode_str += getGCODEFooter()
 
         with open(filename, "w") as file:
             file.write(gcode_str)
@@ -230,6 +228,17 @@ class AxiSurface(Group):
             dc.stroke()
 
         surface.write_to_png(filename)
+
+
+    # def fromMesh(self, mesh, camera_matrix, projection="perspective", **kwargs)
+    #     try:
+    #         from Meshes import Mesh
+    #     except ImportError:
+    #         Mesh = None
+
+    #     if Mesh is None:
+    #         raise Exception('AxiSurface.fromMesh() requires Meshes')
+
 
     def toMesh(self, **kwargs):
         try:
