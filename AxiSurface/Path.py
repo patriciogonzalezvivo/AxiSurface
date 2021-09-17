@@ -13,11 +13,6 @@ from .AxiElement import AxiElement
 from .Index import Index
 from .tools import path_length, transform
 
-try:
-    basestring
-except NameError:
-    basestring = str
-
 # Mostly rom Axi by Michael Fogleman
 # https://github.com/fogleman/axi/blob/master/axi/spatial.py
 
@@ -35,7 +30,7 @@ class Path(AxiElement):
         elif isinstance(path, AxiElement):
             self.path = path.getPath()
 
-        elif isinstance(path, basestring):
+        elif isinstance(path, str):
             self.path = []
             self.setFromString(path)
 

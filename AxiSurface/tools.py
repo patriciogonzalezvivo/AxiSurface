@@ -337,7 +337,7 @@ def parse_transform(el, transform_str):
     If the string is empty or null, this returns a 3x3 identity matrix"""
     if not transform_str:
         return np.identity(3)
-    elif not isinstance(transform_str, basestring):
+    elif not isinstance(transform_str, str):
         raise TypeError('Must provide a string to parse')
 
     transform_substrs = transform_str.split(')')[:-1]

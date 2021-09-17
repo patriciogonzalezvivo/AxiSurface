@@ -121,7 +121,7 @@ def GrayscaleToTexture(filename, **kwargs):
     surface = surface - grayscale
 
     # Load and remove Mask
-    if isinstance(mask, basestring) or isinstance(mask, str):
+    if isinstance(mask, str) or isinstance(mask, str):
         mask = Image(mask)
         mask = mask.threshold()
     surface = surface - mask
@@ -159,7 +159,7 @@ def HeightmapToTexture(filename, **kwargs):
     heightmap.occlude(camera_angle)
 
     # load and remove mask
-    if isinstance(mask, basestring) or isinstance(mask, str):
+    if isinstance(mask, str) or isinstance(mask, str):
         mask = Image(mask)
         mask = mask.threshold()
     heightmap = heightmap - mask

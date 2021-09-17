@@ -41,7 +41,7 @@ class Polygon(Polyline):
 
                 self.anchor = kwargs.pop('anchor', points.anchor) 
 
-            elif isinstance(points, basestring):
+            elif isinstance(points, str):
                 self.setFromString(points)
                 
             else:

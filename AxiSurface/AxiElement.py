@@ -6,11 +6,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-try:
-    basestring
-except NameError:
-    basestring = str
-
 import math
 import numpy as np
 
@@ -24,11 +19,11 @@ class AxiElement(object):
 
         self.stroke_width = kwargs.pop('stroke_width', self.head_width)
         self.stroke_width = kwargs.pop('stroke-width', self.stroke_width)
-        if isinstance(self.stroke_width, basestring):
+        if isinstance(self.stroke_width, str):
             self.stroke_width = float(self.stroke_width)
 
         self.fill = kwargs.pop('fill', False)
-        if isinstance(self.fill, basestring):
+        if isinstance(self.fill, str):
             if self.fill.lower() == "none":
                 self.fill = False
             else:

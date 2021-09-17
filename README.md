@@ -23,7 +23,7 @@ Special thanks to:
 * Make sure you have `pip` installed, if not do:
 
 ```bash
-sudo easy_install pip
+sudo easy_install pip3
 ``` 
 
 * Clone this repo:
@@ -36,12 +36,12 @@ cd AxiSurface
 * Run the install script directly with `make install` or manually do:
 
 ```bash
-pip install -r requirements.txt
-python setup.py install
+pip3 install -r requirements.txt
+python3 setup.py install
 ```
 
 Or use the Makefile by:
 
 ```bash
-make install
+sudo make install
 ```

@@ -5,11 +5,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-
-try:
-    basestring
-except NameError:
-    basestring = str
     
 import math
 import numpy as np
@@ -44,7 +39,7 @@ class Polyline(AxiElement):
                 self.fill = kwargs.pop('fill', points.fill)
                 self.anchor = kwargs.pop('anchor', points.anchor) 
 
-            elif isinstance(points, basestring):
+            elif isinstance(points, str):
                 self.setFromString(points)
                 
             else:
@@ -353,7 +348,7 @@ class Polyline(AxiElement):
 
 
     def getOffset(self, offset):
-        if offset == 0 or (self.points) <= 2:
+        if offset == 0 or len(self.points) <= 2:
             return self
 
         if self.dirty:
