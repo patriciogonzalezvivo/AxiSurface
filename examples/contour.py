@@ -17,6 +17,7 @@ for coorner in coorners:
     axi.line( [coorner[0]-marks, coorner[1]], [coorner[0]+marks, coorner[1]])
     axi.line( [coorner[0], coorner[1]-marks], [coorner[0], coorner[1]+marks])
 
-axi.path( Path(vector_paths) )
+axi.path( Path(vector_paths).getSimplify(2.0).getSorted())
 
 axi.toSVG('contour.svg')
+axi.toPNG('contour_svg.png', scale=4)
