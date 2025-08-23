@@ -3,3 +3,4 @@ pillow
 Shapely
 cairocffi
 opencv-python
+scikit-image

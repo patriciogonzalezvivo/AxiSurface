@@ -113,9 +113,9 @@ class Image(object):
 
     def fill(self, value, change_type=None):
         self.data.fill(value)
-        if change_type != None:
+        if change_type is not None:
             self.type = change_type
-        elif type(value) is float:
+        elif isinstance(value, float):
             self.type = 'grayscale'
         return self
 
@@ -139,8 +139,8 @@ class Image(object):
         derr = np.zeros(self.data.shape, dtype=float)
 
         div = 8
-        for y in xrange(self.data.shape[0]):
-            for x in xrange(self.data.shape[1]):
+        for y in range(self.data.shape[0]):
+            for x in range(self.data.shape[1]):
                 newval = derr[y,x] + self.data[y,x]
                 if newval >= threshold:
                     errval = newval - 1.0

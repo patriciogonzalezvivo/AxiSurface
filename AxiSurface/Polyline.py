@@ -241,7 +241,7 @@ class Polyline(AxiElement):
                     leftLimit = i1
             else:
                 rightLimit = i1
-            i1 = (leftLimit + rightLimit) / 2
+            i1 = (leftLimit + rightLimit) // 2
 
         return 0
 

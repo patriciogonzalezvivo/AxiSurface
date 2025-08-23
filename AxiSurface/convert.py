@@ -15,6 +15,83 @@ from .Image import Image
 from .Texture import *
 from .tools import transform
 
+
+def ImageDrawingToPath(image_path, epsilon_factor=0.0001, scale=1.0, translate=(0,0)):
+    try:
+        import cv2 as cv
+    except ImportError:
+        cv = None
+
+    if cv is None:
+        raise Exception('AxiSurface.fromThreshold() requires OpenCV')
+    
+    try:
+        from skimage.morphology import skeletonize
+    except ImportError:
+        skeletonize = None
+
+    if skeletonize is None:
+        raise Exception('AxiSurface.fromThreshold() requires scikit-image')
+    
+    # 1. Load and Preprocess
+    image = cv.imread(image_path)
+    if image is None:
+        print(f"Error: Could not load image at {image_path}")
+        return
+
+    gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+    _, binary = cv.threshold(gray, 127, 255, cv.THRESH_BINARY_INV) # Invert for black lines on white background
+
+    skeleton = skeletonize(binary // 255)
+    skeleton_display = (skeleton * 255).astype(np.uint8)
+
+    # 2. Find Contours
+    contours, _ = cv.findContours(skeleton_display, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+
+    vector_paths = []
+    for contour in contours:
+        # 3. Approximate Contours
+        epsilon = epsilon_factor * cv.arcLength(contour, True)
+        approx = cv.approxPolyDP(contour, epsilon, True)
+        
+        # 4. Scale and Translate
+        points = [(point[0][0] * scale + translate[0], point[0][1] * scale + translate[1]) for point in approx]
+        if len(points) > 1:
+            vector_paths.append(points)
+
+    return Path(vector_paths)
+
+
+def ImageSurfaceCoorners(image_path, scale=1.0, translate=(0,0)):
+    try:
+        import cv2 as cv
+    except ImportError:
+        cv = None
+
+    if cv is None:
+        raise Exception('AxiSurface.fromThreshold() requires OpenCV')
+    
+    # 1. Load and Preprocess
+    image = cv.imread(image_path)
+    if image is None:
+        print(f"Error: Could not load image at {image_path}")
+        return
+
+    gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+    _, binary = cv.threshold(gray, 127, 255, cv.THRESH_BINARY)
+
+    # 2. Find Contours
+    contours, _ = cv.findContours(binary, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
+    # 3. Scale and Translate
+    contours = [[(point[0][0] * scale + translate[0], point[0][1] * scale + translate[1]) for point in contour] for contour in contours]
+
+    # Flatten the list of contours
+    contours = [point for contour in contours for point in contour]
+
+    return contours
+
+
 def ImageContourToPath(filename, threshold=0.5, scale=1.0):
     try:
         import cv2 as cv
@@ -32,7 +109,15 @@ def ImageContourToPath(filename, threshold=0.5, scale=1.0):
     blur = cv.GaussianBlur(im, (3, 3),0)
     imgray = cv.cvtColor( blur, cv.COLOR_BGR2GRAY )
     ret, thresh = cv.threshold(imgray, int(threshold * 255), 255, cv.THRESH_BINARY)
-    image, contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+    
+    # Handle different OpenCV versions
+    contours_result = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+    if len(contours_result) == 3:
+        # OpenCV 3.x returns (image, contours, hierarchy)
+        image, contours, hierarchy = contours_result
+    else:
+        # OpenCV 4.x returns (contours, hierarchy)
+        contours, hierarchy = contours_result
 
     # height, width = im.shape[:2]
     # scale = [ (1.0 / width) * size[0], (1.0 / height) * size[1] ]
@@ -68,9 +153,27 @@ def ImageThresholdToPolygons(filename, threshold=0.5, min_area=10.0, scale=1.0, 
     blur = cv.GaussianBlur(im, (3, 3),0)
     imgray = cv.cvtColor( blur, cv.COLOR_BGR2GRAY )
     ret, thresh = cv.threshold(imgray, int(threshold * 255), 255, cv.THRESH_BINARY)
-    image, contours, hierarchy = cv.findContours(thresh, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE)
+    
+    # Handle different OpenCV versions
+    contours_result = cv.findContours(thresh, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE)
+    if len(contours_result) == 3:
+        # OpenCV 3.x returns (image, contours, hierarchy)
+        image, contours, hierarchy = contours_result
+    else:
+        # OpenCV 4.x returns (contours, hierarchy)
+        contours, hierarchy = contours_result
 
     if not contours:
+        return polygons
+
+    # Handle case where hierarchy might be None
+    if hierarchy is None:
+        # If no hierarchy, treat all contours as parent contours
+        for idx, cnt in enumerate(contours):
+            if cv.contourArea(cnt) >= min_area:
+                assert cnt.shape[1] == 1
+                poly = Polygon( trans(cnt[:, 0, :]) )
+                polygons.append(poly)
         return polygons
 
     # now messy stuff to associate parent and child contours
@@ -121,7 +224,7 @@ def GrayscaleToTexture(filename, **kwargs):
     surface = surface - grayscale
 
     # Load and remove Mask
-    if isinstance(mask, str) or isinstance(mask, str):
+    if isinstance(mask, str):
         mask = Image(mask)
         mask = mask.threshold()
     surface = surface - mask
@@ -159,13 +262,13 @@ def HeightmapToTexture(filename, **kwargs):
     heightmap.occlude(camera_angle)
 
     # load and remove mask
-    if isinstance(mask, str) or isinstance(mask, str):
+    if isinstance(mask, str):
         mask = Image(mask)
         mask = mask.threshold()
     heightmap = heightmap - mask
 
     # Load gradient into dither mask
-    if grayscale != None:
+    if grayscale is not None:
         gradientmap = Image( grayscale )
         heightmap = heightmap - gradientmap.dither(threshold=threshold, invert=invert)
 
