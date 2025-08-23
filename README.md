@@ -20,28 +20,12 @@ Special thanks to:
 
 ## Install
 
-* Make sure you have `pip` installed, if not do:
-
-```bash
-sudo easy_install pip3
-``` 
-
-* Clone this repo:
+Create a new conda environment and install AxiSurface:
 
 ```bash
 git clone git@github.com:patriciogonzalezvivo/AxiSurface.git
 cd AxiSurface
-```
-
-* Run the install script directly with `make install` or manually do:
-
-```bash
-pip3 install -r requirements.txt
-python3 setup.py install
-```
-
-Or use the Makefile by:
-
-```bash
-sudo make install
+conda env create -f environment.yml
+conda activate axisurface
+pip install -e .
 ```

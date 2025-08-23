@@ -1,0 +1,49 @@
+{% set name = "axisurface" %}
+{% set version = "0.1.0" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  path: .
+
+build:
+  number: 0
+  script: {{ PYTHON }} -m pip install . -vv
+  noarch: python
+
+requirements:
+  host:
+    - python >=3.6
+    - pip
+    - setuptools
+  run:
+    - python >=3.6
+    - numpy
+    - pillow
+    - shapely
+    - cairocffi
+    - opencv
+
+test:
+  imports:
+    - AxiSurface
+  commands:
+    - pip check
+  requires:
+    - pip
+
+about:
+  home: https://github.com/patriciogonzalezvivo/AxiSurface
+  license: MIT
+  license_family: MIT
+  summary: Simple Python module to make line SVG files for plotting
+  description: |
+    Python module to make 100% vector line compositions and export them as SVG or G-Code files. 
+    Made and tested for AxiDrawer plotter and SnapMaker CNC.
+  dev_url: https://github.com/patriciogonzalezvivo/AxiSurface
+
+extra:
+  recipe-maintainers:
+    - patriciogonzalezvivo
