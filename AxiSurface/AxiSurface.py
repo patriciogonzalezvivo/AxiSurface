@@ -91,6 +91,7 @@ class AxiSurface(Group):
 
     def toSVG( self, filename, **kwargs ):
         scale = kwargs.pop('scale', 1.0)
+        margin = kwargs.pop('margin', [0.0, 0.0])
         unit = kwargs.pop('unit', 'mm')
         optimize = kwargs.pop('optimize', False)
         flip_x = kwargs.pop('flip_x', False)
@@ -102,23 +103,25 @@ class AxiSurface(Group):
         svg_str += 'viewBox="0,0,'+ str(self.width * scale) + ',' + str(self.height * scale) + '" '
         svg_str += 'baseProfile="tiny" version="1.2" xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" ><defs/>'
         
+        path = self.getPath()
+
         if optimize:
-            path = self.getPath()
             path = path.getSimplify().getSorted()
 
-            if flip_x:
-                def flip_onX(x, y):
-                    return (self.width - x, y)
-                path = path.getTransformed(flip_onX)
+        if margin[0] != 0.0 or margin[1] != 0.0: 
+            path = path.getTranslated(margin[0], margin[1])
 
-            if flip_y:
-                def flip_onY(x, y):
-                    return (x, self.height - y)
-                path = path.getTransformed(flip_onY)
+        if flip_x:
+            def flip_onX(x, y):
+                return (self.width - x, y)
+            path = path.getTransformed(flip_onX)
 
-            svg_str += path.getSVGElementString()
-        else:
-            svg_str += self.getSVGElementString()
+        if flip_y:
+            def flip_onY(x, y):
+                return (x, self.height - y)
+            path = path.getTransformed(flip_onY)
+
+        svg_str += path.getSVGElementString()
 
         svg_str += '</svg>'
 
@@ -185,20 +188,20 @@ class AxiSurface(Group):
 
         sort = kwargs.pop('sort', False)
         scale = kwargs.pop('scale', 20)
-        margin = kwargs.pop('margin', 0)
+        margin = kwargs.pop('margin', [0, 0])
         line_width = kwargs.pop('line_width', 0.5/scale)
         show_bounds = kwargs.pop('show_bounds', False)
         debug = kwargs.pop('debug', False)
         optimize = kwargs.pop('optimize', False)
 
         margin *= scale
-        width = int(scale * self.width + margin * 2)
-        height = int(scale * self.height + margin * 2)
+        width = int(scale * self.width)
+        height = int(scale * self.height)
         surface = cairo.ImageSurface(cairo.FORMAT_RGB24, width, height)
         dc = cairo.Context(surface)
         dc.set_line_cap(cairo.LINE_CAP_ROUND)
         dc.set_line_join(cairo.LINE_JOIN_ROUND)
-        dc.translate(margin, margin)
+        dc.translate(margin[0], margin[1])
         dc.scale(scale, scale)
         dc.set_source_rgb(1, 1, 1)
         dc.paint()

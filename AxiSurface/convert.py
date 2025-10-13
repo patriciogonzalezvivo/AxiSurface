@@ -206,8 +206,8 @@ def ImageThresholdToPolygons(filename, threshold=0.5, min_area=10.0, scale=1.0, 
     return polygons
 
 
-def GrayscaleToTexture(filename, **kwargs):
-    grayscale = Image( filename )
+def GrayscaleToTexture(grayscale, **kwargs):
+    grayscale = Image( grayscale )
 
     threshold = float(kwargs.pop('threshold', 0.5))
     invert = kwargs.pop('invert', False)
