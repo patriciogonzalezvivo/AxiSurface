@@ -117,7 +117,7 @@ class Circle(AxiElement):
         else:
             path.append(self.getPoints())
 
-        return Path(path)
+        return Path(path, color=self.color)
 
 
     def getFillPath(self, **kwargs):
@@ -142,7 +142,7 @@ class Circle(AxiElement):
         else:
             path.append(self.getPoints())
 
-        return Path(path)
+        return Path(path, color=self.color)
 
 
     # def getPath(self, **kwargs):

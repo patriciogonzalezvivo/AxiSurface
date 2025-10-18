@@ -213,7 +213,7 @@ class AxiSurface(Group):
         flip_y = kwargs.pop('flip_y', False)
         scale = kwargs.pop('scale', 20)
         margin = kwargs.pop('margin', [0, 0])
-        line_width = kwargs.pop('line_width', 0.5/scale)
+        line_width = kwargs.pop('line_width', 20.0/scale)
         show_bounds = kwargs.pop('show_bounds', False)
         debug = kwargs.pop('debug', False)
         optimize = kwargs.pop('optimize', False)
@@ -233,47 +233,79 @@ class AxiSurface(Group):
             dc.set_line_width(1 / scale)
             dc.rectangle(0, 0, self.width ,self.height)
             dc.stroke()
-        dc.set_source_rgb(0, 0, 0)
-        dc.set_line_width(line_width)
 
-        path = self.getPath()
-        
-        if optimize:
-            path = path.getSimplify()
+        def draw_path(dc, path):
+            if optimize:
+                path = path.getSimplify()
+                
+            if sort:
+                path = path.getSorted()
+                
+            if margin[0] != 0.0 or margin[1] != 0.0: 
+                path = path.getTranslated(margin[0], margin[1])
+
+            if flip_x:
+                def flip_onX(x, y):
+                    return (self.width - x, y)
+                path = path.getTransformed(flip_onX)
+
+            if flip_y:
+                def flip_onY(x, y):
+                    return (x, self.height - y)
+                path = path.getTransformed(flip_onY)        
+
+            lastPoint = [0.0, 0.0]
+            # convert SVG color to RGB
+            svg_color =  path.color
+            rgb = (0.0, 0.0, 0.0)
+            if svg_color.startswith('#') and (len(svg_color) == 7 or len(svg_color) == 4):
+                if len(svg_color) == 7:
+                    r = int(svg_color[1:3], 16) / 255.0
+                    g = int(svg_color[3:5], 16) / 255.0
+                    b = int(svg_color[5:7], 16) / 255.0
+                else:
+                    r = int(svg_color[1]*2, 16) / 255.0
+                    g = int(svg_color[2]*2, 16) / 255.0
+                    b = int(svg_color[3]*2, 16) / 255.0
+                rgb = (r, g, b)
+            elif svg_color.startswith('rgb'):
+                svg_color = svg_color.replace('rgb(', '').replace(')', '')
+                parts = svg_color.split(',')
+                if len(parts) == 3:
+                    r = int(parts[0].strip()) / 255.0
+                    g = int(parts[1].strip()) / 255.0
+                    b = int(parts[2].strip()) / 255.0
+                    rgb = (r, g, b)
             
-        if sort:
-            path = path.getSorted()
-            
-        if margin[0] != 0.0 or margin[1] != 0.0: 
-            path = path.getTranslated(margin[0], margin[1])
+            for points in path:
 
-        if flip_x:
-            def flip_onX(x, y):
-                return (self.width - x, y)
-            path = path.getTransformed(flip_onX)
+                if debug:
+                    dc.set_line_width(1 / scale)
+                    dc.set_source_rgb(0.5, 0.0, 0.0)
+                    dc.move_to(*lastPoint)
+                    dc.line_to(*points[0])
+                    dc.stroke()
+                else:
+                    dc.move_to(*points[0])
 
-        if flip_y:
-            def flip_onY(x, y):
-                return (x, self.height - y)
-            path = path.getTransformed(flip_onY)        
-
-        lastPoint = [0.0, 0.0]
-        for points in path:
-            dc.set_source_rgb(0.5, 0.0, 0.0)
-            dc.set_line_width(1 / scale)
-            if debug:
-                dc.move_to(*lastPoint)
-                dc.line_to(*points[0])
+                dc.set_source_rgb(rgb[0], rgb[1], rgb[2])
+                dc.set_line_width(line_width * path.stroke_width)
+                for x, y in points:    
+                    dc.line_to(x, y)
+                    lastPoint = [x, y]
                 dc.stroke()
-            else:
-                dc.move_to(*points[0])
 
-            dc.set_source_rgb(0, 0, 0)
-            dc.set_line_width(line_width)
-            for x, y in points:    
-                dc.line_to(x, y)
-                lastPoint = [x, y]
-            dc.stroke()
+        for el in self.elements:
+            if isinstance(el, Group ):
+                grp = el
+                for el in grp.elements:
+                    if isinstance(el, Path ):
+                        draw_path(dc, el)
+                    else:
+                        draw_path(dc, el.getPath())
+            else:
+                path = el.getPath()
+                draw_path(dc, path)
 
         surface.write_to_png(filename)
 
