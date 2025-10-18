@@ -192,7 +192,7 @@ class Polyline(AxiElement):
             print('cubicBezier needs a starting point')
 
 
-    def setClose(self, close):
+    def setClosed(self, close):
         if self.points[0][0] == self.points[-1][0] and self.points[0][1] == self.points[-1][1]:
             if not close:
                 # If it's closed and shouldn't be delete the last one
@@ -496,6 +496,8 @@ class Polyline(AxiElement):
 
         path = Path(head_width=head_width, color=self.color)
 
+        # print("   Initiated fill path generation.")
+
         # Try to import shapely geometry types if available
         try:
             from shapely.geometry import Polygon, MultiPolygon
@@ -531,11 +533,12 @@ class Polyline(AxiElement):
             if exterior is not None:
                 coords = list(exterior.coords)
                 if len(coords) >= 3:
-                    path.add( Polyline(coords, color=self.color) )
+                    # avoid allocating a Polyline object for every ring
+                    path.add_coords(coords, color=self.color, head_width=self.head_width, close=True)
             for interior in getattr(poly, "interiors", []):
                 coords = list(interior.coords)
                 if len(coords) >= 3:
-                    path.add( Polyline(coords, color=self.color) )
+                    path.add_coords(coords, color=self.color, head_width=self.head_width, close=True)
 
         # add initial rings
         for poly in _iter_polygons(current):
@@ -565,6 +568,8 @@ class Polyline(AxiElement):
 
 
     def getIntersections(self, other):
+        # Find intersections with another geometry
+
         indices = []
 
         from .Line import Line
@@ -595,6 +600,7 @@ class Polyline(AxiElement):
 
 
     def getCroppedPath(self, bounds=None, **kwargs ):
+        # Crop polyline to given bounds
         from .Path import Path
 
         x1 = kwargs.pop('x', 0.0)

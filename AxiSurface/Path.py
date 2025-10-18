@@ -202,7 +202,7 @@ class Path(AxiElement):
                 # if not (current_pos.all() == start_pos.all()):
                 #     poly.lineTo( start_pos )
 
-                poly.setClose( True )
+                poly.setClosed( True )
                 poly = poly.getSimplify()
                 self.add( poly.getPath() )
                 poly = Polyline(fill=self.fill, stroke_width=self.stroke_width)
@@ -592,4 +592,34 @@ class Path(AxiElement):
 
         gcode_str += "G0 Z%0.1f\n" % (head_up_height)
         return  gcode_str
-            
+
+    def add_coords(self, coords, color=None, head_width=None, close=True):
+        """
+        Add a raw coordinate ring to the path without instantiating a Polyline object.
+        coords: iterable of (x,y) pairs or numpy array
+        color/head_width/close: optional metadata
+        """
+        # lazy init storage for lightweight rings (keeps memory smaller than full Polyline objects)
+        if not hasattr(self, '_rings'):
+            self._rings = []
+        # normalize coords to a plain Python list (fast) - avoid creating other objects
+        if hasattr(coords, 'tolist'):
+            pts = coords.tolist()
+        else:
+            pts = list(coords)
+
+        # store lightweight metadata for later use if needed
+        self._rings.append({
+            "points": pts,
+            "color": color if color is not None else getattr(self, "color", None),
+            "head_width": head_width if head_width is not None else getattr(self, "head_width", None),
+            "close": close
+        })
+
+        # Also append to the canonical storage used by existing Path consumers
+        # so methods like getSimplify/getSorted/getJoined see the new ring.
+        # Keep it as a plain list of points to remain compatible.
+        self.path.append(pts)
+
+        return self
+

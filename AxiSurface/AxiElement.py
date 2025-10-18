@@ -126,8 +126,6 @@ class AxiElement(object):
         else:
             return self.getStrokePath(**kwargs)
 
-        return path
-
 
     def getSVGElementString(self):
         return self.getPath().getSVGElementString()

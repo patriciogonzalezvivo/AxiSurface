@@ -53,13 +53,13 @@ class Polygon(Polyline):
                     self.addHole(hole)
                 
             # Close it manually 
-            self.setClose(True)
+            self.setClosed(True)
 
 
     def addHole(self, points):
         if len(points) > 2:
             if isinstance(points, Polyline):
-                points.setClose(True)
+                points.setClosed(True)
                 self.holes.append( points )
             else:
                 self.holes.append( Polyline(points, close=True) )
