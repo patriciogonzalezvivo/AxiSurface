@@ -18,6 +18,7 @@ def stripes_texture(num_lines=10, resolution=50, offset=0, zigzag=False):
     y_min = 0.0
     y_max = 1.0
     
+    resolution = int(resolution)
     resolution_unit = 1.0 / resolution
     resolution_offset = offset * resolution_unit
     x_min = x_min + resolution_offset
@@ -27,6 +28,8 @@ def stripes_texture(num_lines=10, resolution=50, offset=0, zigzag=False):
     lines_offset = offset * lines_unit
     y_min = y_min + lines_offset
     y_max = (y_max-lines_unit) + lines_offset
+
+    print(f"stripes_texture: num_lines={num_lines}, resolution={resolution}, offset={offset} -> x:[{x_min},{x_max}] y:[{y_min},{y_max}]")
 
     # np.meshgrid is a handy way to generate a grid of points. It
     # returns a pair of matrices, which we will flatten into arrays.

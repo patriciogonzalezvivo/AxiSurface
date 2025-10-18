@@ -66,7 +66,7 @@ class Path(AxiElement):
     def __getitem__(self, index):
         from .Polyline import Polyline
         if type(index) is int:
-            return Polyline( self.path[index], translate=self.translate, scale=self.scale, rotate=self.rotate, head_width=self.head_width )
+            return Polyline( self.path[index], translate=self.translate, scale=self.scale, rotate=self.rotate, head_width=self.head_width, color=self.color )
         else:
             return None
 
@@ -103,7 +103,7 @@ class Path(AxiElement):
     @property
     def height(self):
         return self.bounds.height
-
+    
 
     def add(self, other):
         from .Polyline import Polyline
@@ -341,7 +341,7 @@ class Path(AxiElement):
             raise Exception('Polyline.getConvexHull() requires Shapely')
 
         polygon = geometry.Polygon( self.getPoints() )
-        return Polyline( polygon.convex_hull.exterior.coords, head_width=self.head_width )
+        return Polyline( polygon.convex_hull.exterior.coords, head_width=self.head_width, color=self.color )
 
 
     def getTexture(self, width, height, **kwargs):
@@ -349,7 +349,7 @@ class Path(AxiElement):
 
         from .Texture import Texture
         from .Polyline import Polyline
-        texture = Texture(width=width, height=height, **kwargs)
+        texture = Texture(width=width, height=height, **kwargs, color=self.color)
 
         for points in self.path:
         
@@ -415,7 +415,7 @@ class Path(AxiElement):
             else:
                 result.append(path)
 
-        return Path( result, head_width=self.head_width )
+        return Path( result, head_width=self.head_width, color=self.color )
 
 
     def getJoined(self, tolerance = None, boundary = None):
@@ -452,14 +452,14 @@ class Path(AxiElement):
                 result[-1].extend(path)
             else:
                 result.append(list(path))
-                
-        return Path(result)
+
+        return Path(result, color=self.color)
 
 
     def getSimplify(self, tolerance = None):
         from .Polyline import Polyline
 
-        result = Path()
+        result = Path(color=self.color)
         for points in self.path:
             if len(points) > 1:
                 result.add( Polyline( points ).getSimplify(tolerance) )
@@ -469,7 +469,7 @@ class Path(AxiElement):
     def getResampledBySpacing(self, spacing, **kwargs):
         from .Polyline import Polyline
 
-        result = Path()
+        result = Path(color=self.color)
         for points in self.path:
             if len(points) > 1:
                 result.add( Polyline( points, **kwargs ).getResampledBySpacing(spacing) )
@@ -477,7 +477,7 @@ class Path(AxiElement):
 
 
     def getTransformed(self, func):
-        return Path([[func(x, y) for x, y in points] for points in self.path])
+        return Path([[func(x, y) for x, y in points] for points in self.path], color=self.color)
 
 
     def getMoved(self, x, y, ax, ay):
@@ -529,7 +529,7 @@ class Path(AxiElement):
         # for points in self.path:
         #     path_str += 'M' + ' L'.join('{0} {1}'.format(x,y) for x,y in points)
 
-        if self.isTranformed:
+        if self.isTransformed:
             for points in self.path:
                 first = True
                 for point in points:
@@ -547,7 +547,7 @@ class Path(AxiElement):
         if self.id != None:
             svg_str += 'id="' + self.id + '" '
         svg_str += 'd="' + path_str + '" '
-        svg_str += 'fill="none" stroke="black" stroke-width="'+str(self.head_width) + '" '
+        svg_str += f'fill="none" stroke="{self.color}" stroke-width="{self.head_width}" '
         svg_str += '/>\n'
         
         return svg_str
@@ -563,7 +563,7 @@ class Path(AxiElement):
         # bed_max_y = kwargs.pop('bed_max_y', 200)
 
 
-        transformed = self.isTranformed
+        transformed = self.isTransformed
         gcode_str = ''
         for points in self.path:
             gcode_str += "G0 Z%0.1f F" % (head_up_height) + str(head_up_speed) + "\n"

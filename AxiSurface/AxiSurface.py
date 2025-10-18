@@ -102,26 +102,48 @@ class AxiSurface(Group):
         svg_str += 'height="' + str(self.height) + unit + '" '
         svg_str += 'viewBox="0,0,'+ str(self.width * scale) + ',' + str(self.height * scale) + '" '
         svg_str += 'baseProfile="tiny" version="1.2" xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" ><defs/>'
-        
-        path = self.getPath()
 
-        if optimize:
-            path = path.getSimplify().getSorted()
+        # path = self.getPath()
 
-        if margin[0] != 0.0 or margin[1] != 0.0: 
-            path = path.getTranslated(margin[0], margin[1])
+        for el in self.elements:
 
-        if flip_x:
-            def flip_onX(x, y):
-                return (self.width - x, y)
-            path = path.getTransformed(flip_onX)
+            if isinstance(el, Group ):
+                grp = el
 
-        if flip_y:
-            def flip_onY(x, y):
-                return (x, self.height - y)
-            path = path.getTransformed(flip_onY)
+                if margin[0] != 0.0 or margin[1] != 0.0: 
+                    grp = grp.getTranslated(margin[0], margin[1])
 
-        svg_str += path.getSVGElementString()
+                if flip_x:
+                    def flip_onX(x, y):
+                        return (self.width - x, y)
+                    grp = grp.getTransformed(flip_onX)
+
+                if flip_y:
+                    def flip_onY(x, y):
+                        return (x, self.height - y)
+                    grp = grp.getTransformed(flip_onY)
+
+                svg_str += grp.getSVGElementString()
+            else:
+                path = el.getPath()
+
+                if optimize:
+                    path = path.getSimplify().getSorted()
+
+                if margin[0] != 0.0 or margin[1] != 0.0: 
+                    path = path.getTranslated(margin[0], margin[1])
+
+                if flip_x:
+                    def flip_onX(x, y):
+                        return (self.width - x, y)
+                    path = path.getTransformed(flip_onX)
+
+                if flip_y:
+                    def flip_onY(x, y):
+                        return (x, self.height - y)
+                    path = path.getTransformed(flip_onY)
+
+                svg_str += path.getSVGElementString()
 
         svg_str += '</svg>'
 
@@ -187,6 +209,8 @@ class AxiSurface(Group):
             raise Exception('AxiSurface.toPNG() requires cairo')
 
         sort = kwargs.pop('sort', False)
+        flip_x = kwargs.pop('flip_x', False)
+        flip_y = kwargs.pop('flip_y', False)
         scale = kwargs.pop('scale', 20)
         margin = kwargs.pop('margin', [0, 0])
         line_width = kwargs.pop('line_width', 0.5/scale)
@@ -201,7 +225,6 @@ class AxiSurface(Group):
         dc = cairo.Context(surface)
         dc.set_line_cap(cairo.LINE_CAP_ROUND)
         dc.set_line_join(cairo.LINE_JOIN_ROUND)
-        dc.translate(margin[0], margin[1])
         dc.scale(scale, scale)
         dc.set_source_rgb(1, 1, 1)
         dc.paint()
@@ -216,7 +239,23 @@ class AxiSurface(Group):
         path = self.getPath()
         
         if optimize:
-            path = path.getSimplify().getSorted()
+            path = path.getSimplify()
+            
+        if sort:
+            path = path.getSorted()
+            
+        if margin[0] != 0.0 or margin[1] != 0.0: 
+            path = path.getTranslated(margin[0], margin[1])
+
+        if flip_x:
+            def flip_onX(x, y):
+                return (self.width - x, y)
+            path = path.getTransformed(flip_onX)
+
+        if flip_y:
+            def flip_onY(x, y):
+                return (x, self.height - y)
+            path = path.getTransformed(flip_onY)        
 
         lastPoint = [0.0, 0.0]
         for points in path:

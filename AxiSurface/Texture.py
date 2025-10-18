@@ -271,7 +271,7 @@ class Texture(AxiElement):
         height = kwargs.pop('height', self.height)
         threshold = kwargs.pop('threshold', 0.5)
 
-        transformed = self.isTranformed
+        transformed = self.isTransformed
 
         gcode_str = ''
         gcode_str += "G0 Z%0.1f F" % (head_up_height) + str(head_up_speed) + "\n"

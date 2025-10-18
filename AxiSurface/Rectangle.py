@@ -21,7 +21,7 @@ class Rectangle(AxiElement):
 
 
     def inside( self, pos ):
-        if self.isTranformed:
+        if self.isTransformed:
             return AxiElement.inside(self, pos, self.getPoints() )
         elif (pos[0] > self.center[0] - self.size[0] * 0.5) and (pos[0] < self.center[0] + self.size[0] * 0.5):
             if (pos[1] > self.center[1] - self.size[1] * 0.5) and (pos[1] < self.center[1] + self.size[1] * 0.5):

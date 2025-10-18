@@ -28,7 +28,7 @@ class CubicBezier(AxiElement):
     @property
     def start(self):
         start = self._start
-        if self.isTranformed:
+        if self.isTransformed:
             center = self._start + (self._end - self._start) * 0.5
             start = transform(start, translate=self.translate, rotate=self.rotate, scale=self.scale, anchor=center)
         return start
@@ -37,7 +37,7 @@ class CubicBezier(AxiElement):
     @property
     def control1(self):
         control1 = self._control1
-        if self.isTranformed:
+        if self.isTransformed:
             center = self._start + (self._control1 - self._start) * 0.5
             control1 = transform(control1, translate=self.translate, rotate=self.rotate, scale=self.scale, anchor=center)
         return control1
@@ -46,7 +46,7 @@ class CubicBezier(AxiElement):
     @property
     def control2(self):
         control2 = self._control2
-        if self.isTranformed:
+        if self.isTransformed:
             center = self._control2 + (self._end - self._control2) * 0.5
             control2 = transform(control2, translate=self.translate, rotate=self.rotate, scale=self.scale, anchor=center)
         return control2
@@ -55,7 +55,7 @@ class CubicBezier(AxiElement):
     @property
     def end(self):
         end = self._end
-        if self.isTranformed:
+        if self.isTransformed:
             center = self._start + (self._end - self._start) * 0.5
             end = transform(end, translate=self.translate, rotate=self.rotate, scale=self.scale, anchor=center)
         return end

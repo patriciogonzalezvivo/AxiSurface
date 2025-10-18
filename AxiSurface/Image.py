@@ -96,7 +96,11 @@ class Image(object):
 
         elif isinstance(other, Image):
             if other.type == "mask":
-                self.data[ np.invert(other.data)] = np.nan
+                # self.data[ np.invert(other.data)] = np.nan
+                # Ensure other.data is boolean and shapes match
+                mask = np.invert(other.data.astype(bool))
+                if mask.shape == self.data.shape:
+                    self.data[mask] = np.nan
             elif other.type == "grayscale":
                 self.data -= other.data
             else:

@@ -71,7 +71,7 @@ class Polyline(AxiElement):
     def __getitem__(self, index):
         if type(index) is int:
             # return self.points[ index ]
-            if self.isTranformed:
+            if self.isTransformed:
                 return transform(self.points[ index ], rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.anchor)
             else:
                 return self.points[ index ]
@@ -275,7 +275,7 @@ class Polyline(AxiElement):
         i1, i2, t = self.getInterpolationParams(findex)
         p = lerp(self.points[i1], self.points[i2], t)
 
-        if self.isTranformed:
+        if self.isTransformed:
             return transform(p, rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.anchor)
         else:
             return p
@@ -288,7 +288,7 @@ class Polyline(AxiElement):
         if self.dirty:
             self._updateCache()
 
-        if self.isTranformed:
+        if self.isTransformed:
             return transform(p, self.normals[ self.getWrappedIndex(index) ], rotate=self.rotate )
         else:
             return self.normals[ self.getWrappedIndex(index) ]
@@ -306,7 +306,7 @@ class Polyline(AxiElement):
         if self.points.size() < 2:
             return self
 
-        if self.isTranformed:
+        if self.isTransformed:
             return transform(p, self.tangents[ self.getWrappedIndex(index) ], rotate=self.rotate )
         else:
             return self.tangents[ self.getWrappedIndex(index) ]
@@ -322,7 +322,7 @@ class Polyline(AxiElement):
         if spacing==0 or (self.points) == 0:
             return self
 
-        poly = Polyline( stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width, close=self.close )
+        poly = Polyline( stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width, close=self.close, color=self.color )
         totalLength = self.getPerimeter()
         f = 0.0
         while f < totalLength:
@@ -357,7 +357,7 @@ class Polyline(AxiElement):
         points = []
 
         if self.size() < 2:
-            return Polyline(points, stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width, close=self.close)
+            return Polyline(points, stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width, close=self.close, color=self.color )
 
         for i in range(self.size()):
             width = offset
@@ -378,7 +378,7 @@ class Polyline(AxiElement):
 
             p = [self.points[i][0] + norm[0] * width, self.points[i][1] + norm[1] * width]
             points.append( transform(p, rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.anchor) )
-        return Polyline(points, stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width, close=self.close)
+        return Polyline(points, stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width, close=self.close, color=self.color )
 
 
     def _toShapelyGeom(self):
@@ -400,7 +400,7 @@ class Polyline(AxiElement):
         holes=[]
         if self.holes != None:            
             for hole in self.holes:
-                holes.append( Polyline(hole, close=True) )
+                holes.append( Polyline(hole, close=True, color=self.color) )
         return geometry.Polygon( self.getPoints(), holes=holes )
 
 
@@ -424,7 +424,7 @@ class Polyline(AxiElement):
             return self
 
         poly = self._toShapelyLineString().buffer(offset)
-        return Polyline( list(poly.exterior.coords), stroke_width=self.stroke_width, head_width=self.head_width, close=self.close )
+        return Polyline( list(poly.exterior.coords), stroke_width=self.stroke_width, head_width=self.head_width, close=self.close, color=self.color )
 
 
     def getSimplify(self, tolerance = None):
@@ -436,7 +436,7 @@ class Polyline(AxiElement):
 
         line = self._toShapelyLineString().simplify(tolerance, preserve_topology=False)
         if line.length > 0:
-            return Polyline( list(line.coords), stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width)
+            return Polyline( list(line.coords), stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width, color=self.color )
         else:
             return Polyline()
 
@@ -446,7 +446,7 @@ class Polyline(AxiElement):
             return Polyline()
 
         polygon = self._toShapelyPolygon()
-        return Polyline( list(polygon.convex_hull.exterior.coords) )
+        return Polyline( list(polygon.convex_hull.exterior.coords), color=self.color )
 
 
     def getStrokePath(self, **kwargs):
@@ -488,48 +488,66 @@ class Polyline(AxiElement):
 
         polygon = self._toShapelyPolygon()
         
-        # Can only result in a Polygon or MultiPolygon
-        # NOTE: The resulting polygon can be "empty".
+         # initial inset (may produce Polygon, MultiPolygon or empty)
         current = polygon.buffer(-head_width / 2.0 - offset)
-        if current.area == 0:
-            # Otherwise, trying to to insert current.exterior == None
-            # into the FlatCAMStorage will fail.
+        # If empty geometry, return empty Path
+        if getattr(current, "is_empty", False) or getattr(current, "area", 0) == 0:
             return Path()
 
-        path = Path(head_width=head_width)
-        # current can be a MultiPolygon
+        path = Path(head_width=head_width, color=self.color)
+
+        # Try to import shapely geometry types if available
         try:
-            for p in current:
-                path.add( Polyline( list(p.exterior.coords) ) )
-                for i in p.interiors:
-                    path.add( Polyline( i.coords ) )
+            from shapely.geometry import Polygon, MultiPolygon
+        except Exception:
+            Polygon = None
+            MultiPolygon = None
 
-        # Not a Multipolygon. Must be a Polygon
-        except TypeError:
-            path.add( Polyline( list(current.exterior.coords) ) )
-            for i in current.interiors:
-                path.add( Polyline( list(i.coords) ) )
+        # helper: iterate over polygon-like geometries in a robust way
+        def _iter_polygons(geom):
+            if geom is None:
+                return
+            # If geometry has geoms (MultiPolygon, GeometryCollection), iterate children
+            if hasattr(geom, "geoms"):
+                for g in geom.geoms:
+                    yield g
+                return
+            # If it's a Polygon instance (when shapely imported), yield it
+            if Polygon is not None and isinstance(geom, Polygon):
+                yield geom
+                return
+            # Fallback: try to iterate directly (older shapely/other geometry types)
+            try:
+                for g in geom:
+                    yield g
+            except Exception:
+                return
+            
+        # helper: add polygon exterior and interiors to path (safely)
+        def _add_polygon_to_path(poly):
+            if poly is None:
+                return
+            exterior = getattr(poly, "exterior", None)
+            if exterior is not None:
+                coords = list(exterior.coords)
+                if len(coords) >= 3:
+                    path.add( Polyline(coords, color=self.color) )
+            for interior in getattr(poly, "interiors", []):
+                coords = list(interior.coords)
+                if len(coords) >= 3:
+                    path.add( Polyline(coords, color=self.color) )
 
+        # add initial rings
+        for poly in _iter_polygons(current):
+            _add_polygon_to_path(poly)
+
+        # iteratively inset and collect rings
         while True:
-
-            # Can only result in a Polygon or MultiPolygon
             current = current.buffer(-head_width * (1 - overlap))
-            if current.area > 0:
-
-                # current can be a MultiPolygon
-                try:
-                    for p in current:
-                        path.add( Polyline( list(p.exterior.coords) ) )
-                        for i in p.interiors:
-                            path.add( Polyline( list(i.coords) ) )
-
-                # Not a Multipolygon. Must be a Polygon
-                except TypeError:
-                    path.add( Polyline( list(current.exterior.coords) ) )
-                    for i in current.interiors:
-                        path.add( Polyline( list(i.coords) ) )
-            else:
+            if getattr(current, "is_empty", False) or getattr(current, "area", 0) == 0:
                 break
+            for poly in _iter_polygons(current):
+                _add_polygon_to_path(poly)
 
         if simplify:
             path = path.getSimplify()
@@ -635,13 +653,13 @@ class Polyline(AxiElement):
 
 
     def getTransformed(self, func):
-        return Polyline([func(x, y) for x, y in self.getPoints()])
+        return Polyline([func(x, y) for x, y in self.getPoints()], color=self.color )
 
 
     def getPoints(self):
         points = []
 
-        if self.isTranformed:
+        if self.isTransformed:
             for p in self.points:
                 points.append( transform(p, rotate=self.rotate, scale=self.scale, translate=self.translate, anchor=self.anchor) )
         else:

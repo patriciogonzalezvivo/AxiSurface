@@ -32,11 +32,11 @@ class AxiElement(object):
         self.translate = kwargs.pop('translate', np.array([0, 0]) )
         self.rotate = kwargs.pop('rotate', 0.0)
         self.scale = kwargs.pop('scale', 1.0)
-        
         self.parent = None
-
+        self.color = kwargs.pop('color', 'black')
+        
     @property
-    def isTranformed(self):
+    def isTransformed(self):
         return self.translate[0] != 0.0 or self.translate[1] != 0.0 or self.scale != 1.0 or self.rotate != 0.0
 
 
@@ -110,11 +110,12 @@ class AxiElement(object):
     def getStrokePath(self, **kwargs ):
         # raise Exception('getPath(): Function not declare. Going with a simple convertion of the getPoints() to a Path')
         from .Path import Path
-        return Path([ self.getPoints() ])
+        return Path([ self.getPoints() ], color=self.color) 
 
 
     def getFillPath(self, **kwargs ):
-        return Path()
+        from .Path import Path
+        return Path([ self.getPoints() ], color=self.color, fill=True )
 
 
     def getPath(self, **kwargs):

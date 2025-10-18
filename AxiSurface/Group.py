@@ -109,10 +109,13 @@ class Group(AxiElement):
 
 
     def getTransformed(self, func):
-        new_group = Group(self.id, fill=self.fill, stroke_width=self.stroke_width, head_width=self.head_width)
+        new_group = Group(self.id, fill=self.fill, stroke_width=self.stroke_width, head_width=self.head_width, color=self.color)
 
         for el in self.elements:
-            new_el = el.getTransformed(func)
+            if isinstance(el, Path) or isinstance(el, Group):
+                new_el = el.getTransformed(func)
+            else:
+                new_el = el.getPath().getTransformed(func)
             new_group.add( new_el )
 
         return new_group
@@ -128,7 +131,7 @@ class Group(AxiElement):
     def getPath(self, **kwargs):
         import copy
 
-        path = Path()
+        path = Path(color=self.color)
         for el in self.elements:
             if isinstance(el, Path ):
                 path.add( el )
@@ -218,8 +221,8 @@ class Group(AxiElement):
     def getSVGElementString(self):
         svg_str = '<g '
         if self.id != None:
-            svg_str += 'id="' + self.id + '" '
-        svg_str += 'fill="none" stroke="black" stroke-width="'+str(self.head_width)+'">'
+            svg_str += f'id="{self.id}" '
+        svg_str += f'fill="none" stroke="{self.color}" stroke-width="{self.head_width}">'
 
         for el in self.elements:
             svg_str += el.getSVGElementString()
