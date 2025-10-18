@@ -478,7 +478,7 @@ class Polyline(AxiElement):
         head_width = kwargs.pop('head_width', self.head_width)
         overlap = kwargs.pop('overlap', 0.15 )
         offset = kwargs.pop('offset', 0.0 )
-        simplify = kwargs.pop('simplify', True )
+        simplify = kwargs.pop('simplify', False )
         sort_them = kwargs.pop('sort', True )
         join_them = kwargs.pop('join', True )
         optimize_lifts = kwargs.pop('optimize_lifts', False )

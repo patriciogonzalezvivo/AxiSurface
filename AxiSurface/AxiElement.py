@@ -115,16 +115,16 @@ class AxiElement(object):
 
     def getFillPath(self, **kwargs ):
         from .Path import Path
-        return Path([ self.getPoints() ], color=self.color, fill=True )
+        return Path([ self.getPoints() ], color=self.color)
 
 
     def getPath(self, **kwargs):
-        # raise Exception('getPath(): Function not declare. Going with a simple convertion of the getPoints() to a Path')
-        from .Path import Path
-        path = self.getStrokePath(**kwargs)
-
+        # # raise Exception('getPath(): Function not declare. Going with a simple convertion of the getPoints() to a Path')
+        # from .Path import Path
         if self.fill:
-            path.add( self.getFillPath(**kwargs) )
+            return self.getFillPath(**kwargs)
+        else:
+            return self.getStrokePath(**kwargs)
 
         return path
 
