@@ -20,7 +20,6 @@ from .Path import Path
 from .Pattern import Pattern
 
 from .tools import dom2dict, parse_transform
-from utils.AxiSurface.AxiSurface import Pattern
 
 class Group(AxiElement):
     def __init__( self, id="Untitled", **kwargs ):

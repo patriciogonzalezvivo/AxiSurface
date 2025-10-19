@@ -14,7 +14,7 @@ from .Image import *
 from .tools import dom2dict
 
 class AxiSurface(Group):
-    def __init__(self, size='A3', **kwargs):
+    def __init__(self, size = 'A3', **kwargs):
         Group.__init__(self, **kwargs)
         self.id = 'Body'
 
@@ -66,7 +66,7 @@ class AxiSurface(Group):
         return [self.width * 0.5, self.height * 0.5]
         
 
-    def fromSVG( self, filename ):
+    def fromSVG(self, filename: str) -> None:
         # TODO:
         #  - Add CubicBezier, QuadraticBezier support
         #  - Resolve nested and element transformations
@@ -89,7 +89,7 @@ class AxiSurface(Group):
         root_group.parseSVGNode( svg )
 
 
-    def toSVG( self, filename, **kwargs ):
+    def toSVG(self, filename: str, **kwargs ) -> None:
         scale = kwargs.pop('scale', 1.0)
         margin = kwargs.pop('margin', [0.0, 0.0])
         unit = kwargs.pop('unit', 'mm')
@@ -151,7 +151,7 @@ class AxiSurface(Group):
             file.write(svg_str)
 
 
-    def toGCODE(self, filename, **kwargs ):
+    def toGCODE(self, filename: str, **kwargs ) -> None:
         flip_x = kwargs.pop('flip_x', False)
         flip_y = kwargs.pop('flip_y', True)
         auto_center = kwargs.pop('auto_center', True)
@@ -199,7 +199,7 @@ class AxiSurface(Group):
             file.write(gcode_str)
 
 
-    def toPNG(self, filename,  **kwargs):
+    def toPNG(self, filename: str, **kwargs) -> None:
         try:
             import cairocffi as cairo
         except ImportError:

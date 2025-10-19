@@ -183,7 +183,22 @@ class Pattern(AxiElement):
 
         elif isinstance(element, Image):
             if element.type == "mask":
-                self.data = (x, y + Image.data * 0.0)
+                # mask self.data based on element.data
+                X_mask = np.int32( element.data.shape[1] * (x * width) / width - 1e-9 )
+                Y_mask = np.int32( element.data.shape[0] * (y * height) / height - 1e-9 )
+                for i in range(x.shape[0]):
+                    if np.isnan(x[i]) or np.isnan(y[i]):
+                        continue
+                    mx = X_mask[i]
+                    my = Y_mask[i]
+                    if mx < 0 or mx >= element.data.shape[1] or my < 0 or my >= element.data.shape[0]:
+                        self.data[0][i] = np.nan
+                        self.data[1][i] = np.nan
+                    else:
+                        if not element.data[my, mx]:
+                            self.data[0][i] = np.nan
+                            self.data[1][i] = np.nan
+
             else:
                 raise Exception("Pattern: Masking Image is not a mask but a", element.type)
 

@@ -37,7 +37,7 @@ def stripes_pattern(num_lines=10, resolution=50, offset=0, zigzag=False):
     # we flatten them there is a separater between each horizontal line.
     x, y = np.meshgrid(
         np.hstack( [np.linspace(x_min, x_max, resolution), np.nan] ),
-        np.linspace(int(y_min), int(y_max), int(num_lines)),
+        np.linspace(y_min, y_max, num_lines),
     )
 
     if zigzag:
