@@ -10,7 +10,7 @@ import math
 import numpy as np
 
 from .AxiElement import AxiElement
-from .tools import polar2xy, remap, distance, pointInside
+from .tools import remap, distance, pointInside
 
 class Circle(AxiElement):
     def __init__( self, center, radius, **kwargs ):

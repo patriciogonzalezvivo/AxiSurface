@@ -11,7 +11,7 @@ import cmath
 import numpy as np
 
 from .AxiElement import AxiElement
-from .tools import linesIntersection, distance, xy2polar, remap
+from .tools import linesIntersection, distance, remap
 
 # From SVG PathTools by Mat Handy
 # https://github.com/mathandy/svgpathtools/blob/master/svgpathtools/path.py#L1238

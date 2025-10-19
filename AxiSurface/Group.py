@@ -17,12 +17,13 @@ from .Polyline import Polyline
 from .Polygon import Polygon
 from .Text import Text
 from .Path import Path
-from .Texture import Texture
+from .Pattern import Pattern
 
 from .tools import dom2dict, parse_transform
+from utils.AxiSurface.AxiSurface import Pattern
 
 class Group(AxiElement):
-    def __init__( self, id="Untitle", **kwargs ):
+    def __init__( self, id="Untitled", **kwargs ):
         AxiElement.__init__(self, **kwargs);
 
         self.id = id
@@ -98,8 +99,8 @@ class Group(AxiElement):
         return self.add( Text(text, center, **kwargs) )
 
 
-    def texture(self, texture, **kwargs):
-        return self.add( Texture(texture, **kwargs) )
+    def pattern(self, pattern, **kwargs):
+        return self.add( Pattern(pattern, **kwargs) )
 
 
     def group(self, group_id, **kwargs):

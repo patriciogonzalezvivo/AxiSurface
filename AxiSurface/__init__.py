@@ -26,5 +26,5 @@ from .Path import Path
 from .Image import Image
 from .convert import *
 
-from .Texture import Texture
-from .textures_generators import *
+from .Pattern import Pattern
+from .pattern_generators import *

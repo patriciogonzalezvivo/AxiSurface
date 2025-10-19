@@ -12,7 +12,7 @@ import numpy as np
 # This code is adapted from Paul Butler great Surface Projection tutorial
 # https://bitaesthetics.com/posts/surface-projection.html and PenKit https://github.com/paulgb/penkit/
 
-def stripes_texture(num_lines=10, resolution=50, offset=0, zigzag=False):
+def stripes_pattern(num_lines=10, resolution=50, offset=0, zigzag=False):
     x_min = 0.0
     x_max = 1.0
     y_min = 0.0
@@ -29,7 +29,7 @@ def stripes_texture(num_lines=10, resolution=50, offset=0, zigzag=False):
     y_min = y_min + lines_offset
     y_max = (y_max-lines_unit) + lines_offset
 
-    print(f"stripes_texture: num_lines={num_lines}, resolution={resolution}, offset={offset} -> x:[{x_min},{x_max}] y:[{y_min},{y_max}]")
+    print(f"stripes_pattern: num_lines={num_lines}, resolution={resolution}, offset={offset} -> x:[{x_min},{x_max}] y:[{y_min},{y_max}]")
 
     # np.meshgrid is a handy way to generate a grid of points. It
     # returns a pair of matrices, which we will flatten into arrays.
@@ -37,7 +37,7 @@ def stripes_texture(num_lines=10, resolution=50, offset=0, zigzag=False):
     # we flatten them there is a separater between each horizontal line.
     x, y = np.meshgrid(
         np.hstack( [np.linspace(x_min, x_max, resolution), np.nan] ),
-        np.linspace(y_min, y_max, num_lines),
+        np.linspace(int(y_min), int(y_max), int(num_lines)),
     )
 
     if zigzag:
@@ -55,13 +55,13 @@ def stripes_texture(num_lines=10, resolution=50, offset=0, zigzag=False):
     return x.flatten(), y.flatten()
 
 
-def grid_texture(num_h_lines=10, num_v_lines=10, resolution=50):
-    x_h, y_h = stripes_texture(num_h_lines, resolution)
-    y_v, x_v = stripes_texture(num_v_lines, resolution)
+def grid_pattern(num_h_lines=10, num_v_lines=10, resolution=50):
+    x_h, y_h = stripes_pattern(num_h_lines, resolution)
+    y_v, x_v = stripes_pattern(num_v_lines, resolution)
     return np.concatenate([x_h, x_v]), np.concatenate([y_h, y_v])
 
 
-def dashes_textures(dash_x, dash_y, num_lines=10, resolution=10):
+def dashes_pattern(dash_x, dash_y, num_lines=10, resolution=10):
     x_min = 0.0
     x_max = 1.0
     y_min = 0.0
@@ -81,27 +81,27 @@ def dashes_textures(dash_x, dash_y, num_lines=10, resolution=10):
     return x.flatten(), y.flatten()
 
 
-def crosses_textures(resolution=10):
+def crosses_pattern(resolution=10):
     resolution = int(resolution)
     offset = (1.0/resolution)
 
     dash_x = np.array([ offset*0.5, 0.0, -offset*0.5, np.nan ])
     dash_y = np.array([ np.nan, 0.0, np.nan, np.nan ])
 
-    x_h, y_h = dashes_textures(dash_x, dash_y, resolution, resolution)  
-    y_v, x_v = dashes_textures(dash_x, dash_y, resolution, resolution)
+    x_h, y_h = dashes_pattern(dash_x, dash_y, resolution, resolution)  
+    y_v, x_v = dashes_pattern(dash_x, dash_y, resolution, resolution)
     return np.concatenate([x_h, x_v]), np.concatenate([y_h, y_v])
 
 
-def spiral_texture(spirals=6.0, ccw=False, offset=0.0, resolution=1000):
-    """Makes a texture consisting of a spiral from the origin.
+def spiral_pattern(spirals=6.0, ccw=False, offset=0.0, resolution=1000):
+    """Makes a pattern consisting of a spiral from the origin.
     Args:
         spirals (float): the number of rotations to make
         ccw (bool): make spirals counter-clockwise (default is clockwise)
         offset (float): if non-zero, spirals start offset by this amount
         resolution (int): number of midpoints along the spiral
     Returns:
-        A texture.
+        A pattern.
     """
     dist = np.sqrt(np.linspace(0., 1., resolution))
     if ccw:
@@ -109,21 +109,21 @@ def spiral_texture(spirals=6.0, ccw=False, offset=0.0, resolution=1000):
     else:
         direction = -1.
     angle = dist * spirals * np.pi * 2. * direction
-    spiral_texture = (
+    spiral_pattern = (
         (np.cos(angle) * dist / 2.) + 0.5,
         (np.sin(angle) * dist / 2.) + 0.5
     )
-    return spiral_texture
+    return spiral_pattern
 
 
-def hex_texture(grid_size = 10, resolution=50):
-    """Makes a texture consisting on a grid of hexagons.
+def hex_pattern(grid_size = 10, resolution=50):
+    """Makes a pattern consisting on a grid of hexagons.
     Args:
         grid_size (int): the number of hexagons along each dimension of the grid
         resolution (int): the number of midpoints along the line of each hexagon
     
     Returns:
-        A texture.
+        A pattern.
     """
     grid_x, grid_y = np.meshgrid(
         np.arange(grid_size),

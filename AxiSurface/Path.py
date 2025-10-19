@@ -344,12 +344,12 @@ class Path(AxiElement):
         return Polyline( polygon.convex_hull.exterior.coords, head_width=self.head_width, color=self.color )
 
 
-    def getTexture(self, width, height, **kwargs):
+    def getPattern(self, width, height, **kwargs):
         resolution = kwargs.pop('resolution', None)
 
-        from .Texture import Texture
+        from .Pattern import Pattern
         from .Polyline import Polyline
-        texture = Texture(width=width, height=height, **kwargs, color=self.color)
+        pattern = Pattern(width=width, height=height, **kwargs, color=self.color)
 
         for points in self.path:
         
@@ -366,15 +366,15 @@ class Path(AxiElement):
 
             for i in range(N):
                 X, Y = points[i]
-                x[i] = X / float(texture.width)
-                y[i] = Y / float(texture.height)
+                x[i] = X / float(pattern.width)
+                y[i] = Y / float(pattern.height)
 
             x[N] = np.nan
             y[N] = np.nan
 
-            texture.add( (x.flatten('F'), y.flatten('F')) )
+            pattern.add( (x.flatten('F'), y.flatten('F')) )
 
-        return texture
+        return pattern
 
 
     def getSorted(self, reversable=True):

@@ -10,10 +10,10 @@ import numpy as np
 
 from .AxiElement import AxiElement
 from .Image import Image
-from .tools import distance, remap, transform
+from .tools import transform
 
 
-class Texture(AxiElement):
+class Pattern(AxiElement):
     def __init__( self, parent=None, **kwargs ):
         AxiElement.__init__(self, **kwargs)
         self.width = float(kwargs.pop('width', 100))
@@ -27,7 +27,7 @@ class Texture(AxiElement):
             y.fill(np.nan)
             self.data = (x, y)
         
-        elif isinstance(parent, Texture):
+        elif isinstance(parent, Pattern):
             x, y = parent.data
             self.data = (x.copy(), y.copy())
             self.width = parent.width
@@ -50,7 +50,7 @@ class Texture(AxiElement):
 
 
     def add(self, other):
-        if isinstance(other, Texture):
+        if isinstance(other, Pattern):
             x1, y1 = self.data
             x2, y2 = other.data
             
@@ -78,7 +78,7 @@ class Texture(AxiElement):
 
 
     def turn(self, rotation, x_offset=0.5, y_offset=0.5):
-        """Rotates the given texture by a given angle.
+        """Rotates the given pattern by a given angle.
         Args:
             rotation (float): the angle of rotation in degrees
             x_offset (float): the x component of the center of rotation (optional)
@@ -95,27 +95,27 @@ class Texture(AxiElement):
 
 
     def _map(self, surface):
-        """Returns values on a surface for points on a texture.
+        """Returns values on a surface for points on a pattern.
         Args:
             surface (surface): the surface to trace along
         Returns:
             an array of surface heights for each point in the
-            texture. Line separators (i.e. values that are ``nan`` in
-            the texture) will be ``nan`` in the output, so the output
+            pattern. Line separators (i.e. values that are ``nan`` in
+            the pattern) will be ``nan`` in the output, so the output
             will have the same dimensions as the x/y axes in the
-            input texture.
+            input pattern.
         """
         x, y = self.data
         # surface_h, surface_w = surface.shape
         surface_w, surface_h = surface.shape
 
-        # First, we convert the points along the texture into integers within
+        # First, we convert the points along the pattern into integers within
         # the bounds of the surface's index. The clipping here will also convert
         # the nan values to 0.
         surface_x = np.clip( np.int32(surface_w * x - 1e-9), 0, surface_w - 1)
         surface_y = np.clip( np.int32(surface_h * y - 1e-9), 0, surface_h - 1)
 
-        # Grab z-values along the texture path. Note that this will include values
+        # Grab z-values along the pattern path. Note that this will include values
         # for every point, even if it is nan or had to be clipped to within the
         # bounds of the surface, so we have to fix that next.
         try:
@@ -123,10 +123,10 @@ class Texture(AxiElement):
         except IndexError:
             print(surface_x, surface_y, surface_w, surface_h)
 
-        # # Set z-values that are either out of bounds or nan in the texture to nan
+        # # Set z-values that are either out of bounds or nan in the pattern to nan
         # # in the output.
         # # Numpy wants to warn about the fact that there are nan values in the
-        # # textures, so we silence warnings about this.
+        # # patterns, so we silence warnings about this.
         # with np.errstate(invalid='ignore'):
         #     surface_z[  (x < 0) | (x >= 1) |
         #                 (y < 0) | (y >= 1)] = np.nan
@@ -136,7 +136,7 @@ class Texture(AxiElement):
 
     def project(self, surface, angle=0, **kwargs):
 
-        # Map the texture to get the Zs
+        # Map the pattern to get the Zs
         if isinstance(surface, Image):
             if surface.type == "grayscale":
                 z = self._map(surface.data.T)
@@ -145,7 +145,7 @@ class Texture(AxiElement):
         else:
             z = self._map(surface.T)
 
-        # Extract the Xs and Ys from the texture
+        # Extract the Xs and Ys from the pattern
         x, y = self.data
 
         if angle != 0:        
@@ -185,7 +185,7 @@ class Texture(AxiElement):
             if element.type == "mask":
                 self.data = (x, y + Image.data * 0.0)
             else:
-                raise Exception("Texture: Masking Image is not a mask but a", element.type)
+                raise Exception("Pattern: Masking Image is not a mask but a", element.type)
 
 
     def carve(self, element, width=None, height=None):
@@ -212,7 +212,7 @@ class Texture(AxiElement):
         #         self.data = (x, y + Image.data * 0.0)
 
         #     else:
-        #         raise Exception("Texture: Masking Image is not a mask but a", element.type)
+        #         raise Exception("Pattern: Masking Image is not a mask but a", element.type)
 
 
     def getPoints(self):
@@ -276,7 +276,7 @@ class Texture(AxiElement):
         gcode_str = ''
         gcode_str += "G0 Z%0.1f F" % (head_up_height) + str(head_up_speed) + "\n"
         
-        # Map the texture to get the Zs
+        # Map the pattern to get the Zs
         if isinstance(surface, Image):
             if surface.type == "grayscale":
                 Z = self._map(surface.data.T)
@@ -286,7 +286,7 @@ class Texture(AxiElement):
         else:
             Z = self._map(surface.T)
 
-        # Extract the Xs and Ys from the texture
+        # Extract the Xs and Ys from the pattern
         X, Y = self.data
 
         draw = False

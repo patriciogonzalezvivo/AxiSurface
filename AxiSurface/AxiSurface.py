@@ -8,8 +8,8 @@ from __future__ import unicode_literals
 
 from .Group import *
 from .Image import *
-from .Texture import *
-from .Polyline import Polyline
+# from .Pattern import *
+# from .Polyline import Polyline
 
 from .tools import dom2dict
 

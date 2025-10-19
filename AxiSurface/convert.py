@@ -7,12 +7,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from collections import defaultdict
-from .textures_generators import *
+from .pattern_generators import *
 
 from .Path import Path
 from .Polygon import Polygon
 from .Image import Image
-from .Texture import *
+from .Pattern import *
 from .tools import transform
 
 
@@ -206,13 +206,13 @@ def ImageThresholdToPolygons(filename, threshold=0.5, min_area=10.0, scale=1.0, 
     return polygons
 
 
-def GrayscaleToTexture(grayscale, **kwargs):
+def GrayscaleToPattern(grayscale, **kwargs):
     grayscale = Image( grayscale )
 
     threshold = float(kwargs.pop('threshold', 0.5))
     invert = kwargs.pop('invert', False)
-    texture = kwargs.pop('texture', None)
-    texture_angle = float(kwargs.pop('texture_angle', 0.0))
+    pattern = kwargs.pop('pattern', None)
+    pattern_angle = float(kwargs.pop('pattern_angle', 0.0))
     mask = kwargs.pop('mask', None)
 
     # Make surface to carve from (copy from gradient to get same dinesions)
@@ -229,32 +229,32 @@ def GrayscaleToTexture(grayscale, **kwargs):
         mask = mask.threshold()
     surface = surface - mask
 
-    # Create texture
-    if texture is None:
-        texture_resolution = kwargs.pop('texture_resolution', min(grayscale.width, grayscale.height) * 0.5)
-        texture_presicion = float(kwargs.pop('texture_presicion', 1.0))
-        texture_offset = float(kwargs.pop('texture_offset', 0.0)) 
-        texture = Texture( stripes_texture(texture_resolution, min(grayscale.width, grayscale.height) * texture_presicion, texture_offset), **kwargs)
-    elif not isinstance(texture, Texture):
-        texture = Texture( texture, **kwargs  )
+    # Create pattern
+    if pattern is None:
+        pattern_resolution = kwargs.pop('pattern_resolution', min(grayscale.width, grayscale.height) * 0.5)
+        pattern_presicion = float(kwargs.pop('pattern_presicion', 1.0))
+        pattern_offset = float(kwargs.pop('pattern_offset', 0.0)) 
+        pattern = Pattern( stripes_pattern(pattern_resolution, min(grayscale.width, grayscale.height) * pattern_presicion, pattern_offset), **kwargs)
+    elif not isinstance(pattern, Pattern):
+        pattern = Pattern( pattern, **kwargs  )
 
-    if texture_angle > 0:
-        texture.turn(texture_angle)
+    if pattern_angle > 0:
+        pattern.turn(pattern_angle)
 
-    # Project texture on surface 
-    texture.project(surface)
+    # Project pattern on surface 
+    pattern.project(surface)
 
-    return texture
+    return pattern
 
 
-def HeightmapToTexture(filename, **kwargs):
+def HeightmapToPattern(filename, **kwargs):
     grayscale = kwargs.pop('grayscale', None)
     camera_angle = float(kwargs.pop('camera_angle', 10.0))
 
     threshold = float(kwargs.pop('threshold', 0.5))
     invert = kwargs.pop('invert', False)
-    texture = kwargs.pop('texture', None)
-    texture_angle = float(kwargs.pop('texture_angle', 0.0))
+    pattern = kwargs.pop('pattern', None)
+    pattern_angle = float(kwargs.pop('pattern_angle', 0.0))
     mask = kwargs.pop('mask', None)
 
     # Load heightmap
@@ -272,18 +272,18 @@ def HeightmapToTexture(filename, **kwargs):
         gradientmap = Image( grayscale )
         heightmap = heightmap - gradientmap.dither(threshold=threshold, invert=invert)
 
-    # Create texture
-    if texture is None:
-        texture_resolution = kwargs.pop('texture_resolution', min(heightmap.width, heightmap.height) * 0.5)
-        texture_presicion = float(kwargs.pop('texture_presicion', 1.0))
-        texture_offset = float(kwargs.pop('texture_offset', 0.0)) 
-        texture = Texture( stripes_texture(num_lines=texture_resolution, resolution=min(heightmap.width, heightmap.height) * texture_presicion, offset=texture_offset), **kwargs )
-    elif not isinstance(texture, Texture):
-        texture = Texture( texture, **kwargs )
+    # Create pattern
+    if pattern is None:
+        pattern_resolution = kwargs.pop('pattern_resolution', min(heightmap.width, heightmap.height) * 0.5)
+        pattern_presicion = float(kwargs.pop('pattern_presicion', 1.0))
+        pattern_offset = float(kwargs.pop('pattern_offset', 0.0)) 
+        pattern = Pattern( stripes_pattern(num_lines=pattern_resolution, resolution=min(heightmap.width, heightmap.height) * pattern_presicion, offset=pattern_offset), **kwargs )
+    elif not isinstance(pattern, Pattern):
+        pattern = Pattern( pattern, **kwargs )
 
-    if texture_angle > 0:
-        texture.turn(texture_angle)
+    if pattern_angle > 0:
+        pattern.turn(pattern_angle)
 
-    texture.project(heightmap, camera_angle)
+    pattern.project(heightmap, camera_angle)
 
-    return texture
+    return pattern
