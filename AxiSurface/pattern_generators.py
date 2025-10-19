@@ -29,8 +29,6 @@ def stripes_pattern(num_lines=10, resolution=50, offset=0, zigzag=False):
     y_min = y_min + lines_offset
     y_max = (y_max-lines_unit) + lines_offset
 
-    print(f"stripes_pattern: num_lines={num_lines}, resolution={resolution}, offset={offset} -> x:[{x_min},{x_max}] y:[{y_min},{y_max}]")
-
     # np.meshgrid is a handy way to generate a grid of points. It
     # returns a pair of matrices, which we will flatten into arrays.
     # For the x-coordinates, we put a nan value at the end so that when

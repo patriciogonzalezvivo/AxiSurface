@@ -47,7 +47,11 @@ class Pattern(AxiElement):
 
     def __iadd__(self, other):
         return self.add(other)
+    
 
+    def copy(self):
+        return Pattern(self)    
+    
 
     def add(self, other):
         if isinstance(other, Pattern):
