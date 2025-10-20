@@ -138,7 +138,7 @@ class Pattern(AxiElement):
         return surface_z
 
 
-    def project(self, surface, angle=0, **kwargs):
+    def project(self, surface, angle=0, offset=0,**kwargs):
 
         # Map the pattern to get the Zs
         if isinstance(surface, Image):
@@ -159,9 +159,9 @@ class Pattern(AxiElement):
             z_coef = np.sin(np.radians( (angle) ))
             y_coef = np.cos(np.radians( (angle) ))
 
-            self.data = (x, y * y_coef - z * z_coef)
+            self.data = (x, (y * y_coef + offset * 0.5) - z * z_coef)
         else:
-            self.data = (x, y + z * 0.0)
+            self.data = (x, (y - offset * 0.5) + (z * offset * 0.5) )
 
         return self
 

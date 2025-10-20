@@ -227,7 +227,9 @@ def GrayscaleToPattern(grayscale, **kwargs):
     if isinstance(mask, str):
         mask = Image(mask)
         mask = mask.threshold()
-    surface = surface - mask
+        surface = surface - mask
+
+    surface = surface.data * 0.0;
 
     # Create pattern
     if pattern is None:
@@ -241,7 +243,7 @@ def GrayscaleToPattern(grayscale, **kwargs):
     if pattern_angle > 0:
         pattern.turn(pattern_angle)
 
-    # Project pattern on surface 
+    # # Project pattern on surface 
     pattern.project(surface)
 
     return pattern

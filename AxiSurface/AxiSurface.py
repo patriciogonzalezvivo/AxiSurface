@@ -103,8 +103,6 @@ class AxiSurface(Group):
         svg_str += 'viewBox="0,0,'+ str(self.width * scale) + ',' + str(self.height * scale) + '" '
         svg_str += 'baseProfile="tiny" version="1.2" xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" ><defs/>'
 
-        # path = self.getPath()
-
         for el in self.elements:
 
             if isinstance(el, Group ):
