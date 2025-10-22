@@ -1,6 +1,6 @@
-![](examples/berthe.jpeg)
+![](examples/Surface.jpeg)
 
-# Berthe
+# Surface
 
 Python module to make 100% vector line compositions and export them as SVG, PNGs, Blender Paths or G-Code files. 
 Made and tested for AxiDrawer plotter and SnapMaker CNC
@@ -23,12 +23,12 @@ Special thanks to:
 
 ## Install
 
-Create a new conda environment and install Berthe:
+Create a new conda environment and install Surface:
 
 ```bash
-git clone git@github.com:patriciogonzalezvivo/berthe.git
-cd berthe
+git clone git@github.com:patriciogonzalezvivo/Surface.git
+cd Surface
 conda env create -f environment.yml
-conda activate berthe
+conda activate Surface
 pip install -e .
 ```

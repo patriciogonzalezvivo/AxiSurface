@@ -6,11 +6,11 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from berthe import *
+from Surface import *
 
 # Depth
 heightmap = Image('lucy_depth.png')
-axi = Berthe()
+axi = Surface()
 
 contours = ImageContourToPath(heightmap, 0.1).getScaled(0.1)
 contour = Polyline( contours.path[0] )

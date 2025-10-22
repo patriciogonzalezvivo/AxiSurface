@@ -6,8 +6,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from berthe import *
-from berthe.convert import *
+from Surface import *
+from Surface.convert import *
 
 invert = False
 threshold_value = 0.5
@@ -24,7 +24,7 @@ mask.threshold(0.1)
 
 grayscale = Image( 'lucy_dof.png' )
 
-axi = Berthe()
+axi = Surface()
 
 contours = Path()
 for threshold in range(samples):

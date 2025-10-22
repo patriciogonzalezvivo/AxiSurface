@@ -6,12 +6,12 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from berthe import *
+from Surface import *
 
 # Depth
 area_size = [70, 70]
 
-axi = Berthe(area_size)
+axi = Surface(area_size)
 
 axi.line( [-int(area_size[0]/2), 0.0], [int(area_size[0]/2), 0.0] )
 axi.line( [0.0, -int(area_size[1]/2)], [0.0, int(area_size[1]/2)] )

@@ -1,4 +1,4 @@
-name: Berthe
+name: Surface
 channels:
   - conda-forge
   - defaults

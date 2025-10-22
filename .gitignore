@@ -1,5 +1,5 @@
 .DS_Store
 build
 dist
-Berthe.egg-info
+Surface.egg-info
 *.pyc

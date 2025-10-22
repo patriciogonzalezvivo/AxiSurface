@@ -13,7 +13,7 @@ from .Image import *
 
 from .tools import dom2dict
 
-class Berthe(Group):
+class Surface(Group):
     def __init__(self, size = 'A3', **kwargs):
         Group.__init__(self, **kwargs)
         self.id = 'Body'
@@ -204,7 +204,7 @@ class Berthe(Group):
             cairo = None
 
         if cairo is None:
-            raise Exception('Berthe.toPNG() requires cairo')
+            raise Exception('Surface.toPNG() requires cairo')
 
         sort = kwargs.pop('sort', False)
         flip_x = kwargs.pop('flip_x', False)
@@ -315,7 +315,7 @@ class Berthe(Group):
     #         Mesh = None
 
     #     if Mesh is None:
-    #         raise Exception('Berthe.fromMesh() requires Meshes')
+    #         raise Exception('Surface.fromMesh() requires Meshes')
 
 
     def toMesh(self, **kwargs):
@@ -325,7 +325,7 @@ class Berthe(Group):
             Mesh = None
 
         if Mesh is None:
-            raise Exception('Berthe.toMesh() requires Meshes')
+            raise Exception('Surface.toMesh() requires Meshes')
 
         optimize = kwargs.pop('optimize', False)
         flip_x = kwargs.pop('flip_x', False)
@@ -376,7 +376,7 @@ class Berthe(Group):
             bpy = None
 
         if bpy is None:
-            raise Exception('Berthe.toBlenderCurve() requires Blender enviroment')
+            raise Exception('Surface.toBlenderCurve() requires Blender enviroment')
 
         optimize = kwargs.pop('optimize', False)
         flip_x = kwargs.pop('flip_x', False)
@@ -408,7 +408,7 @@ class Berthe(Group):
         curvedata = bpy.data.curves.new(name="path", type='CURVE')  
         curvedata.dimensions = '3D'  
     
-        objectdata = bpy.data.objects.new("Berthe", curvedata)  
+        objectdata = bpy.data.objects.new("Surface", curvedata)  
         objectdata.location = (0,0,0)
     
         scene = bpy.context.scene   

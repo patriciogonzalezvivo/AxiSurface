@@ -1,4 +1,4 @@
-from berthe import Berthe, Path, convert
+from Surface import Surface, Path, convert
 import cv2
 
 margin = [10, 10]
@@ -10,7 +10,7 @@ vector_paths = convert.ImageDrawingToPath(image_file, translate=margin, scale=sc
 coorners = convert.ImageSurfaceCoorners(image_file, translate=margin, scale=scale)
 
 path = Path(vector_paths)
-axi = Berthe(size='12in x 16in')
+axi = Surface(size='12in x 16in')
 
 for coorner in coorners:
     axi.circle( center=coorner, radius=marks*0.5)

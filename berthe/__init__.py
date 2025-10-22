@@ -1,7 +1,7 @@
 # outer __init__.py
 
 # Surface Class
-from .Berthe import Berthe
+from .Surface import Surface
 from .Element import Element
 
 # Elements Class

@@ -1,4 +1,4 @@
-{% set name = "Berthe" %}
+{% set name = "Surface" %}
 {% set version = "0.1.0" %}
 
 package:
@@ -28,21 +28,21 @@ requirements:
 
 test:
   imports:
-    - Berthe
+    - Surface
   commands:
     - pip check
   requires:
     - pip
 
 about:
-  home: https://github.com/patriciogonzalezvivo/Berthe
+  home: https://github.com/patriciogonzalezvivo/Surface
   license: MIT
   license_family: MIT
   summary: Simple Python module to make line SVG files for plotting
   description: |
     Python module to make 100% vector line compositions and export them as SVG or G-Code files. 
     Made and tested for AxiDrawer plotter and SnapMaker CNC.
-  dev_url: https://github.com/patriciogonzalezvivo/Berthe
+  dev_url: https://github.com/patriciogonzalezvivo/Surface
 
 extra:
   recipe-maintainers:

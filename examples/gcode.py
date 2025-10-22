@@ -6,13 +6,13 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from berthe import *
+from Surface import *
 
 # Depth
 img = Image('lucy_depth.png')
 area_size = [70, 70]
 
-axi = Berthe(area_size)
+axi = Surface(area_size)
 
 polygons = ImageThresholdToPolygons(img, 0.5, scale=0.07)
 # path = Path()

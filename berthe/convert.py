@@ -23,7 +23,7 @@ def ImageDrawingToPath(image_path, epsilon_factor=0.0001, scale=1.0, translate=(
         cv = None
 
     if cv is None:
-        raise Exception('Berthe.fromThreshold() requires OpenCV')
+        raise Exception('Surface.fromThreshold() requires OpenCV')
     
     try:
         from skimage.morphology import skeletonize
@@ -31,7 +31,7 @@ def ImageDrawingToPath(image_path, epsilon_factor=0.0001, scale=1.0, translate=(
         skeletonize = None
 
     if skeletonize is None:
-        raise Exception('Berthe.fromThreshold() requires scikit-image')
+        raise Exception('Surface.fromThreshold() requires scikit-image')
     
     # 1. Load and Preprocess
     image = cv.imread(image_path)
@@ -69,7 +69,7 @@ def ImageSurfaceCoorners(image_path, scale=1.0, translate=(0,0)):
         cv = None
 
     if cv is None:
-        raise Exception('Berthe.fromThreshold() requires OpenCV')
+        raise Exception('Surface.fromThreshold() requires OpenCV')
     
     # 1. Load and Preprocess
     image = cv.imread(image_path)
@@ -99,7 +99,7 @@ def ImageContourToPath(filename, threshold=0.5, scale=1.0):
         cv = None
 
     if cv is None:
-        raise Exception('Berthe.fromThreshold() requires OpenCV')
+        raise Exception('Surface.fromThreshold() requires OpenCV')
 
     path = []    
 
@@ -143,7 +143,7 @@ def ImageThresholdToPolygons(filename, threshold=0.5, min_area=10.0, scale=1.0, 
         cv = None
 
     if cv is None:
-        raise Exception('Berthe.fromThreshold() requires OpenCV')
+        raise Exception('Surface.fromThreshold() requires OpenCV')
 
     polygons = []    
 
