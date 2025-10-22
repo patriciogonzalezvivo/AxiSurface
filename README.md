@@ -1,6 +1,9 @@
+![](examples/berthe.jpeg)
+
 # Berthe
 
-Python module to make 100% vector line compositions and export them as SVG or G-Code files. Made and tested for AxiDrawer plotter and SnapMaker CNC
+Python module to make 100% vector line compositions and export them as SVG, PNGs, Blender Paths or G-Code files. 
+Made and tested for AxiDrawer plotter and SnapMaker CNC
 
 Special thanks to:
 
@@ -23,9 +26,9 @@ Special thanks to:
 Create a new conda environment and install Berthe:
 
 ```bash
-git clone git@github.com:patriciogonzalezvivo/Berthe.git
-cd Berthe
+git clone git@github.com:patriciogonzalezvivo/berthe.git
+cd berthe
 conda env create -f environment.yml
-conda activate Berthe
+conda activate berthe
 pip install -e .
 ```
