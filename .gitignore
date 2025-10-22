@@ -1,5 +1,5 @@
 .DS_Store
 build
 dist
-AxiSurface.egg-info
+Berthe.egg-info
 *.pyc

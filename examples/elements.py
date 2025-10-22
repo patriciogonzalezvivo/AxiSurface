@@ -7,7 +7,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import math
-from AxiSurface import *
+from berthe import *
 
 WIDTH = 297.0
 # HEIGHT = 420.0
@@ -25,7 +25,7 @@ scl_step = 1.0/cols
 x = MARGIN
 y = MARGIN
 
-axi = AxiSurface()
+axi = Berthe()
 
 axi.text( "rect", center=[MARGIN, y-10], scale=0.1 )
 for col in range(cols):

@@ -6,9 +6,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from AxiSurface import *
+from berthe import *
 
-axi = AxiSurface()
+axi = Berthe()
 text = Text(text='Hello World !!', center=[axi.width*0.5, axi.height*0.5] )
 axi.add( text )
 axi.add( text.getBuffer(5) )

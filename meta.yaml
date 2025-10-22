@@ -1,4 +1,4 @@
-{% set name = "axisurface" %}
+{% set name = "Berthe" %}
 {% set version = "0.1.0" %}
 
 package:
@@ -28,21 +28,21 @@ requirements:
 
 test:
   imports:
-    - AxiSurface
+    - Berthe
   commands:
     - pip check
   requires:
     - pip
 
 about:
-  home: https://github.com/patriciogonzalezvivo/AxiSurface
+  home: https://github.com/patriciogonzalezvivo/Berthe
   license: MIT
   license_family: MIT
   summary: Simple Python module to make line SVG files for plotting
   description: |
     Python module to make 100% vector line compositions and export them as SVG or G-Code files. 
     Made and tested for AxiDrawer plotter and SnapMaker CNC.
-  dev_url: https://github.com/patriciogonzalezvivo/AxiSurface
+  dev_url: https://github.com/patriciogonzalezvivo/Berthe
 
 extra:
   recipe-maintainers:

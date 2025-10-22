@@ -6,9 +6,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from AxiSurface import AxiSurface
+from berthe import Berthe
 
-paper = AxiSurface()
+paper = Berthe()
 
 paper.circle(center=(paper.width*0.5, paper.height*0.5), radius=paper.width*0.5 )
 paper.rect(center=(paper.width*0.5, paper.height*0.5), size=(paper.width, paper.height) )

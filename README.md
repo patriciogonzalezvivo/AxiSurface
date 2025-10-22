@@ -1,4 +1,4 @@
-# AxiSurface
+# Berthe
 
 Python module to make 100% vector line compositions and export them as SVG or G-Code files. Made and tested for AxiDrawer plotter and SnapMaker CNC
 
@@ -20,12 +20,12 @@ Special thanks to:
 
 ## Install
 
-Create a new conda environment and install AxiSurface:
+Create a new conda environment and install Berthe:
 
 ```bash
-git clone git@github.com:patriciogonzalezvivo/AxiSurface.git
-cd AxiSurface
+git clone git@github.com:patriciogonzalezvivo/Berthe.git
+cd Berthe
 conda env create -f environment.yml
-conda activate axisurface
+conda activate Berthe
 pip install -e .
 ```

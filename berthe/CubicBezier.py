@@ -8,14 +8,14 @@ from __future__ import unicode_literals
 
 import numpy as np
 
-from .AxiElement import AxiElement
+from .Element import Element
 
 # From SVG PathTools by Mat Handy
 # https://github.com/mathandy/svgpathtools/blob/master/svgpathtools/path.py#L1238
 
-class CubicBezier(AxiElement):
+class CubicBezier(Element):
     def __init__( self, start, control1, control2, end, **kwargs):
-        AxiElement.__init__(self, **kwargs)
+        Element.__init__(self, **kwargs)
 
         self._start = np.array(start)
         self._control1 = np.array(control1)

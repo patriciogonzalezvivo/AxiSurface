@@ -6,16 +6,16 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from .AxiElement import AxiElement
+from .Element import Element
 from .Polyline import Polyline
 from .Path import Path
 from .Bbox import Bbox
 from .hershey_fonts import *
 from .tools import transform
 
-class Text(AxiElement):
+class Text(Element):
     def __init__( self, text, center, **kwargs ):
-        AxiElement.__init__(self, **kwargs);
+        Element.__init__(self, **kwargs);
         self.text = str(text)
         self._center = center
 

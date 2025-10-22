@@ -13,7 +13,7 @@ from .Image import *
 
 from .tools import dom2dict
 
-class AxiSurface(Group):
+class Berthe(Group):
     def __init__(self, size = 'A3', **kwargs):
         Group.__init__(self, **kwargs)
         self.id = 'Body'
@@ -204,7 +204,7 @@ class AxiSurface(Group):
             cairo = None
 
         if cairo is None:
-            raise Exception('AxiSurface.toPNG() requires cairo')
+            raise Exception('Berthe.toPNG() requires cairo')
 
         sort = kwargs.pop('sort', False)
         flip_x = kwargs.pop('flip_x', False)
@@ -315,7 +315,7 @@ class AxiSurface(Group):
     #         Mesh = None
 
     #     if Mesh is None:
-    #         raise Exception('AxiSurface.fromMesh() requires Meshes')
+    #         raise Exception('Berthe.fromMesh() requires Meshes')
 
 
     def toMesh(self, **kwargs):
@@ -325,7 +325,7 @@ class AxiSurface(Group):
             Mesh = None
 
         if Mesh is None:
-            raise Exception('AxiSurface.toMesh() requires Meshes')
+            raise Exception('Berthe.toMesh() requires Meshes')
 
         optimize = kwargs.pop('optimize', False)
         flip_x = kwargs.pop('flip_x', False)
@@ -376,7 +376,7 @@ class AxiSurface(Group):
             bpy = None
 
         if bpy is None:
-            raise Exception('AxiSurface.toBlenderCurve() requires Blender enviroment')
+            raise Exception('Berthe.toBlenderCurve() requires Blender enviroment')
 
         optimize = kwargs.pop('optimize', False)
         flip_x = kwargs.pop('flip_x', False)
@@ -408,7 +408,7 @@ class AxiSurface(Group):
         curvedata = bpy.data.curves.new(name="path", type='CURVE')  
         curvedata.dimensions = '3D'  
     
-        objectdata = bpy.data.objects.new("AxiSurface", curvedata)  
+        objectdata = bpy.data.objects.new("Berthe", curvedata)  
         objectdata.location = (0,0,0)
     
         scene = bpy.context.scene   

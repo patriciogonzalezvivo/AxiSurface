@@ -8,12 +8,12 @@ from __future__ import unicode_literals
 
 import numpy as np
 
-from .AxiElement import AxiElement
+from .Element import Element
 from .tools import linesIntersection, perpendicular, transform, distance
 
-class Line(AxiElement):
+class Line(Element):
     def __init__( self, start, end, **kwargs):
-        AxiElement.__init__(self, **kwargs);
+        Element.__init__(self, **kwargs);
         self._start = np.array(start)
         self._end = np.array(end)
 

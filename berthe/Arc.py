@@ -10,15 +10,15 @@ import math
 import cmath
 import numpy as np
 
-from .AxiElement import AxiElement
+from .Element import Element
 from .tools import linesIntersection, distance, remap
 
 # From SVG PathTools by Mat Handy
 # https://github.com/mathandy/svgpathtools/blob/master/svgpathtools/path.py#L1238
 
-class Arc(AxiElement):
+class Arc(Element):
     def __init__( self, start, end, radius, **kwargs):
-        AxiElement.__init__(self, **kwargs)
+        Element.__init__(self, **kwargs)
 
         self._start = np.array(start)
         self._end = np.array(end)

@@ -6,14 +6,14 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from AxiSurface import *
+from berthe import *
 
 heightmap = Image('lucy_depth.png')
-axi = AxiSurface()
+axi = Berthe()
 contours = ImageContourToPath(heightmap, 0.1).getScaled(0.1)
 contour = Polyline( contours.path[0] )
 
-axi = AxiSurface()
+axi = Berthe()
 
 pattern_strip = Pattern( stripes_pattern(num_lines=100, resolution=100) )
 axi.pattern( pattern_strip )

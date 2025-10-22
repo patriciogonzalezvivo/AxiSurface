@@ -6,9 +6,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from AxiSurface import *
+from berthe import *
 
-axi = AxiSurface()
+axi = Berthe()
 
 def charRow(y, font_index):
     axi.text( FONTS_NAMES[font_index], [axi.width*0.1, y + 5], scale=0.1, stroke_width=2.0)

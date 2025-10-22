@@ -9,16 +9,16 @@ from __future__ import unicode_literals
 import math
 import numpy as np
 
-from .AxiElement import AxiElement
+from .Element import Element
 from .Index import Index
 from .tools import path_length, transform
 
 # Mostly rom Axi by Michael Fogleman
 # https://github.com/fogleman/axi/blob/master/axi/spatial.py
 
-class Path(AxiElement):
+class Path(Element):
     def __init__(self, path=None, **kwargs):
-        AxiElement.__init__(self, **kwargs);
+        Element.__init__(self, **kwargs);
         # self.head_width = kwargs.pop('head_width', 0.2)
         # self.id = kwargs.pop('id', None)
 
@@ -27,7 +27,7 @@ class Path(AxiElement):
         elif isinstance(path, Path):
             self.path = path.path
 
-        elif isinstance(path, AxiElement):
+        elif isinstance(path, Element):
             self.path = path.getPath()
 
         elif isinstance(path, str):
@@ -114,7 +114,7 @@ class Path(AxiElement):
             points  = other.getPoints() 
             if len(points) > 1: 
                 self.path.append( points )
-        elif isinstance(other, AxiElement):
+        elif isinstance(other, Element):
             self.path.extend( other.getPath() )
         elif isinstance(other, list):
             self.path.append( other )

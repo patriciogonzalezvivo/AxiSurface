@@ -12,7 +12,7 @@ import numpy as np
 from .Bbox import Bbox
 from .tools import pointInside, hex2fill
 
-class AxiElement(object):
+class Element(object):
     def __init__(self, **kwargs):
         self.head_width = kwargs.pop('head_width', 0.2)
         self.id = kwargs.pop('id', None)

@@ -6,7 +6,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from .AxiElement import AxiElement
+from .Element import Element
 
 from .Line import Line
 from .Arc import Arc
@@ -21,9 +21,9 @@ from .Pattern import Pattern
 
 from .tools import dom2dict, parse_transform
 
-class Group(AxiElement):
+class Group(Element):
     def __init__( self, id="Untitled", **kwargs ):
-        AxiElement.__init__(self, **kwargs);
+        Element.__init__(self, **kwargs);
 
         self.id = id
         self.elements = []

@@ -9,12 +9,12 @@ from __future__ import unicode_literals
 import math
 import numpy as np
 
-from .AxiElement import AxiElement
+from .Element import Element
 from .tools import remap, distance, pointInside
 
-class Circle(AxiElement):
+class Circle(Element):
     def __init__( self, center, radius, **kwargs ):
-        AxiElement.__init__(self, **kwargs)
+        Element.__init__(self, **kwargs)
 
         self._center = np.array(center)
         self._radius = radius

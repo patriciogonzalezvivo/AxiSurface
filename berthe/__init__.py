@@ -1,8 +1,8 @@
 # outer __init__.py
 
 # Surface Class
-from .AxiSurface import AxiSurface
-from .AxiElement import AxiElement
+from .Berthe import Berthe
+from .Element import Element
 
 # Elements Class
 from .Line import Line

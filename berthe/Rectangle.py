@@ -9,11 +9,11 @@ from __future__ import unicode_literals
 import math
 import numpy as np
 
-from .AxiElement import AxiElement
+from .Element import Element
 
-class Rectangle(AxiElement):
+class Rectangle(Element):
     def __init__( self, center, size, **kwargs ):
-        AxiElement.__init__(self, **kwargs);
+        Element.__init__(self, **kwargs);
         self._center = np.array(center)
         self.size = size
         # self.size[0] = float(kwargs.pop('width', size[0]))
@@ -22,7 +22,7 @@ class Rectangle(AxiElement):
 
     def inside( self, pos ):
         if self.isTransformed:
-            return AxiElement.inside(self, pos, self.getPoints() )
+            return Element.inside(self, pos, self.getPoints() )
         elif (pos[0] > self.center[0] - self.size[0] * 0.5) and (pos[0] < self.center[0] + self.size[0] * 0.5):
             if (pos[1] > self.center[1] - self.size[1] * 0.5) and (pos[1] < self.center[1] + self.size[1] * 0.5):
                 return True

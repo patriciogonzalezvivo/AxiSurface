@@ -9,13 +9,13 @@ from __future__ import unicode_literals
 import math
 import numpy as np
 
-from .AxiElement import AxiElement
+from .Element import Element
 from .tools import lerp, distance, remap, transform, normalize, perpendicular, clamp, dot, linesIntersection
 
 
-class Polyline(AxiElement):
+class Polyline(Element):
     def __init__( self, points=None, **kwargs):
-        AxiElement.__init__(self, **kwargs);
+        Element.__init__(self, **kwargs);
         self.points = []
         self.normals = []
         self.tangents = []
@@ -679,7 +679,7 @@ class Polyline(AxiElement):
 
 
     def getPath(self, **kwargs):
-        path = AxiElement.getPath(self, **kwargs)
+        path = Element.getPath(self, **kwargs)
 
         if self.holes != None:
             for poly in self.holes:

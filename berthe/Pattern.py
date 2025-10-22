@@ -8,14 +8,14 @@ from __future__ import unicode_literals
 
 import numpy as np
 
-from .AxiElement import AxiElement
+from .Element import Element
 from .Image import Image
 from .tools import transform
 
 
-class Pattern(AxiElement):
+class Pattern(Element):
     def __init__( self, parent=None, **kwargs ):
-        AxiElement.__init__(self, **kwargs)
+        Element.__init__(self, **kwargs)
         self.width = float(kwargs.pop('width', 100))
         self.height = float(kwargs.pop('height', 100))
         self.anchor = kwargs.pop('anchor', [0.5, 0.5])
@@ -174,7 +174,7 @@ class Pattern(AxiElement):
         if height == None:
             height = self.height
 
-        if isinstance(element, AxiElement):
+        if isinstance(element, Element):
             N = x.shape[0]
             z = np.zeros(N)
             for i in range(N):
@@ -215,7 +215,7 @@ class Pattern(AxiElement):
         if height == None:
             height = self.height
 
-        if isinstance(element, AxiElement):
+        if isinstance(element, Element):
             N = x.shape[0]
             z = np.zeros(N)
             for i in range(N):

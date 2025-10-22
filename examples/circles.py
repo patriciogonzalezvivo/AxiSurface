@@ -7,9 +7,9 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import math
-from AxiSurface import *
+from berthe import *
 
-axi = AxiSurface()
+axi = Berthe()
 center = [axi.width*0.5, axi.height*0.5]
 
 radius = axi.width*0.5 - 10.0
