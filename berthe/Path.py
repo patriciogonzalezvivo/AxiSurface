@@ -474,6 +474,90 @@ class Path(Element):
             if len(points) > 1:
                 result.add( Polyline( points, **kwargs ).getResampledBySpacing(spacing) )
         return result
+    
+
+    def splitByLength(self, length: float) -> list:
+        """
+        Split the Path into a list of Path objects, each with total length <= length.
+        Splits can occur inside individual polylines by interpolating points.
+        """
+        from .Polyline import Polyline
+
+        if length <= 0:
+            raise ValueError("length must be > 0")
+
+        result = []
+        # current Path being built
+        current_path = Path(color=self.color)
+        current_len = 0.0
+        # current polyline points being built inside current_path
+        current_poly = None
+
+        for points in self.path:
+            if len(points) < 2:
+                continue
+            # work on a local mutable copy of the polyline points (tuples)
+            pts = [tuple(p) for p in points]
+
+            i = 0
+            while i < len(pts) - 1:
+                p0 = np.array(pts[i], dtype=float)
+                p1 = np.array(pts[i + 1], dtype=float)
+                edge_vec = p1 - p0
+                edge_len = math.hypot(edge_vec[0], edge_vec[1])
+
+                # if edge length is effectively zero, skip
+                if edge_len <= 1e-12:
+                    # Ensure we still carry forward the vertex
+                    if current_poly is None:
+                        current_poly = [tuple(p0)]
+                    # append the end point (even if same)
+                    current_poly.append(tuple(p1))
+                    i += 1
+                    continue
+
+                remaining_capacity = length - current_len
+
+                if edge_len <= remaining_capacity + 1e-12:
+                    # we can fit the whole edge into current_path
+                    if current_poly is None:
+                        current_poly = [tuple(p0)]
+                    current_poly.append(tuple(p1))
+                    current_len += edge_len
+                    i += 1
+                else:
+                    # need to split this edge: interpolate a point at t
+                    t = max(0.0, min(1.0, remaining_capacity / edge_len))
+                    split_pt = p0 + edge_vec * t
+                    # add segment up to split_pt into current_poly
+                    if current_poly is None:
+                        current_poly = [tuple(p0)]
+                    current_poly.append((float(split_pt[0]), float(split_pt[1])))
+
+                    # finalize current_path with this polyline
+                    if current_poly:
+                        current_path.add(current_poly)
+                        current_poly = None
+
+                    result.append(current_path)
+                    # start a new current_path
+                    current_path = Path(color=self.color)
+                    current_len = 0.0
+
+                    # replace pts[i] with split_pt so next iteration works on remaining edge
+                    pts[i] = (float(split_pt[0]), float(split_pt[1]))
+                    # do not increment i so next loop will process the remaining portion from split_pt -> original p1
+
+            # finished this input polyline; if we have an active current_poly, add it to current_path
+            if current_poly:
+                current_path.add(current_poly)
+                current_poly = None
+
+        # after processing all polylines, append the last current_path if it has data
+        if len(current_path.path) > 0:
+            result.append(current_path)
+
+        return result
 
 
     def getTransformed(self, func):

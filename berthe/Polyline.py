@@ -63,6 +63,9 @@ class Polyline(Element):
         else:
             raise StopIteration
 
+    def length(self):
+        return self.getPerimeter()
+
 
     def next(self):
         return self.__next__()
@@ -212,6 +215,7 @@ class Polyline(Element):
 
         if len(self.lengths) < 1:
             return 0
+        
         return self.lengths[-1]
 
 
@@ -337,6 +341,43 @@ class Polyline(Element):
         #         self.isClosed = True
         
         return poly
+    
+    def getSegmentByLength(self, startLength, endLength):
+        if startLength < 0 or endLength < 0 or startLength >= endLength:
+            return Polyline( stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width, close=False, color=self.color )
+
+        poly = Polyline( stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width, close=False, color=self.color )
+        totalLength = self.getPerimeter()
+        startLength = max( min(startLength, totalLength), 0.0)
+        endLength = max( min(endLength, totalLength), 0.0)
+
+        f = startLength
+        while f < endLength:
+            poly.lineTo( self.getPointAtLength(f) )
+            f += 0.1  # step
+
+        # Add last point
+        if poly.size() > 0:
+            poly.points[-1] = self.getPointAtLength(endLength)
+
+        return poly
+
+    def splitByLength(self, length: float) -> list:
+        polylines = []
+        totalLength = self.getPerimeter()
+        f = 0.0
+        current_poly = Polyline( stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width, close=False, color=self.color )
+        while f < totalLength:
+            current_poly.lineTo( self.getPointAtLength(f) )
+            f += length
+            if f < totalLength:
+                polylines.append( current_poly )
+                current_poly = Polyline( stroke_width=self.stroke_width, fill=self.fill, head_width=self.head_width, close=False, color=self.color )
+        # Add last
+        if current_poly.size() > 0:
+            current_poly.lineTo( self.getPointAtLength(totalLength) )
+            polylines.append( current_poly )
+        return polylines
 
 
     def getResampledByCount(self, count):
