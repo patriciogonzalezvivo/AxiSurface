@@ -1,6 +1,6 @@
-![](examples/Surface.jpeg)
+![](examples/berthe.jpeg)
 
-# Surface
+# Berthe
 
 Python module to make 100% vector line compositions and export them as SVG, PNGs, Blender Paths or G-Code files. 
 Made and tested for AxiDrawer plotter and SnapMaker CNC
